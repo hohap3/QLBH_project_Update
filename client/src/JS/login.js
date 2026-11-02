@@ -3,7 +3,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import Swal from "sweetalert2";
 import axios from "axios";
 
-const BASE_URL = "https://qlbh-project.onrender.com/api";
+import { BASE_URL } from "/src/JS/common/header";
 
 async function handleLoginPage() {
   const savedUser = localStorage.getItem("hpstore_user");
@@ -38,11 +38,16 @@ async function handleLoginPage() {
 
         const realRole = response.data.role;
         userData.role = realRole;
+        userData.machinhanh = response.data.machinhanh || userData.machinhanh || null;
         localStorage.setItem("hpstore_user", JSON.stringify(userData));
+        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("token", userData.token);
 
-        if (realRole === "Manager" || realRole === "ADMIN") {
+        const roleUpper = String(realRole || "").toUpperCase();
+        if (roleUpper === "MANAGER" || roleUpper === "ADMIN") {
+          localStorage.setItem("current_admin_page", "tong-quan");
           window.location.href = "/src/pages/dashboard.html";
-        } else if (realRole === "Employee" || realRole === "STAFF") {
+        } else if (roleUpper === "EMPLOYEE" || roleUpper === "STAFF") {
           window.location.href = "/src/pages/employeeManager.html";
         } else {
           window.location.href = window.location.origin;
@@ -97,13 +102,56 @@ async function handleLoginPage() {
   usernameInput.addEventListener("input", clearErrors);
   passwordInput.addEventListener("input", clearErrors);
 
+  // ─── 2.5 HỘP CHỌN NHANH TÀI KHOẢN DEMO (1-CLICK ĐIỀN TỰ ĐỘNG CHUẨN ACTOR HP STORE) ───
+  function setDemoAccount(username, password, roleName) {
+    clearErrors();
+    usernameInput.value = username;
+    passwordInput.value = password;
+    usernameInput.classList.add("is-valid");
+    passwordInput.classList.add("is-valid");
+
+    setTimeout(() => {
+      usernameInput.classList.remove("is-valid");
+      passwordInput.classList.remove("is-valid");
+    }, 1200);
+
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 2200,
+      timerProgressBar: true,
+    });
+    Toast.fire({
+      icon: "success",
+      title: `Đã điền tài khoản ${roleName}!`,
+      text: `${username} / ${password}`,
+    });
+  }
+
+  document.getElementById("btnDemoAdmin")?.addEventListener("click", () => {
+    setDemoAccount("admin", "123456", "👑 Quản trị viên (Super Admin)");
+  });
+
+  document.getElementById("btnDemoManager")?.addEventListener("click", () => {
+    setDemoAccount("manager", "123456", "🏢 Quản lý chi nhánh (Store Manager)");
+  });
+
+  document.getElementById("btnDemoSales")?.addEventListener("click", () => {
+    setDemoAccount("nhanvien", "123456", "💼 Nhân viên bán hàng (Sales Staff)");
+  });
+
+  document.getElementById("btnDemoCustomer")?.addEventListener("click", () => {
+    setDemoAccount("khachhang", "123456", "👤 Khách hàng thành viên (Member)");
+  });
+
   // Hiện/ẩn mật khẩu
   togglePassword.addEventListener("click", function () {
     const type =
       passwordInput.getAttribute("type") === "password" ? "text" : "password";
     passwordInput.setAttribute("type", type);
-    eyeIcon.classList.toggle("fa-eye");
-    eyeIcon.classList.toggle("fa-eye-slash");
+    if (togglePassword) togglePassword.innerText = (type === "text") ? "Ẩn" : "Hiện";
+
   });
 
   // ─── 3. XỬ LÝ SỰ KIỆN XÁC THỰC ĐĂNG NHẬP ───
@@ -189,11 +237,14 @@ async function handleLoginPage() {
           username: user.username,
           name: user.fullname,
           role: user.role,
+          machinhanh: user.machinhanh || null,
           token: token,
           loginAt: new Date().toISOString(),
         };
 
         localStorage.setItem("hpstore_user", JSON.stringify(userData));
+        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("token", token);
 
         Swal.fire({
           icon: "success",
@@ -202,10 +253,11 @@ async function handleLoginPage() {
           timer: 1500,
           showConfirmButton: false,
         }).then(() => {
-          const userRole = userData.role;
-          if (userRole === "Manager" || userRole === "ADMIN") {
+          const roleUpper = String(userData.role || "").toUpperCase();
+          if (roleUpper === "MANAGER" || roleUpper === "ADMIN") {
+            localStorage.setItem("current_admin_page", "tong-quan");
             window.location.href = "/src/pages/dashboard.html";
-          } else if (userRole === "Employee" || userRole === "STAFF") {
+          } else if (roleUpper === "EMPLOYEE" || roleUpper === "STAFF") {
             window.location.href = "/src/pages/employeeManager.html";
           } else {
             window.location.href = window.location.origin;
@@ -251,6 +303,91 @@ async function handleLoginPage() {
       }
     }
   });
+  // ─── 4. KHỞI TẠO BANNER SLIDER TỰ ĐỘNG CHUẨN CELLPHONES (HÌNH 1 & HÌNH USER GỬI) ───
+  initLoginBannerSlider();
+}
+
+function initLoginBannerSlider() {
+  const container = document.getElementById("loginSliderContainer");
+  const slides = document.querySelectorAll(".banner-slide-item");
+  const dots = document.querySelectorAll(".slide-dot");
+  const prevBtn = document.getElementById("sliderPrevBtn");
+  const nextBtn = document.getElementById("sliderNextBtn");
+
+  if (!slides || slides.length === 0) return;
+
+  let currentIndex = 0;
+  let autoPlayTimer = null;
+  const slideCount = slides.length;
+
+  function showSlide(index) {
+    currentIndex = (index + slideCount) % slideCount;
+
+    slides.forEach((slide, i) => {
+      if (i === currentIndex) {
+        slide.classList.add("active");
+      } else {
+        slide.classList.remove("active");
+      }
+    });
+
+    dots.forEach((dot, i) => {
+      if (i === currentIndex) {
+        dot.classList.add("active");
+      } else {
+        dot.classList.remove("active");
+      }
+    });
+  }
+
+  function nextSlide() {
+    showSlide(currentIndex + 1);
+  }
+
+  function prevSlide() {
+    showSlide(currentIndex - 1);
+  }
+
+  function startAutoPlay() {
+    stopAutoPlay();
+    autoPlayTimer = setInterval(nextSlide, 3800);
+  }
+
+  function stopAutoPlay() {
+    if (autoPlayTimer) {
+      clearInterval(autoPlayTimer);
+      autoPlayTimer = null;
+    }
+  }
+
+  // Lắng nghe click các chấm điều hướng
+  dots.forEach((dot) => {
+    dot.addEventListener("click", () => {
+      const targetIndex = parseInt(dot.getAttribute("data-slide-to"), 10);
+      if (!isNaN(targetIndex)) {
+        showSlide(targetIndex);
+        startAutoPlay();
+      }
+    });
+  });
+
+  // Lắng nghe click nút mũi tên
+  prevBtn?.addEventListener("click", () => {
+    prevSlide();
+    startAutoPlay();
+  });
+
+  nextBtn?.addEventListener("click", () => {
+    nextSlide();
+    startAutoPlay();
+  });
+
+  // Tạm dừng khi rê chuột vào để người dùng đọc thông tin ưu đãi
+  container?.addEventListener("mouseenter", stopAutoPlay);
+  container?.addEventListener("mouseleave", startAutoPlay);
+
+  // Bắt đầu chạy tự động
+  startAutoPlay();
 }
 
 document.addEventListener("DOMContentLoaded", handleLoginPage);

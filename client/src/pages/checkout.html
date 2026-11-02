@@ -159,6 +159,45 @@
               </div>
             </div>
 
+            <!-- Khối Chọn Chi nhánh xuất hàng / Nhận hàng (CellphoneS Multi-Branch Style) -->
+            <div class="card checkout-card p-4 mb-4">
+              <div class="card-title-custom mb-3 fw-bold text-dark d-flex align-items-center justify-content-between">
+                <span>
+                  <i class="fa-solid fa-store me-2 text-danger"></i>Chi nhánh xuất hàng gần bạn nhất
+                </span>
+                <small class="text-muted fw-normal">Hệ thống tự động điều phối kho khả dụng</small>
+              </div>
+              <div class="row g-2">
+                <div class="col-md-4">
+                  <div class="form-check p-3 border rounded-3 bg-light">
+                    <input class="form-check-input" type="radio" name="checkoutBranch" id="branch-main" value="KHO_TONG" checked>
+                    <label class="form-check-label fw-bold small text-dark d-block" for="branch-main">
+                      Kho Tổng Hà Nội
+                      <span class="d-block text-muted fw-normal" style="font-size: 11px;">Giao toàn quốc & Miền Bắc</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-check p-3 border rounded-3 bg-light">
+                    <input class="form-check-input" type="radio" name="checkoutBranch" id="branch-cn1" value="KHO_CN1">
+                    <label class="form-check-label fw-bold small text-dark d-block" for="branch-cn1">
+                      Chi nhánh 1 TP.HCM
+                      <span class="d-block text-muted fw-normal" style="font-size: 11px;">Khu vực Phía Nam</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-check p-3 border rounded-3 bg-light">
+                    <input class="form-check-input" type="radio" name="checkoutBranch" id="branch-cn2" value="KHO_CN2">
+                    <label class="form-check-label fw-bold small text-dark d-block" for="branch-cn2">
+                      Chi nhánh 2 Cầu Giấy
+                      <span class="d-block text-muted fw-normal" style="font-size: 11px;">Hỏa tốc nội thành HN</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="card checkout-card p-4 mb-4">
               <div class="card-title-custom mb-3 fw-bold text-dark">
                 <i class="fa-solid fa-truck-fast me-2 text-primary"></i>Cách
@@ -345,7 +384,8 @@
                 class="btn btn-primary btn-lg w-100 fw-bold py-3"
                 style="
                   border-radius: 10px;
-                  background-color: #6366f1;
+                  background: linear-gradient(135deg, #d70018 0%, #b8001f 100%);
+                  box-shadow: 0 4px 14px rgba(215, 0, 24, 0.3);
                   border: none;
                 "
               >

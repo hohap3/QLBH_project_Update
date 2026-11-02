@@ -1,18 +1,56 @@
-footer {
-  background-color: white;
-  border-top: 1px solid #dee2e6;
-  margin-top: 50px;
+/* HP STORE Footer Styling */
+footer.hp-footer,
+footer.cp-footer {
+  background-color: #ffffff;
+  border-top: 1px solid #e4e4e7;
+  margin-top: 40px;
+  font-size: 12px;
+  color: #4b5563;
 }
-.footer-title {
-  font-weight: bold;
-  color: var(--primary-color);
-  margin-bottom: 20px;
+
+.hp-footer-title,
+.cp-footer-title {
+  font-weight: 800;
+  color: #1d1d20;
+  margin-bottom: 12px;
+  font-size: 13px;
+  text-transform: uppercase;
 }
-.footer-link {
+
+.hp-footer-link,
+.cp-footer-link {
   text-decoration: none;
-  color: #6c757d;
-  transition: 0.3s;
+  color: #4b5563;
+  display: block;
+  padding: 3px 0;
+  transition: color 0.2s ease;
 }
-.footer-link:hover {
-  color: var(--primary-color);
+
+.hp-footer-link:hover,
+.cp-footer-link:hover {
+  color: #d90429;
+  text-decoration: underline;
+}
+
+.hp-hotline-item,
+.cp-hotline-item {
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.hp-hotline-number,
+.cp-hotline-number {
+  color: #d90429;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.hp-payment-icon,
+.cp-payment-icon {
+  height: 24px;
+  object-fit: contain;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 2px 4px;
+  background: #fff;
 }

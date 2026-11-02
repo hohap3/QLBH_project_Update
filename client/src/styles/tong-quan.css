@@ -84,3 +84,32 @@
   font-weight: 700;
   font-size: 16px;
 }
+
+
+/* --- KPI Cards Interactivity & Linking (Hình 2) --- */
+.kpi-card-interactive {
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+.kpi-card-interactive:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(15, 23, 42, 0.09) !important;
+  border-color: #d70018 !important;
+}
+
+.kpi-card-interactive:active {
+  transform: translateY(-1px);
+}
+
+.kpi-card-interactive .kpi-link-badge {
+  opacity: 0;
+  transition: all 0.2s ease;
+  font-size: 10px;
+}
+
+.kpi-card-interactive:hover .kpi-link-badge {
+  opacity: 1;
+}

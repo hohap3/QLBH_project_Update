@@ -1,13 +1,10 @@
-:root {
-  --primary-color: #00b050; /* Màu xanh của nút xuất báo cáo */
-  --bg-body: #f8faff;
-  --text-main: #1a1a1a;
-}
+/* donhang.css - Tối ưu khoảng trắng & Màu sắc tươi sáng chuẩn HP STORE */
 
-body {
-  background-color: var(--bg-body);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: var(--text-main);
+:root {
+  --hp-primary: #d70018;
+  --hp-primary-dark: #b8001f;
+  --hp-border: #e2e8f0;
+  --hp-bg-light: #f8fafc;
 }
 
 /* Header Section */
@@ -15,48 +12,37 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
-}
-
-.page-title h2 {
-  font-weight: 800;
-  font-size: 1.8rem;
-  margin-bottom: 5px;
-}
-
-.page-title span {
-  color: #6c757d;
-  font-size: 0.95rem;
 }
 
 .btn-export {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: #059669;
+  color: #ffffff;
   border: none;
-  padding: 10px 20px;
+  padding: 8px 18px;
   border-radius: 10px;
   font-weight: 600;
+  font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  transition: all 0.3s;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.2);
 }
 
 .btn-export:hover {
-  background-color: #008f41;
-  transform: translateY(-2px);
-  color: white;
+  background-color: #047857;
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
-/* Search & Filter Bar */
+/* Search & Filter Bar - Tối ưu padding */
 .toolbar {
-  background: white;
-  border-radius: 15px;
-  padding: 15px 20px;
+  background: #ffffff;
+  border-radius: 12px;
   display: flex;
-  gap: 15px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  margin-bottom: 25px;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--hp-border);
 }
 
 .search-wrapper {
@@ -66,103 +52,149 @@ body {
 
 .search-wrapper i {
   position: absolute;
-  left: 15px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #adb5bd;
+  color: #94a3b8;
+  font-size: 15px;
 }
 
 .search-input {
   width: 100%;
-  padding: 10px 15px 10px 45px;
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
+  height: 40px;
+  padding: 8px 14px 8px 40px;
+  border: 1px solid var(--hp-border);
+  border-radius: 10px;
   outline: none;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
 .filter-select {
-  min-width: 150px;
-  border: 1px solid #0d6efd;
-  border-radius: 12px;
-  padding: 0 15px;
-  color: #495057;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 15px center;
-  background-size: 12px;
-  appearance: none;
-}
-
-/* Table Card */
-.content-card {
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-}
-
-.table thead {
+  min-width: 170px;
+  height: 40px;
+  border: 1px solid var(--hp-border);
+  border-radius: 10px;
+  padding: 0 14px;
+  color: #334155;
+  font-size: 13.5px;
+  font-weight: 500;
+  outline: none;
   background-color: #ffffff;
+  cursor: pointer;
 }
 
-.table thead th {
-  padding: 20px;
-  font-size: 0.85rem;
-  color: #495057;
-  border-bottom: 1px solid #f1f3f5;
-  font-weight: 600;
+.filter-select:focus {
+  border-color: #3b82f6;
 }
 
-.table tbody tr {
-  border-bottom: 1px solid #f8f9fa;
+/* Table Content Card - Tối ưu padding và khoảng trắng */
+.content-card {
+  background: #ffffff;
+  border: 1px solid var(--hp-border);
 }
 
-.table td {
-  padding: 18px 20px;
+#ordersMainTable thead th {
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid var(--hp-border);
+}
+
+#ordersMainTable tbody td {
+  padding: 12px 14px;
+  font-size: 14px;
   vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-/* Order ID link */
+#ordersMainTable tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Order ID */
 .order-id {
-  color: #0d6efd;
-  text-decoration: none;
-  font-weight: 600;
+  color: #2563eb;
+  font-weight: 700;
+  transition: color 0.15s;
 }
 
-/* Status Badges */
-.status-badge {
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
+.order-id:hover {
+  color: var(--hp-primary);
+  text-decoration: underline !important;
 }
 
-.status-delivered {
-  background-color: #e6fcf5;
-  color: #20c997;
-} /* Đã giao */
-.status-shipping {
-  background-color: #e7f5ff;
-  color: #339af0;
-} /* Đang giao */
-.status-processing {
-  background-color: #fff4e6;
-  color: #fd7e14;
-} /* Đang xử lý */
-.status-cancelled {
-  background-color: #fff5f5;
-  color: #fa5252;
-} /* Đã hủy */
+/* Status Badges - Màu sắc tươi sáng chuẩn Pastel */
+.badge-status {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
 
-/* Action button */
+.badge-status-pending {
+  background-color: #fff7ed !important;
+  color: #ea580c !important;
+  border: 1px solid #fed7aa;
+}
+
+.badge-status-processing {
+  background-color: #eff6ff !important;
+  color: #2563eb !important;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-status-shipping {
+  background-color: #f0fdf4 !important;
+  color: #16a34a !important;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-status-delivered,
+.badge-status-success {
+  background-color: #ecfdf5 !important;
+  color: #059669 !important;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-status-cancelled {
+  background-color: #fef2f2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fecaca;
+}
+
+/* Nút Xem chi tiết */
 .btn-view {
-  color: #0d6efd;
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  transition: transform 0.2s;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .btn-view:hover {
-  transform: scale(1.2);
+  background: var(--hp-primary);
+  color: #ffffff;
+  border-color: var(--hp-primary);
+  transform: scale(1.08);
 }

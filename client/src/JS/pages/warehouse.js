@@ -10,62 +10,119 @@ let currentTableData = [];
 let currentPage = 1;
 let totalPages = 1;
 
+// Hàm lấy token xác thực từ LocalStorage
+function getAuthHeaders() {
+  try {
+    const saved = localStorage.getItem("hpstore_user");
+    if (!saved) return {};
+    const parsed = JSON.parse(saved);
+    if (parsed && parsed.token) {
+      return { Authorization: `Bearer ${parsed.token}` };
+    }
+  } catch (e) {
+    console.error("Lỗi đọc token từ localStorage:", e);
+  }
+  return {};
+}
+
+// Khởi tạo trang Quản lý Kho Hàng
 export async function initWarehouseManager() {
-  // Tự động tải thư viện SheetJS phục vụ xuất Excel nếu chưa được nạp vào trang
+  // 1. Tự động tải thư viện SheetJS phục vụ xuất Excel nếu chưa được nạp vào trang
   if (!window.XLSX) {
     const script = document.createElement("script");
-    script.src =
-      "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+    script.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
     document.head.appendChild(script);
   }
 
-  document
-    .getElementById("btnOpenTransactionModal")
-    ?.addEventListener("click", () => {
+  // 2. Nút mở Modal Tạo phiếu kho
+  const btnOpenModal = document.getElementById("btnOpenTransactionModal");
+  if (btnOpenModal) {
+    btnOpenModal.onclick = (e) => {
+      e.preventDefault();
       const modalEl = document.getElementById("modalTransaction");
       if (modalEl) {
-        const modal =
-          bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        const bs = window.bootstrap || bootstrap;
+        const modal = bs.Modal.getOrCreateInstance(modalEl);
         modal.show();
       }
-    });
+    };
+  }
 
-  // 🟢 CẬP NHẬT: Khi đổi bộ lọc sẽ fetch lại từ API thay vì lọc cục bộ 10 dòng
-  document
-    .getElementById("searchWarehouse")
-    ?.addEventListener("input", () => fetchWarehouseLogs(1));
-  document
-    .getElementById("filterLoaiGD")
-    ?.addEventListener("change", () => fetchWarehouseLogs(1));
+  // 3. Lọc & Tìm kiếm giao dịch kho
+  const searchInput = document.getElementById("searchWarehouse");
+  if (searchInput) {
+    searchInput.oninput = () => {
+      const searchVal = searchInput.value.trim().toLowerCase();
+      const displayData = currentTableData.filter((item) => {
+        return (
+          !searchVal ||
+          (item.magd && item.magd.toLowerCase().includes(searchVal)) ||
+          (item.tensp && item.tensp.toLowerCase().includes(searchVal)) ||
+          (item.masp && item.masp.toLowerCase().includes(searchVal))
+        );
+      });
+      renderTable(displayData);
+    };
+  }
 
-  document
-    .getElementById("btnResetFilter")
-    ?.addEventListener("click", resetFilters);
-  document
-    .getElementById("formWarehouseTransaction")
-    ?.addEventListener("submit", handleCreateTransaction);
-  document
-    .getElementById("btnExportExcel")
-    ?.addEventListener("click", exportToExcel);
+  const filterLoai = document.getElementById("filterLoaiGD");
+  if (filterLoai) {
+    filterLoai.onchange = () => fetchWarehouseLogs(1);
+  }
 
+  const filterKho = document.getElementById("filterKho");
+  if (filterKho) {
+    filterKho.onchange = () => {
+      // Đồng bộ ô chọn kho trong modal nếu người dùng đang xem kho này
+      const modalKho = document.getElementById("selectKho");
+      if (modalKho) modalKho.value = filterKho.value;
+      fetchWarehouseLogs(1);
+    };
+  }
+
+  // 4. Nút Làm mới bộ lọc
+  const btnReset = document.getElementById("btnResetFilter");
+  if (btnReset) {
+    btnReset.onclick = resetFilters;
+  }
+
+  // 5. Submit Form Giao dịch kho
+  const formTrans = document.getElementById("formWarehouseTransaction");
+  if (formTrans) {
+    formTrans.onsubmit = handleCreateTransaction;
+  }
+
+  // 6. Nút Xuất Excel
+  const btnExport = document.getElementById("btnExportExcel");
+  if (btnExport) {
+    btnExport.onclick = exportToExcel;
+  }
+
+  // 7. Đồng bộ chọn kho trong modal để tải danh sách sản phẩm
+  const modalSelectKho = document.getElementById("selectKho");
+  if (modalSelectKho) {
+    modalSelectKho.onchange = () => loadProductsToSelect();
+  }
+
+  // Tải danh sách sản phẩm và dữ liệu giao dịch ban đầu
   await loadProductsToSelect();
-
-  // Kích hoạt mặc định lấy dữ liệu ở Trang 1 khi khởi tạo
   await fetchWarehouseLogs(1);
 }
 
-// 1. Tải danh sách lịch sử kho từ API (Hỗ trợ phân trang + Tích hợp bộ lọc loaiGD gửi lên Backend)
+// 1. Tải danh sách lịch sử kho từ API
 async function fetchWarehouseLogs(page = 1) {
+  const tbody = document.getElementById("warehouseDataBody");
   try {
     const filterLoai = document.getElementById("filterLoaiGD")?.value || "";
+    const filterKho = document.getElementById("filterKho")?.value || "KHO_TONG";
 
-    // Tạo đường dẫn API động gửi kèm cả page và loaiGD cho Backend xử lý
-    let url = `${BASE_URL}/warehouse/transactions?page=${page}`;
+    let url = `${BASE_URL}/warehouse/transactions?page=${page}&makho=${encodeURIComponent(filterKho)}`;
     if (filterLoai !== "") {
-      url += `&loaiGD=${filterLoai}`;
+      url += `&loaiGD=${encodeURIComponent(filterLoai)}`;
     }
 
-    const response = await axios.get(url);
+    const headers = getAuthHeaders();
+    const response = await axios.get(url, { headers });
 
     if (response.data.success) {
       const {
@@ -76,14 +133,10 @@ async function fetchWarehouseLogs(page = 1) {
 
       currentPage = resPage;
       totalPages = resTotalPages;
-      currentTableData = data;
+      currentTableData = data || [];
 
-      // 🟢 CẬP NHẬT: Áp dụng thanh tìm kiếm (Client-side) trên tập dữ liệu sạch trả về từ API
       const searchVal =
-        document
-          .getElementById("searchWarehouse")
-          ?.value.trim()
-          .toLowerCase() || "";
+        document.getElementById("searchWarehouse")?.value.trim().toLowerCase() || "";
       const displayData = currentTableData.filter((item) => {
         return (
           !searchVal ||
@@ -98,9 +151,21 @@ async function fetchWarehouseLogs(page = 1) {
     }
   } catch (error) {
     console.error("Lỗi lấy dữ liệu kho:", error);
-    document.getElementById("warehouseDataBody").innerHTML = `
-        <tr><td colspan="7" class="text-center text-danger">Không thể tải dữ liệu lịch sử kho.</td></tr>
-    `;
+    if (tbody) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        tbody.innerHTML = `
+          <tr><td colspan="8" class="text-center text-warning py-4">
+            <i class="fa-solid fa-lock me-2"></i> Phiên đăng nhập hết hạn hoặc chưa đăng nhập. Vui lòng đăng nhập với tài khoản <b>admin</b> hoặc <b>manager</b>.
+          </td></tr>
+        `;
+      } else {
+        tbody.innerHTML = `
+          <tr><td colspan="8" class="text-center text-danger py-4">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> ${error.response?.data?.message || "Không thể tải dữ liệu lịch sử kho."}
+          </td></tr>
+        `;
+      }
+    }
   }
 }
 
@@ -110,13 +175,13 @@ function renderTable(data) {
   if (!tbody) return;
 
   if (data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">Không tìm thấy giao dịch nào phù hợp.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Không tìm thấy giao dịch nào phù hợp trong kho này.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = data
     .map((item) => {
-      const isNhap = item.loaigd === 1;
+      const isNhap = parseInt(item.loaigd, 10) === 1;
       const badgeClass = isNhap
         ? "bg-success text-white rounded-pill px-3 py-1 fw-semibold"
         : "bg-danger text-white rounded-pill px-3 py-1 fw-semibold";
@@ -124,29 +189,27 @@ function renderTable(data) {
       const prefix = isNhap ? "+" : "-";
 
       return `
-            <tr>
-                <td class="fw-bold text-secondary align-middle">${item.magd}</td>
-                <td class="align-middle">
-                    <div class="fw-semibold text-dark">${item.tensp}</div>
-                    <small class="text-muted">Mã: ${item.masp}</small>
-                </td>
-                <td class="align-middle"><span class="badge ${badgeClass}" style="white-space: nowrap;">${badgeText}</span></td>
-                <td class="text-end fw-bold align-middle ${isNhap ? "text-success" : "text-danger"}">${prefix}${item.soluong}</td>
-                <td class="text-end text-muted align-middle">${item.donvitinh}</td>
-                <td class="text-end text-muted align-middle">${item.tontruoc}</td>
-                <td class="text-end fw-bold text-dark align-middle">${item.tonsau}</td>
-                <td class="align-middle text-muted">${item.ngaygd ? new Date(item.ngaygd).toLocaleString("vi-VN") : "---"}</td>
-            </tr>
-        `;
+        <tr>
+          <td class="fw-bold text-secondary align-middle">${item.magd}</td>
+          <td class="align-middle">
+            <div class="fw-semibold text-dark">${item.tensp || "---"}</div>
+            <small class="text-muted">Mã: ${item.masp}</small>
+          </td>
+          <td class="align-middle"><span class="badge ${badgeClass}" style="white-space: nowrap;">${badgeText}</span></td>
+          <td class="text-center fw-bold align-middle ${isNhap ? "text-success" : "text-danger"}">${prefix}${item.soluong}</td>
+          <td class="text-center text-muted align-middle">${item.donvitinh || "Cái"}</td>
+          <td class="text-center text-muted align-middle">${item.tontruoc}</td>
+          <td class="text-center fw-bold text-dark align-middle">${item.tonsau}</td>
+          <td class="align-middle text-muted">${item.ngaygd ? new Date(item.ngaygd).toLocaleString("vi-VN") : "---"}</td>
+        </tr>
+      `;
     })
     .join("");
 }
 
 // 3. Render các nút bấm phân trang Bootstrap 5
 function renderPagination() {
-  const paginationContainer = document.getElementById(
-    "warehousePaginationContainer",
-  );
+  const paginationContainer = document.getElementById("warehousePaginationContainer");
   if (!paginationContainer) return;
 
   if (totalPages <= 1) {
@@ -156,7 +219,7 @@ function renderPagination() {
 
   let html = `<nav><ul class="pagination pagination-sm mb-0">`;
 
-  // Nút Quay lại (Previous)
+  // Nút Previous
   html += `
     <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
       <button class="page-link" data-page="${currentPage - 1}" aria-label="Previous">
@@ -174,7 +237,7 @@ function renderPagination() {
     `;
   }
 
-  // Nút Tiếp theo (Next)
+  // Nút Next
   html += `
     <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
       <button class="page-link" data-page="${currentPage + 1}" aria-label="Next">
@@ -186,30 +249,25 @@ function renderPagination() {
   html += `</ul></nav>`;
   paginationContainer.innerHTML = html;
 
-  // Lắng nghe sự kiện click chuyển trang
   paginationContainer.querySelectorAll(".page-link").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      const targetPage = parseInt(
-        e.currentTarget.getAttribute("data-page"),
-        10,
-      );
-      if (
-        targetPage &&
-        targetPage !== currentPage &&
-        targetPage >= 1 &&
-        targetPage <= totalPages
-      ) {
+    button.onclick = (e) => {
+      const targetPage = parseInt(e.currentTarget.getAttribute("data-page"), 10);
+      if (targetPage && targetPage !== currentPage && targetPage >= 1 && targetPage <= totalPages) {
         fetchWarehouseLogs(targetPage);
       }
-    });
+    };
   });
 }
 
 // 4. Reset bộ lọc
 function resetFilters() {
-  document.getElementById("searchWarehouse").value = "";
-  document.getElementById("filterLoaiGD").value = "";
-  fetchWarehouseLogs(1); // Quay về trang 1 với dữ liệu gốc
+  const searchInput = document.getElementById("searchWarehouse");
+  if (searchInput) searchInput.value = "";
+  const filterLoai = document.getElementById("filterLoaiGD");
+  if (filterLoai) filterLoai.value = "";
+  const filterKho = document.getElementById("filterKho");
+  if (filterKho) filterKho.value = "KHO_TONG";
+  fetchWarehouseLogs(1);
 }
 
 // 5. Lấy danh sách sản phẩm đổ vào thẻ Select trong Modal
@@ -217,15 +275,16 @@ async function loadProductsToSelect() {
   const select = document.getElementById("selectProduct");
   if (!select) return;
   try {
-    const response = await axios.get(`${BASE_URL}/products`);
+    const headers = getAuthHeaders();
+    const response = await axios.get(`${BASE_URL}/products?limit=100`, { headers });
     let products = [];
 
-    if (response.data && Array.isArray(response.data.data)) {
+    if (response.data && Array.isArray(response.data.products)) {
+      products = response.data.products;
+    } else if (response.data && Array.isArray(response.data.data)) {
       products = response.data.data;
     } else if (Array.isArray(response.data)) {
       products = response.data;
-    } else if (response.data && response.data.products) {
-      products = response.data.products;
     }
 
     if (products.length === 0) {
@@ -237,27 +296,29 @@ async function loadProductsToSelect() {
       .map((p) => {
         const maSP = p.masp || p.MaSP;
         const tenSP = p.tensp || p.TenSP;
-        const soLuongTon =
-          p.soluongton !== undefined ? p.soluongton : p.SoLuongTon || 0;
-        return `<option value="${maSP}">${tenSP} (Hiện tồn: ${soLuongTon})</option>`;
+        const ton = p.soluongton !== undefined ? p.soluongton : 0;
+        return `<option value="${maSP}">${tenSP} [${maSP}] (Tổng tồn: ${ton})</option>`;
       })
       .join("");
   } catch (err) {
-    console.error("Không tải được sản phẩm vào ô chọn", err);
+    console.error("Không tải được sản phẩm vào ô chọn:", err);
     select.innerHTML = `<option value="">-- Lỗi tải danh sách sản phẩm --</option>`;
   }
 }
 
-// 6. Xử lý gửi Form tạo giao dịch kho mới (ĐÃ KHỬ BỎ maGD)
+// 6. Xử lý gửi Form tạo giao dịch kho mới
 async function handleCreateTransaction(e) {
   e.preventDefault();
 
-  // 🟢 ĐÃ XÓA: Dòng bóc tách dữ liệu từ ô nhập txtMaGD cũ!
-  const maSP = document.getElementById("selectProduct").value;
-  const loaiGDElement = document.querySelector(
-    'input[name="radioLoaiGD"]:checked',
-  );
-  const soLuongRaw = document.getElementById("numSoLuong").value.trim();
+  const makho = document.getElementById("selectKho")?.value || "KHO_TONG";
+  const maSP = document.getElementById("selectProduct")?.value;
+  const loaiGDElement = document.querySelector('input[name="radioLoaiGD"]:checked');
+  const soLuongRaw = document.getElementById("numSoLuong")?.value.trim() || "";
+
+  if (!maSP) {
+    Swal.fire("Thông báo", "Vui lòng chọn sản phẩm!", "warning");
+    return;
+  }
 
   if (!loaiGDElement) {
     Swal.fire(
@@ -268,18 +329,7 @@ async function handleCreateTransaction(e) {
     return;
   }
 
-  if (soLuongRaw.length > 5) {
-    Swal.fire({
-      icon: "warning",
-      title: "Số lượng quá lớn",
-      text: "Số lượng nhập vào vượt quá hạn mức cho phép tối đa (10.000)!",
-      confirmButtonColor: "#6138ff",
-    });
-    return;
-  }
-
   const soLuong = parseInt(soLuongRaw, 10);
-
   if (isNaN(soLuong) || soLuong <= 0) {
     Swal.fire({
       icon: "warning",
@@ -290,39 +340,46 @@ async function handleCreateTransaction(e) {
     return;
   }
 
-  if (soLuong > 10000) {
+  if (soLuong > 100000) {
     Swal.fire({
       icon: "warning",
       title: "Vượt quá hạn mức",
-      text: "Số lượng cho mỗi giao dịch không được phép vượt quá 10.000 đơn vị!",
+      text: "Số lượng cho mỗi giao dịch không được vượt quá 100.000 đơn vị!",
       confirmButtonColor: "#6138ff",
     });
     return;
   }
 
   try {
-    // 🟢 ĐÃ XÓA: Trường maGD khỏi phần body gửi đi. Backend sẽ chịu trách nhiệm tự sinh ngẫu nhiên.
-    const response = await axios.post(`${BASE_URL}/warehouse/transaction`, {
-      maSP,
-      loaiGD: parseInt(loaiGDElement.value, 10),
-      soLuong: soLuong,
-    });
+    const headers = getAuthHeaders();
+    const response = await axios.post(
+      `${BASE_URL}/warehouse/transaction`,
+      {
+        maSP,
+        makho,
+        loaiGD: parseInt(loaiGDElement.value, 10),
+        soLuong: soLuong,
+      },
+      { headers },
+    );
 
     if (response.data.success) {
       Swal.fire("Thành công", response.data.message, "success");
-      document.getElementById("formWarehouseTransaction").reset();
+      document.getElementById("formWarehouseTransaction")?.reset();
 
       const modalEl = document.getElementById("modalTransaction");
       if (modalEl) {
-        const modal =
-          bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-        modal.hide();
+        const bs = window.bootstrap || bootstrap;
+        const modal = bs.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
       }
 
-      // Tải lại dữ liệu ở trang 1 để xem phiếu kho mới tinh vừa được sinh ra
+      // Cập nhật lại dropdown sản phẩm và bảng lịch sử kho
+      await loadProductsToSelect();
       await fetchWarehouseLogs(1);
     }
   } catch (error) {
+    console.error("Lỗi tạo giao dịch:", error);
     Swal.fire(
       "Thao tác lỗi",
       error.response?.data?.message || "Không thể thực hiện giao dịch!",
@@ -336,7 +393,7 @@ function exportToExcel() {
   if (!window.XLSX) {
     Swal.fire(
       "Thông báo",
-      "Thư viện xuất Excel đang được nạp, vui lòng thử lại sau!",
+      "Thư viện xuất Excel đang được nạp, vui lòng thử lại sau giây lát!",
       "info",
     );
     return;
@@ -352,7 +409,7 @@ function exportToExcel() {
     "Mã Giao Dịch": item.magd,
     "Mã Sản Phẩm": item.masp,
     "Tên Sản Phẩm": item.tensp || "Chưa rõ",
-    "Loại Giao Dịch": item.loaigd === 1 ? "Nhập kho" : "Xuất kho",
+    "Loại Giao Dịch": parseInt(item.loaigd, 10) === 1 ? "Nhập kho" : "Xuất kho",
     "Số Lượng": item.soluong,
     "Đơn Vị Tính": item.donvitinh || "Cái",
     "Tồn Trước Biến Động": item.tontruoc,

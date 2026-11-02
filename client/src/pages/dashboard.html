@@ -35,6 +35,36 @@
         border-radius: 8px;
         transition: all 0.3s ease;
       }
+            /* ─── THANH TOPBAR CAPSULE HIỆN ĐẠI (HÌNH 2) ─── */
+      .dashboard-nav-capsule {
+        background: #ffffff;
+        border-radius: 9999px;
+        padding: 4px 14px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+      }
+      #topMenu .nav-link {
+        color: #1e293b !important;
+        font-weight: 600;
+        font-size: 13px;
+        border-radius: 9999px;
+        padding: 6px 14px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+      }
+      #topMenu .nav-link:hover {
+        background-color: #fff1f2 !important;
+        color: #d70018 !important;
+      }
+      #topMenu .nav-link.active {
+        background-color: #d70018 !important;
+        color: #ffffff !important;
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(215, 0, 24, 0.35);
+      }
       .btn-back-home:hover {
         background-color: rgba(255, 255, 255, 0.25) !important;
         color: #fff !important;
@@ -45,61 +75,71 @@
   </head>
   <body>
     <div class="d-flex flex-column min-vh-100">
-      <!-- Tầng 1: Global Navigation -->
-      <header class="global-header bg-dark shadow-sm" style="background: linear-gradient(145deg, #1d2b44 0%, #171c26 100%) !important;">
+      <!-- Tầng 1: Global Navigation Đồng bộ Đỏ HP STORE (Hình 3) -->
+      <header class="global-header shadow-sm" style="background: linear-gradient(135deg, #d70018 0%, #990012 100%) !important;">
         <div class="container-fluid d-flex align-items-center justify-content-between py-2 px-3 px-md-4">
-          <div class="d-flex align-items-center gap-4">
-            <div class="brand-section d-flex align-items-center text-white">
-              <div class="brand-icon me-2 d-flex align-items-center justify-content-center text-primary fs-5" style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                <i class="fa-solid fa-shop"></i>
+          
+          <!-- Hộp Capsule Trắng Độc Quyền (Hình 2): Logo + Menu + Actor Badge -->
+          <div class="dashboard-nav-capsule">
+            <!-- Brand section -->
+            <div class="brand-section d-flex align-items-center pe-3 border-end" role="button" onclick="window.location.href='/'" style="cursor: pointer;" title="Về trang chủ HP STORE">
+              <div class="brand-icon me-2 d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 30px; height: 30px; background: #d70018; border-radius: 8px; font-size: 13px;">
+                <i class="fa-solid fa-bolt"></i>
               </div>
-              <div class="brand-name fw-bold fs-5 text-uppercase" style="letter-spacing: 1px; background: linear-gradient(90deg, #3b82f6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">HP STORE</div>
+              <div class="brand-name fw-bold fs-6 text-uppercase" style="letter-spacing: 0.5px; color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; background: none !important;">HP <span class="text-danger">STORE</span></div>
             </div>
 
+            <!-- Top navigation -->
             <nav class="d-none d-md-flex align-items-center gap-1" id="topMenu">
-              <a class="nav-link px-3 py-2 text-white-50 fw-medium menu-page-link rounded active" href="#" data-page="tong-quan">Tổng quan</a>
+              <a class="nav-link menu-page-link active" href="#" data-page="tong-quan">Tổng quan</a>
               <div class="dropdown">
-                <a class="nav-link px-3 py-2 text-white-50 fw-medium dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Kinh doanh</a>
-                <ul class="dropdown-menu dropdown-menu-dark shadow border-0" style="background: #1d2b44;">
-                  <li><a class="dropdown-item menu-page-link py-2" href="#" data-page="san-pham"><i class="fa-solid fa-box me-2 w-20px"></i>Sản phẩm</a></li>
-                  <li><a class="dropdown-item menu-page-link py-2" href="#" data-page="danh-muc"><i class="fa-solid fa-layer-group me-2 w-20px"></i>Danh mục</a></li>
-                  <li><a class="dropdown-item menu-page-link py-2" href="#" data-page="don-hang"><i class="fa-solid fa-cart-shopping me-2 w-20px"></i>Đơn hàng</a></li>
+                <a class="nav-link dropdown-toggle" href="#" role="button">Kinh doanh</a>
+                <ul class="dropdown-menu shadow-lg border-0 py-2 rounded-3" style="background: #ffffff; min-width: 190px;">
+                  <li><a class="dropdown-item menu-page-link py-2 text-dark fw-medium" href="#" data-page="san-pham"><i class="fa-solid fa-box me-2 text-danger w-20px"></i>Sản phẩm</a></li>
+                  <li><a class="dropdown-item menu-page-link py-2 text-dark fw-medium" href="#" data-page="danh-muc"><i class="fa-solid fa-layer-group me-2 text-primary w-20px"></i>Danh mục</a></li>
+                  <li><a class="dropdown-item menu-page-link py-2 text-dark fw-medium" href="#" data-page="don-hang"><i class="fa-solid fa-cart-shopping me-2 text-success w-20px"></i>Đơn hàng</a></li>
                 </ul>
               </div>
               <div class="dropdown">
-                <a class="nav-link px-3 py-2 text-white-50 fw-medium dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Quản lý</a>
-                <ul class="dropdown-menu dropdown-menu-dark shadow border-0" style="background: #1d2b44;">
-                  <li><a class="dropdown-item menu-page-link py-2" href="#" data-page="khach-hang"><i class="fa-solid fa-user me-2 w-20px"></i>Khách hàng</a></li>
-                  <li><a class="dropdown-item menu-page-link py-2" href="#" data-page="quanly-nhanvien"><i class="fa-solid fa-user-check me-2 w-20px"></i>Nhân viên</a></li>
+                <a class="nav-link dropdown-toggle" href="#" role="button">Quản lý</a>
+                <ul class="dropdown-menu shadow-lg border-0 py-2 rounded-3" style="background: #ffffff; min-width: 190px;">
+                  <li><a class="dropdown-item menu-page-link py-2 text-dark fw-medium" href="#" data-page="khach-hang"><i class="fa-solid fa-user me-2 text-info w-20px"></i>Khách hàng</a></li>
+                  <li><a class="dropdown-item menu-page-link py-2 text-dark fw-medium" href="#" data-page="quanly-nhanvien"><i class="fa-solid fa-user-check me-2 text-warning w-20px"></i>Nhân viên</a></li>
                 </ul>
               </div>
               <div class="dropdown">
-                <a class="nav-link px-3 py-2 text-white-50 fw-medium dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Kho</a>
-                <ul class="dropdown-menu dropdown-menu-dark shadow border-0" style="background: #1d2b44;">
-                  <li><a class="dropdown-item menu-page-link py-2" href="#" data-page="quanly-khohang"><i class="fa-solid fa-industry me-2 w-20px"></i>Kho hàng</a></li>
-                  <li><a class="dropdown-item menu-page-link py-2" href="#" data-page="nha-cung-cap"><i class="fa-solid fa-warehouse me-2 w-20px"></i>Nhà cung cấp</a></li>
+                <a class="nav-link dropdown-toggle" href="#" role="button">Kho</a>
+                <ul class="dropdown-menu shadow-lg border-0 py-2 rounded-3" style="background: #ffffff; min-width: 190px;">
+                  <li><a class="dropdown-item menu-page-link py-2 text-dark fw-medium" href="#" data-page="quanly-khohang"><i class="fa-solid fa-industry me-2 text-primary w-20px"></i>Kho hàng</a></li>
+                  <li><a class="dropdown-item menu-page-link py-2 text-dark fw-medium" href="#" data-page="nha-cung-cap"><i class="fa-solid fa-warehouse me-2 text-success w-20px"></i>Nhà cung cấp</a></li>
                 </ul>
               </div>
               <div class="dropdown">
-                <a class="nav-link px-3 py-2 text-white-50 fw-medium dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Hệ thống</a>
-                <ul class="dropdown-menu dropdown-menu-dark shadow border-0" style="background: #1d2b44;">
-                  <li><a class="dropdown-item menu-page-link py-2" href="#" data-page="cai-dat"><i class="fa-solid fa-gear me-2 w-20px"></i>Cài đặt</a></li>
-                  <li><a class="dropdown-item menu-page-link py-2" href="#" data-page="update-pass"><i class="fa-solid fa-lock me-2 w-20px"></i>Mật khẩu</a></li>
-                  <li><hr class="dropdown-divider border-secondary"></li>
-                  <li><a class="dropdown-item py-2 text-danger" href="/"><i class="fa-solid fa-arrow-left-long me-2 w-20px"></i>Về trang chủ</a></li>
+                <a class="nav-link dropdown-toggle" href="#" role="button">Hệ thống</a>
+                <ul class="dropdown-menu shadow-lg border-0 py-2 rounded-3" style="background: #ffffff; min-width: 190px;">
+                  <li><a class="dropdown-item menu-page-link py-2 text-dark fw-medium" href="#" data-page="cai-dat"><i class="fa-solid fa-gear me-2 text-secondary w-20px"></i>Cài đặt</a></li>
+                  <li><a class="dropdown-item menu-page-link py-2 text-dark fw-medium" href="#" data-page="update-pass"><i class="fa-solid fa-lock me-2 text-warning w-20px"></i>Đổi mật khẩu</a></li>
+                  <li><hr class="dropdown-divider border-light"></li>
+                  <li><a class="dropdown-item py-2 text-danger fw-bold" href="/"><i class="fa-solid fa-arrow-left-long me-2 w-20px"></i>Về trang chủ</a></li>
                 </ul>
               </div>
             </nav>
+
+            <!-- Actor badge bên trong capsule (Hình 2) -->
+            <span id="empRoleBadge" class="badge bg-warning text-dark fw-bold rounded-pill px-2 py-1 shadow-sm ms-1" style="font-size: 11px;">👑 ADMIN TỔNG</span>
           </div>
 
-          <div class="d-flex align-items-center gap-3">
+          <!-- ACTORS - Nút Xem Shop & Avatar bên phải -->
+          <div class="d-flex align-items-center gap-2">
             <button class="btn btn-link text-white-50 p-0 text-decoration-none d-md-none" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu"><i class="fa-solid fa-bars fs-4"></i></button>
-            <button class="btn btn-link text-white-50 p-0 text-decoration-none d-none d-md-block"><i class="fa-regular fa-bell fs-5"></i><span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="width: 8px; height: 8px; margin-top: 12px; margin-left: -8px;"></span></button>
-            <div class="user-section d-none d-md-flex align-items-center bg-white bg-opacity-10 rounded-pill px-3 py-1 border border-white border-opacity-10">
-              <div class="user-avatar rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold me-2 shadow-sm" id="empAvatar" style="width: 28px; height: 28px; font-size: 12px;">AD</div>
+            <a href="/" class="btn btn-sm btn-outline-light rounded-pill px-3 d-none d-lg-inline-flex align-items-center gap-2 fw-medium shadow-sm" title="Xem cửa hàng bên ngoài" style="border-width: 1.5px;">
+              <i class="fa-solid fa-shop"></i> <span>Xem Shop</span>
+            </a>
+            <div class="user-section d-none d-md-flex align-items-center bg-white bg-opacity-20 rounded-pill px-3 py-1 border border-white border-opacity-25 text-white">
+              <div class="user-avatar rounded-circle bg-white text-danger d-flex align-items-center justify-content-center fw-bold me-2 shadow-sm" id="empAvatar" style="width: 32px; height: 32px; font-size: 13px;">AD</div>
               <div class="text-start lh-1">
-                <div class="user-name fw-semibold text-white small" id="empName" style="font-size: 13px;">Admin</div>
-                <div class="user-email text-white-50" id="empEmail" style="font-size: 10px;">admin@hpstore</div>
+                <div class="user-name fw-bold text-white small" id="empName" style="font-size: 13px;">Admin</div>
+                <div class="user-email text-white-50" id="empEmail" style="font-size: 10px;">admin@hpstore.vn</div>
               </div>
             </div>
           </div>
@@ -138,13 +178,15 @@
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2" id="globalFilterBar">
               <div class="d-flex align-items-center bg-light px-2" style="border-radius: 8px;">
-                <input type="date" class="form-control form-control-sm bg-transparent border-0 shadow-none text-secondary fw-medium px-1" style="width: 125px; outline: none; font-size: 13px;">
+                <input type="date" id="startDate" class="form-control form-control-sm bg-transparent border-0 shadow-none text-secondary fw-medium px-1" style="width: 125px; outline: none; font-size: 13px;" title="Từ ngày">
                 <span class="text-muted mx-1" style="font-size: 12px;"><i class="fa-solid fa-arrow-right"></i></span>
-                <input type="date" class="form-control form-control-sm bg-transparent border-0 shadow-none text-secondary fw-medium px-1" style="width: 125px; outline: none; font-size: 13px;">
+                <input type="date" id="endDate" class="form-control form-control-sm bg-transparent border-0 shadow-none text-secondary fw-medium px-1" style="width: 125px; outline: none; font-size: 13px;" title="Đến ngày">
               </div>
-              <select id="branchFilter" class="form-select form-select-sm bg-light border-0 shadow-none text-secondary fw-medium" style="width: auto; border-radius: 8px;">
-                <option value="ALL">Tất cả chi nhánh</option>
-                <option value="MAIN_BRANCH">Chi nhánh Chính</option>
+              <select id="branchFilter" class="form-select form-select-sm bg-light border-0 shadow-none text-dark fw-bold" style="width: auto; border-radius: 8px;">
+                <option value="ALL">🏢 Tất cả chi nhánh</option>
+                <option value="CN_CHINH">🏛️ Trụ sở Trung Tâm (Kho Tổng)</option>
+                <option value="CN_1">📍 Chi nhánh 1 (TP. Hồ Chí Minh)</option>
+                <option value="CN_2">📍 Chi nhánh 2 (Cầu Giấy, Hà Nội)</option>
               </select>
               <select id="channelFilter" class="form-select form-select-sm bg-light border-0 shadow-none text-secondary fw-medium" style="width: auto; border-radius: 8px;">
                 <option value="ALL">Tất cả kênh bán</option>

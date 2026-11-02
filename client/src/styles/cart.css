@@ -1,75 +1,92 @@
+/* cart.css - Đồng bộ thương hiệu HP STORE / CellphoneS */
+
 body {
-  background-color: #f8f9fa;
-  font-family: "Segoe UI", sans-serif;
+  background-color: #f8fafc;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #0f172a;
 }
+
 .cart-card {
-  border: none;
-  border-radius: 15px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
 }
+
 .product-cart-img {
-  width: 90px;
-  height: 90px;
+  width: 80px;
+  height: 80px;
   object-fit: contain;
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 5px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 4px;
 }
+
 .quantity-input-group {
-  max-width: 120px;
+  max-width: 110px;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #ced4da;
+  border: 1px solid #cbd5e1;
 }
+
 .quantity-input-group button {
   border: none;
-  background: #fff;
-  width: 35px;
+  background: #f8fafc;
+  width: 32px;
   font-weight: bold;
-  transition: 0.2s;
+  transition: 0.15s;
 }
+
 .quantity-input-group button:hover {
-  background: #e9ecef;
+  background: #e2e8f0;
 }
+
 .quantity-input-group input {
   border: none;
   text-align: center;
   font-weight: 600;
   width: 45px;
 }
+
 .quantity-input-group input:focus {
   outline: none;
 }
+
+/* Nút thanh toán chuẩn CellphoneS */
 .btn-checkout {
-  background-color: #6f42c1;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  padding: 12px;
-  transition: 0.2s;
-}
-.btn-checkout:hover {
-  background-color: #59359a;
-}
-.text-purple {
-  color: #6f42c1;
+  background: linear-gradient(135deg, #d70018 0%, #b8001f 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  padding: 12px !important;
+  font-size: 15.5px !important;
+  transition: all 0.25s ease !important;
+  box-shadow: 0 4px 14px rgba(215, 0, 24, 0.28) !important;
 }
 
-footer {
-  background-color: white;
-  border-top: 1px solid #dee2e6;
-  margin-top: 50px;
+.btn-checkout:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(215, 0, 24, 0.38) !important;
 }
-.footer-title {
-  font-weight: bold;
-  color: var(--primary-color);
-  margin-bottom: 20px;
+
+.btn-delete {
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  cursor: pointer;
 }
-.footer-link {
-  text-decoration: none;
-  color: #6c757d;
-  transition: 0.3s;
-}
-.footer-link:hover {
-  color: var(--primary-color);
+
+.btn-delete:hover {
+  background-color: #ef4444;
+  color: #ffffff;
 }

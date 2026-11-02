@@ -401,9 +401,15 @@ async function handleCheckoutSubmit(e) {
     localStorage.getItem("hpstore_checkout_discount"),
   ) || { percent: 0, amount: 0, pointsToDeduct: 0 };
 
+  const selectedBranchEl = document.querySelector('input[name="checkoutBranch"]:checked');
+  const selectedMakho = selectedBranchEl ? selectedBranchEl.value : "KHO_TONG";
+  const selectedMachinhanh = selectedMakho === "KHO_CN1" ? "CN_1" : selectedMakho === "KHO_CN2" ? "CN_2" : "CN_CHINH";
+
   const checkoutPayload = {
     MaNguoiDung:
       userData.maND || userData.id || userData.MaND || userData.mand || null,
+    MaKho: selectedMakho,
+    MaChiNhanh: selectedMachinhanh,
     GhiChu: note || null,
     NguoiNhan: name,
     SDTNguoiNhan: phone,

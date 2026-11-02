@@ -33,15 +33,16 @@ class ProductModel {
     }
   }
 
-  // 2. LẤY TẤT CẢ SẢN PHẨM HOẶC THEO DANH MỤC (CÓ PHÂN TRANG)
-  static async getProducts(maDM = null, page = 1, limit = 8) {
+    // 2. LẤY TẤT CẢ SẢN PHẨM HOẶC THEO DANH MỤC (CÓ PHÂN TRANG & BỘ LỌC NÂNG CAO)
+  static async getProducts(maDM = null, page = 1, limit = 8, filters = {}) {
     try {
       const offset = (page - 1) * limit;
-      let countQuery = `SELECT COUNT(*) as total FROM sanpham sp WHERE 1=1`;
+      let countQuery = "SELECT COUNT(*) as total FROM sanpham sp LEFT JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc WHERE 1=1";
       let dataQuery = `
-        SELECT sp.*, dm.tendanhmuc 
+        SELECT sp.*, dm.tendanhmuc,
+          COALESCE((SELECT SUM(soluongton) FROM tonkho WHERE masp = sp.masp), 0) AS soluongton
         FROM sanpham sp
-        JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
+        LEFT JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
         WHERE 1=1
       `;
       const params = [];
@@ -53,8 +54,26 @@ class ProductModel {
         maDM.trim() !== ""
       ) {
         params.push(maDM);
-        countQuery += ` AND sp.madanhmuc = $1`;
-        dataQuery += ` AND sp.madanhmuc = $1`;
+        countQuery += " AND sp.madanhmuc = $" + params.length;
+        dataQuery += " AND sp.madanhmuc = $" + params.length;
+      }
+
+      if (filters.search && filters.search.trim() !== "") {
+        params.push("%" + filters.search.trim() + "%");
+        countQuery += " AND (sp.tensp ILIKE $" + params.length + " OR sp.masp ILIKE $" + params.length + " OR dm.tendanhmuc ILIKE $" + params.length + ")";
+        dataQuery += " AND (sp.tensp ILIKE $" + params.length + " OR sp.masp ILIKE $" + params.length + " OR dm.tendanhmuc ILIKE $" + params.length + ")";
+      }
+
+      if (filters.minPrice !== null && !isNaN(filters.minPrice)) {
+        params.push(filters.minPrice);
+        countQuery += " AND sp.giaban >= $" + params.length;
+        dataQuery += " AND sp.giaban >= $" + params.length;
+      }
+
+      if (filters.maxPrice !== null && !isNaN(filters.maxPrice)) {
+        params.push(filters.maxPrice);
+        countQuery += " AND sp.giaban <= $" + params.length;
+        dataQuery += " AND sp.giaban <= $" + params.length;
       }
 
       const countResult = await pool.query(countQuery, params);
@@ -64,7 +83,7 @@ class ProductModel {
       dataParams.push(limit);
       dataParams.push(offset);
 
-      dataQuery += ` ORDER BY sp.masp ASC LIMIT $${dataParams.length - 1} OFFSET $${dataParams.length}`;
+      dataQuery += " ORDER BY sp.masp ASC LIMIT $" + (dataParams.length - 1) + " OFFSET $" + dataParams.length;
       const resultData = await pool.query(dataQuery, dataParams);
 
       return { products: resultData.rows, totalItems };
@@ -82,10 +101,10 @@ class ProductModel {
           sp.tensp, 
           sp.giaban, 
           sp.hinhanh, 
-          sp.soluongton,
+          COALESCE((SELECT SUM(soluongton) FROM tonkho WHERE masp = sp.masp), 0) AS soluongton,
           dm.tendanhmuc
         FROM sanpham sp
-        JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
+        LEFT JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
         WHERE sp.tensp ILIKE $1 OR dm.tendanhmuc ILIKE $1
         ORDER BY sp.tensp ASC
         LIMIT 5
@@ -104,10 +123,11 @@ class ProductModel {
       const result = await pool.query(
         `
         SELECT sp.*, dm.tendanhmuc, ncc.tenncc,
+          COALESCE((SELECT SUM(soluongton) FROM tonkho WHERE masp = sp.masp), 0) AS soluongton,
           (SELECT COALESCE(SUM(soluong), 0) FROM chitiet_donhang WHERE masp = sp.masp) as tongdaban
         FROM sanpham sp
-        JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
-        JOIN nhacungcap ncc ON sp.mancc = ncc.mancc
+        LEFT JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
+        LEFT JOIN nhacungcap ncc ON sp.mancc = ncc.mancc
         WHERE sp.masp = $1
       `,
         [maSP],
@@ -123,9 +143,10 @@ class ProductModel {
     try {
       const result = await pool.query(
         `
-        SELECT sp.masp, sp.tensp, sp.giaban, sp.hinhanh, dm.tendanhmuc, sp.soluongton
+        SELECT sp.masp, sp.tensp, sp.giaban, sp.hinhanh, dm.tendanhmuc,
+          COALESCE((SELECT SUM(soluongton) FROM tonkho WHERE masp = sp.masp), 0) AS soluongton
         FROM sanpham sp
-        JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
+        LEFT JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
         WHERE sp.madanhmuc = $1 AND sp.masp != $2
         LIMIT 4
       `,

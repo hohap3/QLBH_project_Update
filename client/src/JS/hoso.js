@@ -1,8 +1,7 @@
 import axios from "axios";
 import Swal from "sweetalert2";
 
-// 🟢 Cấu hình domain API chạy thực tế
-const BASE_URL = "https://qlbh-project.onrender.com/api";
+import { BASE_URL } from "/src/JS/common/header";
 
 document.addEventListener("DOMContentLoaded", async () => {
   // 1. Kiểm tra trạng thái đăng nhập từ key chung 'hpstore_user'

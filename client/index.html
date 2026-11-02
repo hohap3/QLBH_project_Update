@@ -3,136 +3,284 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HP STORE - Công nghệ cho mọi người</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+    <title>HP STORE - Hệ thống Bán lẻ Công nghệ Chính hãng Toàn quốc</title>
+
+    <!-- Google Fonts: Inter (Typography chuẩn từ Style Foundations) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- HP STORE Custom Stylesheets -->
+    <link rel="stylesheet" href="/src/styles/header.css" />
     <link rel="stylesheet" href="/src/styles/homepage.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="/src/styles/footer.css" />
   </head>
   <body>
+    <!-- 1. Header chuẩn HP STORE -->
     <header id="main-header"></header>
 
-    <main class="container mt-4">
-      <div
-        id="hpStoreCarousel"
-        class="carousel slide carousel-fade shadow-sm"
-        data-bs-ride="carousel"
-      >
-        <div class="carousel-indicators">
-          <button
-            type="button"
-            data-bs-target="#hpStoreCarousel"
-            data-bs-slide-to="0"
-            class="active"
-          ></button>
-          <button
-            type="button"
-            data-bs-target="#hpStoreCarousel"
-            data-bs-slide-to="1"
-          ></button>
-          <button
-            type="button"
-            data-bs-target="#hpStoreCarousel"
-            data-bs-slide-to="2"
-          ></button>
+    <main class="container py-3">
+      <!-- 2. Hero Section 3 Cột rộng rãi, cân đối -->
+      <section class="hp-hero-grid">
+        
+        <!-- Cột 1: Danh mục sản phẩm dọc (Sidebar Left) -->
+        <aside class="hp-category-sidebar" aria-label="Danh mục ngành hàng công nghệ">
+          <a href="#" class="hp-cat-link" data-cat="DM01">
+            <span><i class="fa-solid fa-mobile-screen cat-icon"></i> Điện thoại thông minh</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+          <a href="#" class="hp-cat-link" data-cat="DM02">
+            <span><i class="fa-solid fa-laptop cat-icon"></i> Laptop & MacBook</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+          <a href="#" class="hp-cat-link" data-cat="DM05">
+            <span><i class="fa-solid fa-tablet-screen-button cat-icon"></i> Máy tính bảng (Tablet)</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+          <a href="#" class="hp-cat-link" data-cat="DM06">
+            <span><i class="fa-solid fa-headphones cat-icon"></i> Âm thanh & Loa Bluetooth</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+          <a href="#" class="hp-cat-link" data-cat="DM04">
+            <span><i class="fa-solid fa-clock cat-icon"></i> Đồng hồ thông minh</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+          <a href="#" class="hp-cat-link" data-cat="DM07">
+            <span><i class="fa-solid fa-gamepad cat-icon"></i> Gaming Gear & Bàn phím</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+          <a href="#" class="hp-cat-link" data-cat="DM03">
+            <span><i class="fa-solid fa-charging-station cat-icon"></i> Phụ kiện, Pin sạc</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+          <a href="#" class="hp-cat-link" data-cat="DM08">
+            <span><i class="fa-solid fa-arrows-rotate cat-icon text-success"></i> Thu cũ đổi mới</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+          <a href="#" class="hp-cat-link" data-cat="DM09">
+            <span><i class="fa-solid fa-box-archive cat-icon text-warning"></i> Hàng Outlet giá sốc</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+          <a href="#" class="hp-cat-link" data-cat="DM10">
+            <span><i class="fa-solid fa-gift cat-icon text-danger"></i> Khuyến mãi Hot</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+          <a href="#" class="hp-cat-link" data-cat="DM11">
+            <span><i class="fa-solid fa-newspaper cat-icon text-info"></i> Tin tức công nghệ</span>
+            <i class="fa-solid fa-chevron-right"></i>
+          </a>
+        </aside>
+
+        <!-- FLYOUT MEGA MENU ĐA CẤP CELLPHONES (Hình 4) -->
+        <div id="hpMegaFlyout" class="hp-mega-flyout d-none" aria-label="Bảng danh mục chi tiết đa cấp"></div>
+
+        <!-- Cột 2: Hero Slider trung tâm (Mở rộng tỷ lệ lớn, sắc nét) -->
+        <div class="hp-hero-center">
+          <div class="hp-carousel-card">
+            <div id="hpStoreCarousel" class="carousel slide" data-bs-ride="carousel">
+              <div class="carousel-inner">
+                <div class="carousel-item active" data-bs-interval="3500">
+                  <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=1200" alt="iPhone 15 Pro Max Siêu Sale" />
+                </div>
+                <div class="carousel-item" data-bs-interval="3500">
+                  <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1200" alt="MacBook M3 Series Siêu Ưu Đãi" />
+                </div>
+                <div class="carousel-item" data-bs-interval="3500">
+                  <img src="https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=1200" alt="Galaxy S24 Ultra Đẳng Cấp" />
+                </div>
+              </div>
+
+              <!-- Thanh Tab lướt nhanh sự kiện dưới slider -->
+              <div class="hp-carousel-tabs">
+                <div class="hp-carousel-tab active" data-bs-target="#hpStoreCarousel" data-bs-slide-to="0">
+                  IPHONE 15 PRO MAX<br><small style="font-size: 10px; font-weight: normal;">Mua ngay giá hời</small>
+                </div>
+                <div class="hp-carousel-tab" data-bs-target="#hpStoreCarousel" data-bs-slide-to="1">
+                  MACBOOK PRO M3<br><small style="font-size: 10px; font-weight: normal;">Trợ giá 2 triệu</small>
+                </div>
+                <div class="hp-carousel-tab" data-bs-target="#hpStoreCarousel" data-bs-slide-to="2">
+                  GALAXY S24 ULTRA<br><small style="font-size: 10px; font-weight: normal;">Trả góp 0%</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3 Banner con bên dưới Slider chính -->
+          <div class="hp-sub-banners d-none d-md-grid">
+            <a href="#" class="hp-sub-banner-item">
+              <i class="fa-solid fa-laptop-code fs-3 text-danger"></i>
+              <div>
+                <h6>Laptop AI Gen 2026</h6>
+                <p>Giảm thêm đến 1.500.000₫</p>
+              </div>
+            </a>
+            <a href="#" class="hp-sub-banner-item">
+              <i class="fa-solid fa-mobile fs-3 text-primary"></i>
+              <div>
+                <h6>Galaxy A57 | A37 5G</h6>
+                <p>Ưu đãi chỉ từ 6.990.000₫</p>
+              </div>
+            </a>
+            <a href="#" class="hp-sub-banner-item">
+              <i class="fa-solid fa-headphones-simple fs-3 text-warning"></i>
+              <div>
+                <h6>Phụ kiện Âm thanh</h6>
+                <p>Giảm sốc đến 40%</p>
+              </div>
+            </a>
+          </div>
         </div>
 
-        <div class="carousel-inner" style="border-radius: 15px">
-          <div class="carousel-item active" data-bs-interval="3000">
-            <img src="/img/km_1.jpg" class="d-block w-100" alt="Khuyến mãi 1" />
-            <div class="carousel-caption d-none d-md-block">
-              <h5>Siêu Sale Điện Thoại</h5>
-              <p>Giảm giá lên đến 30% cho các dòng iPhone mới nhất.</p>
+        <!-- Cột 3: Widget ưu đãi bên phải (Right Sidebar) -->
+        <aside class="hp-hero-right">
+          <!-- Widget HP Member -->
+          <div class="hp-widget-box">
+            <div class="hp-widget-header">
+              <i class="fa-solid fa-crown text-warning fs-5"></i>
+              <span>Gia nhập HP Member</span>
+            </div>
+            <p style="font-size: 11.5px; color: #475569; margin-bottom: 12px; line-height: 1.4;">
+              Đăng ký thành viên <b>HP Member</b> nhận ngay voucher chào mừng và tích điểm hoàn tiền đến 2%.
+            </p>
+            <div class="d-flex gap-2">
+              <a href="/src/pages/login.html" class="hp-widget-btn">Đăng nhập</a>
+              <a href="/src/pages/register.html" class="hp-widget-btn" style="background: #ffffff; color: var(--hp-red); border: 1px solid var(--hp-red);">Đăng ký</a>
             </div>
           </div>
-          <div class="carousel-item" data-bs-interval="3000">
-            <img src="/img/km_2.jpg" class="d-block w-100" alt="Khuyến mãi 2" />
-            <div class="carousel-caption d-none d-md-block">
-              <h5>Laptop Gaming Cực Đỉnh</h5>
-              <p>Tặng kèm bộ quà tặng trị giá 2 triệu đồng.</p>
+
+          <!-- Widget Ưu đãi cho sinh viên H-Edu -->
+          <div class="hp-widget-box">
+            <div class="hp-widget-header" style="color: #2563eb;">
+              <i class="fa-solid fa-graduation-cap fs-5"></i>
+              <span>Ưu đãi sinh viên H-Edu</span>
             </div>
+            <ul class="hp-widget-list">
+              <li><i class="fa-solid fa-check text-success"></i> Đăng ký <b>nhận đặc quyền sinh viên</b></li>
+              <li><i class="fa-solid fa-fire text-danger"></i> Mua Laptop <b>giảm thêm đến 800k</b></li>
+              <li><i class="fa-solid fa-tag text-primary"></i> Phụ kiện học tập <b>giảm 15%</b></li>
+            </ul>
           </div>
-          <div class="carousel-item" data-bs-interval="3000">
-            <img src="/img/km_3.jpg" class="d-block w-100" alt="Khuyến mãi 3" />
-            <div class="carousel-caption d-none d-md-block">
-              <h5>Phụ Kiện Chính Hãng</h5>
-              <p>Mua 1 tặng 1 áp dụng cho tai nghe AirPods.</p>
+
+          <!-- Widget Thu cũ đổi mới -->
+          <div class="hp-widget-box">
+            <div class="hp-widget-header" style="color: #10b981;">
+              <i class="fa-solid fa-repeat fs-5"></i>
+              <span>Thu cũ lên đời giá cao</span>
             </div>
+            <ul class="hp-widget-list">
+              <li><i class="fa-solid fa-bolt text-warning"></i> Thẩm định máy trong 5 phút</li>
+              <li><i class="fa-solid fa-arrow-trend-up text-danger"></i> iPhone trợ giá đến <b>5 triệu</b></li>
+              <li><i class="fa-solid fa-arrow-trend-up text-primary"></i> Samsung trợ giá đến <b>4 triệu</b></li>
+            </ul>
+          </div>
+        </aside>
+
+      </section>
+
+      <!-- 3. Super Deal Banner dải ngang -->
+      <section class="hp-strip-banner">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-white text-danger px-3 py-1 rounded fw-bold fs-6 shadow-sm">
+            HP FINANCE
+          </div>
+          <div class="fw-bold fs-6">
+            Trả góp 0% duyệt hồ sơ nhanh qua CCCD - Hạn mức tài trợ lên đến 30 Triệu đồng
+          </div>
+        </div>
+        <a href="#" class="btn btn-sm btn-light text-danger fw-bold rounded-pill px-4 shadow-sm d-none d-md-inline-block">XEM NGAY</a>
+      </section>
+
+      <!-- 4. Flash Sale / Deal Sốc Mỗi Ngày (Hotsale) -->
+      <section class="hp-flashsale-section">
+        <div class="hp-flashsale-header">
+          <h4 class="hp-flashsale-title">
+            <i class="fa-solid fa-fire text-warning animate-bounce"></i>
+            <span>DEAL SỐC MỖI NGÀY - GIÁ HỦY DIỆT</span>
+          </h4>
+
+          <div class="hp-countdown-box">
+            <span>KẾT THÚC TRONG:</span>
+            <span class="hp-countdown-digit" id="cd-hours">02</span>
+            <span>:</span>
+            <span class="hp-countdown-digit" id="cd-minutes">45</span>
+            <span>:</span>
+            <span class="hp-countdown-digit" id="cd-seconds">18</span>
           </div>
         </div>
 
-        <button
-          class="carousel-control-prev"
-          type="button"
-          data-bs-target="#hpStoreCarousel"
-          data-bs-slide="prev"
-        >
-          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Previous</span>
-        </button>
-        <button
-          class="carousel-control-next"
-          type="button"
-          data-bs-target="#hpStoreCarousel"
-          data-bs-slide="next"
-        >
-          <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Next</span>
-        </button>
-      </div>
+        <!-- Tag lọc nhanh danh mục trong Flash Sale -->
+        <div class="hp-pills-filter">
+          <button class="hp-pill-btn active" data-cat="all">Tất cả sản phẩm</button>
+          <button class="hp-pill-btn" data-cat="DM01">Điện thoại</button>
+          <button class="hp-pill-btn" data-cat="DM02">Laptop</button>
+          <button class="hp-pill-btn" data-cat="DM05">Máy tính bảng</button>
+          <button class="hp-pill-btn" data-cat="DM06">Âm thanh</button>
+          <button class="hp-pill-btn" data-cat="DM04">Đồng hồ</button>
+          <button class="hp-pill-btn" data-cat="DM03">Phụ kiện</button>
+        </div>
+
+        <!-- Lưới sản phẩm Flash Sale -->
+        <div class="hp-product-grid" id="best-sellers-container"></div>
+      </section>
+
+      <!-- 5. Toàn bộ danh mục sản phẩm nổi bật -->
+      <section class="mt-4 bg-white p-3 p-md-4 rounded-4 shadow-sm border border-light">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom">
+          <div>
+            <h4 class="fw-bold mb-1" style="color: var(--hp-text-main); font-size: 18px;">
+              <i class="fa-solid fa-sparkles text-danger me-2"></i>GỢI Ý HÔM NAY - SẢN PHẨM NỔI BẬT
+            </h4>
+            <p class="text-muted small mb-0">Hơn 25+ sản phẩm công nghệ chính hãng giá tốt nhất tại HP STORE</p>
+          </div>
+          
+          <!-- Filter danh mục động từ Backend -->
+          <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0" id="category-filter"></div>
+        </div>
+
+        <!-- Danh sách sản phẩm chính -->
+        <div class="hp-product-grid px-0" id="product-list"></div>
+
+        <!-- Phân trang -->
+        <div id="products-pagination" class="mt-4"></div>
+      </section>
     </main>
 
-    <section class="container mt-5">
-      <div class="d-flex justify-content-between align-items-end mb-4">
-        <div>
-          <h3 class="fw-bold text-primary mb-0">Sản phẩm bán chạy</h3>
-          <p class="text-muted mb-0">
-            Những sản phẩm được yêu thích nhất tại HP STORE
-          </p>
-        </div>
-        <a href="#" class="btn btn-outline-primary btn-sm rounded-pill px-3"
-          >Xem tất cả</a
-        >
-      </div>
+    <!-- Nút Hotline nổi bật góc phải màn hình -->
+    <a href="tel:18006868" class="hp-floating-hotline" title="Gọi tổng đài tư vấn miễn phí">
+      <i class="fa-solid fa-headset fs-5"></i>
+      <span>1800.6868</span>
+    </a>
 
-      <div class="row" id="best-sellers-container"></div>
-
-      <div id="bestsellers-pagination" class="mt-2"></div>
-    </section>
-
-    <section class="container mt-5">
-      <div class="d-flex flex-wrap gap-2 mb-4" id="category-filter">
-        <button
-          class="btn btn-primary rounded-pill px-4 filter-btn active"
-          data-id="all"
-        >
-          Tất cả
-        </button>
-      </div>
-
-      <div
-        class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4"
-        id="product-list"
-      ></div>
-
-      <div id="products-pagination" class="mt-4"></div>
-    </section>
-
+    <!-- Footer dùng chung -->
     <div id="footer-shared"></div>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script type="module" src="/src/JS/common/header.js?v=1.1"></script>
+    <script type="module" src="/src/JS/common/header.js"></script>
     <script type="module" src="/src/JS/homepage.js"></script>
-
     <script type="module">
       import { loadFooter } from "/src/JS/common/footer.js";
       document.addEventListener("DOMContentLoaded", () => {
         loadFooter();
+
+        // Đồng hồ đếm ngược Flash Sale
+        let totalSeconds = 2 * 3600 + 45 * 60 + 30;
+        setInterval(() => {
+          if (totalSeconds > 0) totalSeconds--;
+          const h = Math.floor(totalSeconds / 3600);
+          const m = Math.floor((totalSeconds % 3600) / 60);
+          const s = totalSeconds % 60;
+          const hEl = document.getElementById("cd-hours");
+          const mEl = document.getElementById("cd-minutes");
+          const sEl = document.getElementById("cd-seconds");
+          if (hEl) hEl.innerText = String(h).padStart(2, "0");
+          if (mEl) mEl.innerText = String(m).padStart(2, "0");
+          if (sEl) sEl.innerText = String(s).padStart(2, "0");
+        }, 1000);
       });
     </script>
   </body>

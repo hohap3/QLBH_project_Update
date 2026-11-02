@@ -3,99 +3,247 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HP STORE - Đăng nhập</title>
+    <title>HP STORE - Đăng nhập tài khoản</title>
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <link rel="stylesheet" href="/src/styles/login.css" />
   </head>
   <body>
-    <div
-      class="container-fluid vh-100 d-flex justify-content-center align-items-center bg-login-page"
-    >
-      <div class="card p-5 shadow-lg border-0 login-card">
-        <div class="text-center mb-5">
-          <div class="logo-box mb-3 shadow">
-            <i class="fa-solid fa-shop"></i>
-          </div>
-          <h1 class="brand-name">HP STORE</h1>
-          <p class="text-muted small">Đăng nhập vào cửa hàng</p>
-        </div>
+    <div class="container-fluid bg-login-page">
+      <!-- Khối Card lớn 2 Cột mở rộng toàn màn hình tối ưu khoảng trắng -->
+      <div class="login-split-card shadow-lg">
+        
+        <!-- Cột Trái: Biểu mẫu Đăng nhập & Chọn nhanh tài khoản -->
+        <div class="login-left-col">
+          <div class="login-form-wrapper">
+            <a href="/" class="link-back-home">
+              <i class="fa-solid fa-arrow-left"></i> Trang chủ
+            </a>
+            <div class="login-welcome-tag">CHÀO MỪNG BẠN ĐẾN VỚI CHÚNG TÔI</div>
+            <h1 class="login-heading">Đăng nhập</h1>
 
-        <form id="loginForm">
-          <div class="input-group mb-4">
-            <label
-              for="username"
-              class="form-label d-block text-muted small fw-semibold"
-              >Tên đăng nhập</label
-            >
-            <div class="input-wrapper">
-              <i class="fa-regular fa-user input-icon"></i>
-              <input
-                type="text"
-                id="username"
-                class="form-control"
-                placeholder="Nhập tên đăng nhập"
-              />
+            <form id="loginForm" novalidate>
+              <!-- Ô Tên đăng nhập / Email -->
+              <div class="form-group-item mb-3">
+                <label for="username" class="input-label d-block">Tên đăng nhập / Email</label>
+                <div class="custom-input-box">
+                  <input
+                    type="text"
+                    id="username"
+                    class="form-control"
+                    placeholder="Nhập tên đăng nhập hoặc email"
+                    autocomplete="username"
+                  />
+                </div>
+                <div id="usernameError" class="text-danger small mt-1 d-none" style="font-size: 13.5px"></div>
+              </div>
+
+              <!-- Ô Mật khẩu -->
+              <div class="form-group-item mb-2">
+                <label for="password" class="input-label d-block">Mật khẩu</label>
+                <div class="custom-input-box">
+                  <input
+                    type="password"
+                    id="password"
+                    class="form-control"
+                    placeholder="Nhập mật khẩu"
+                    autocomplete="current-password"
+                  />
+                  <button type="button" class="toggle-password-btn" id="togglePassword" aria-label="Hiện mật khẩu">
+                    Hiện
+                  </button>
+                </div>
+                <div id="passwordError" class="text-danger small mt-1 d-none" style="font-size: 13.5px"></div>
+              </div>
+
+              <div class="d-flex justify-content-start mb-4">
+                <a href="/src/pages/forgot-password.html" class="forgot-pass-link text-decoration-none fw-bold" style="color: #d70018 !important;">
+                  Quên mật khẩu?
+                </a>
+              </div>
+
+              <!-- Nút Đăng nhập chính -->
+              <button type="submit" class="btn btn-submit-login w-100">
+                Đăng nhập ngay <i class="fa-solid fa-arrow-right ms-2"></i>
+              </button>
+
+              <div class="mt-3 text-center register-hint-text text-secondary">
+                Nếu bạn chưa có tài khoản?
+                <a href="/src/pages/register.html" class="text-decoration-underline fw-bold" style="color: #d70018 !important;">Đăng ký</a>
+              </div>
+            </form>
+          </div>
+
+          <!-- Hộp Chọn nhanh tài khoản Demo (1-Click) chuẩn Actor HP STORE -->
+          <div class="demo-box-card">
+            <div class="demo-box-title text-dark mb-2 d-flex align-items-center gap-2">
+              <span class="text-warning">⚡</span> <span>Chọn nhanh vai trò Demo (1–Click điền tự động):</span>
             </div>
-            <div
-              id="usernameError"
-              class="error-text text-danger small mt-1 d-none"
-              style="font-size: 13px"
-            ></div>
-          </div>
-
-          <div class="input-group mb-4">
-            <label
-              for="password"
-              class="form-label d-block text-muted small fw-semibold"
-              >Mật khẩu</label
-            >
-            <div class="input-wrapper">
-              <i class="fa-solid fa-lock input-icon"></i>
-              <input
-                type="password"
-                id="password"
-                class="form-control"
-                placeholder="********"
-              />
-              <button type="button" class="eye-btn" id="togglePassword">
-                <i class="fa-regular fa-eye"></i>
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              <button type="button" class="btn-demo-tag btn-demo-admin" id="btnDemoAdmin" title="Quản trị viên toàn hệ thống (Super Admin)">
+                👑 Admin Tổng
+              </button>
+              <button type="button" class="btn-demo-tag btn-demo-manager" id="btnDemoManager" title="Quản lý chi nhánh & kho hàng (Store Manager)">
+                🏢 Quản lý CN
+              </button>
+              <button type="button" class="btn-demo-tag btn-demo-sales" id="btnDemoSales" title="Nhân viên tư vấn & bán hàng (Sales / Staff)">
+                💼 Nhân viên Sales
+              </button>
+              <button type="button" class="btn-demo-tag btn-demo-customer" id="btnDemoCustomer" title="Khách hàng mua sắm & tích điểm (Member / User)">
+                👤 Khách hàng
               </button>
             </div>
-            <div
-              id="passwordError"
-              class="error-text text-danger small mt-1 d-none"
-              style="font-size: 13px"
-            ></div>
+            <div class="demo-helper-text text-muted">
+              Tài khoản demo: <b>admin / 123456</b> (Admin Tổng) | <b>manager / 123456</b> (Quản lý CN) | <b>nhanvien / 123456</b> (Sales) | <b>khachhang / 123456</b> (Khách hàng)
+            </div>
           </div>
-
-          <div
-            class="d-flex justify-content-between align-items-center mb-5 small"
-          >
-            <a
-              href="/src/pages/forgot-password.html"
-              class="text-decoration-none forgot-link"
-              >Quên mật khẩu?</a
-            >
-          </div>
-
-          <button type="submit" class="btn btn-primary w-100 py-3 submit-btn">
-            Đăng nhập <i class="fa-solid fa-arrow-right ms-2"></i>
-          </button>
-        </form>
-
-        <div class="text-center mt-5 text-muted small">
-          <p>
-            Chưa có tài khoản?
-            <a
-              href="/src/pages/register.html"
-              class="text-decoration-none forgot-link fw-semibold"
-              >Đăng ký ngay</a
-            >
-          </p>
         </div>
+
+        <!-- Cột Phải: Slider Banner Khuyến mãi & Công nghệ Động (Ảnh chuẩn khung dọc) -->
+        <div class="login-right-col" id="loginSliderContainer">
+          
+          <!-- Header Thương hiệu nổi trên Slider -->
+          <div class="slider-top-header">
+            <div class="d-flex align-items-center gap-2">
+              <span class="brand-badge-icon shadow-sm">
+                <i class="fa-solid fa-bolt text-warning me-1"></i>HP
+              </span>
+              <div>
+                <div class="fw-bold fs-5 text-white lh-1">HP STORE</div>
+                <small class="text-white-50" style="font-size: 11.5px; letter-spacing: 0.5px;">HỆ THỐNG CÔNG NGHỆ CHÍNH HÃNG</small>
+              </div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge-partner-tag">
+                <i class="fa-solid fa-shield-halved text-success me-1"></i>Chính Hãng 100%
+              </span>
+            </div>
+          </div>
+
+          <!-- Slider Track chứa các Slide Banner động -->
+          <div class="banner-slider-track" id="bannerSliderTrack">
+            
+            <!-- Slide 1: Samsung Galaxy Z Fold8 / S25 Ultra -->
+            <div class="banner-slide-item active" data-slide-index="0">
+              <div class="slide-media-wrapper">
+                <img src="/img/slider_samsung.jpg" alt="Samsung Galaxy Z Fold8 | Ultra Flagship" class="slide-banner-img" />
+                <div class="slide-overlay-gradient"></div>
+              </div>
+              <div class="slide-caption-box">
+                <div class="slide-badge-pill mb-2">
+                  <span class="badge-accent">SAMSUNG GALAXY</span> Giá từ 27.99 Triệu • Trợ giá 5 Triệu
+                </div>
+                <h3 class="slide-title">Galaxy Z Fold8 | Ultra</h3>
+                <p class="slide-desc">
+                  Lên đời trợ giá 5.000.000đ • Tặng gói Google AI Pro 3.000.000đ • Trả góp 0% tới 24 tháng.
+                </p>
+                <div class="d-flex align-items-center gap-3 mt-3">
+                  <a href="/" class="btn-slide-action">
+                    MUA NGAY <i class="fa-solid fa-arrow-right ms-1"></i>
+                  </a>
+                  <span class="text-white-50 small">S-Student | S-Teacher giảm thêm 500.000đ</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slide 2: Apple iPhone 16 Pro Max Titan Sa Mạc -->
+            <div class="banner-slide-item" data-slide-index="1">
+              <div class="slide-media-wrapper">
+                <img src="/img/slider_iphone16.jpg" alt="Apple iPhone 16 Pro Max Titan Sa Mạc" class="slide-banner-img" />
+                <div class="slide-overlay-gradient"></div>
+              </div>
+              <div class="slide-caption-box">
+                <div class="slide-badge-pill mb-2">
+                  <span class="badge-accent" style="background: #f59e0b;">APPLE A18 PRO</span> Titan Sa Mạc Đẳng Cấp
+                </div>
+                <h3 class="slide-title">iPhone 16 Pro Max 256GB</h3>
+                <p class="slide-desc">
+                  Lên đời trợ giá 4.000.000đ • Giảm ngay 2 Triệu qua thẻ ngân hàng • Bảo hành chính hãng Apple Care 2 năm.
+                </p>
+                <div class="d-flex align-items-center gap-3 mt-3">
+                  <a href="/" class="btn-slide-action">
+                    KHÁM PHÁ NGAY <i class="fa-solid fa-arrow-right ms-1"></i>
+                  </a>
+                  <span class="text-white-50 small">Tặng voucher 500k phụ kiện</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slide 3: Laptop AI & Gaming Đột Phá -->
+            <div class="banner-slide-item" data-slide-index="2">
+              <div class="slide-media-wrapper">
+                <img src="/img/slider_laptop.jpg" alt="Laptop AI & Gaming ROG / MacBook Pro" class="slide-banner-img" />
+                <div class="slide-overlay-gradient"></div>
+              </div>
+              <div class="slide-caption-box">
+                <div class="slide-badge-pill mb-2">
+                  <span class="badge-accent" style="background: #8b5cf6;">AI PERFORMANCE</span> Sẵn sàng Kỷ nguyên Mới
+                </div>
+                <h3 class="slide-title">Laptop AI & MacBook Pro M3</h3>
+                <p class="slide-desc">
+                  Tặng Balo ROG Gaming 1.500.000đ • Học sinh - Sinh viên giảm 1.000.000đ • Trả góp 0% lãi suất.
+                </p>
+                <div class="d-flex align-items-center gap-3 mt-3">
+                  <a href="/" class="btn-slide-action">
+                    XEM ƯU ĐÃI <i class="fa-solid fa-arrow-right ms-1"></i>
+                  </a>
+                  <span class="text-white-50 small">Cài đặt phần mềm bản quyền 100%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slide 4: Hệ sinh thái Phụ kiện Smember -->
+            <div class="banner-slide-item" data-slide-index="3">
+              <div class="slide-media-wrapper">
+                <img src="/img/slider_accessories.jpg" alt="Hệ sinh thái Phụ kiện Smember" class="slide-banner-img" />
+                <div class="slide-overlay-gradient"></div>
+              </div>
+              <div class="slide-caption-box">
+                <div class="slide-badge-pill mb-2">
+                  <span class="badge-accent" style="background: #10b981;">SMEMBER VIP</span> Đặc quyền Khách hàng Thân thiết
+                </div>
+                <h3 class="slide-title">Âm Thanh & Smartwatch</h3>
+                <p class="slide-desc">
+                  Giảm sốc tới 50% • Giao siêu tốc 2 Giờ • Tích 1% điểm Smember đổi quà cho mọi đơn hàng.
+                </p>
+                <div class="d-flex align-items-center gap-3 mt-3">
+                  <a href="/" class="btn-slide-action">
+                    SĂN DEAL NGAY <i class="fa-solid fa-arrow-right ms-1"></i>
+                  </a>
+                  <span class="text-white-50 small">Bảo hành 1 đổi 1 trong 12 tháng</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Nút điều hướng Prev / Next -->
+          <button type="button" class="slider-nav-btn prev-btn" id="sliderPrevBtn" aria-label="Slide trước">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button type="button" class="slider-nav-btn next-btn" id="sliderNextBtn" aria-label="Slide kế tiếp">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+
+          <!-- Thanh điều khiển Indicator Dots + Footer -->
+          <div class="slider-footer-controls">
+            <div class="slider-dots-group" id="sliderDotsGroup">
+              <button type="button" class="slide-dot active" data-slide-to="0" aria-label="Slide 1: Samsung Galaxy"></button>
+              <button type="button" class="slide-dot" data-slide-to="1" aria-label="Slide 2: Apple iPhone 16 Pro Max"></button>
+              <button type="button" class="slide-dot" data-slide-to="2" aria-label="Slide 3: Laptop AI Gaming"></button>
+              <button type="button" class="slide-dot" data-slide-to="3" aria-label="Slide 4: Phụ kiện Smember"></button>
+            </div>
+
+            <div class="slider-contact-info">
+              <span><i class="fa-solid fa-headset me-1 text-warning"></i> Hotline <b>1800.6868</b> (Miễn phí)</span>
+            </div>
+          </div>
+
+        </div>
+
       </div>
     </div>
 

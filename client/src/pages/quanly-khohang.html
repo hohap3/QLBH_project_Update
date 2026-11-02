@@ -10,12 +10,7 @@
       <button class="btn btn-success me-2" id="btnExportExcel">
         <i class="fa-solid fa-file-excel me-2"></i> Xuất báo cáo Excel
       </button>
-      <button
-        class="btn btn-primary"
-        id="btnOpenTransactionModal"
-        data-bs-toggle="modal"
-        data-bs-target="#modalTransaction"
-      >
+      <button class="btn btn-primary" id="btnOpenTransactionModal">
         <i class="fa-solid fa-plus me-2"></i> Tạo phiếu kho
       </button>
     </div>
@@ -24,7 +19,7 @@
   <div class="card filter-card mb-4 border-0 shadow-sm">
     <div class="card-body">
       <div class="row g-3">
-        <div class="col-md-5">
+        <div class="col-md-4">
           <div class="input-group">
             <span class="input-group-text bg-white border-end-0"
               ><i class="fa-solid fa-magnifying-glass text-muted"></i
@@ -33,20 +28,27 @@
               type="text"
               class="form-control border-start-0 ps-0"
               id="searchWarehouse"
-              placeholder="Tìm theo mã giao dịch, tên sản phẩm..."
+              placeholder="Mã GD, tên SP..."
             />
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
+          <select class="form-select" id="filterKho">
+            <option value="KHO_TONG">Kho Tổng Trung Tâm</option>
+            <option value="KHO_CN1">Kho Chi nhánh 1</option>
+            <option value="KHO_CN2">Kho Chi nhánh 2</option>
+          </select>
+        </div>
+        <div class="col-md-3">
           <select class="form-select" id="filterLoaiGD">
-            <option value="">-- Tất cả loại giao dịch --</option>
+            <option value="">-- Loại giao dịch --</option>
             <option value="1">Nhập kho (+)</option>
             <option value="2">Xuất kho (-)</option>
           </select>
         </div>
-        <div class="col-md-3">
-          <button class="btn btn-secondary w-100" id="btnResetFilter">
-            <i class="fa-solid fa-arrow-rotate-left me-2"></i> Làm mới bộ lọc
+        <div class="col-md-2">
+          <button class="btn btn-secondary w-100" id="btnResetFilter" style="white-space: nowrap;">
+            <i class="fa-solid fa-arrow-rotate-left"></i> Làm mới
           </button>
         </div>
       </div>
@@ -103,6 +105,14 @@
       </div>
       <form id="formWarehouseTransaction">
         <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Kho hàng thực thi</label>
+            <select class="form-select" id="selectKho" required>
+              <option value="KHO_TONG">Kho Tổng Trung Tâm</option>
+              <option value="KHO_CN1">Kho Chi nhánh 1</option>
+              <option value="KHO_CN2">Kho Chi nhánh 2</option>
+            </select>
+          </div>
           <div class="mb-3">
             <label class="form-label fw-semibold">Chọn Sản phẩm</label>
             <select class="form-select" id="selectProduct" required></select>

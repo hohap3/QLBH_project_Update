@@ -1,94 +1,95 @@
-<div class="container py-4 px-4">
+<div class="container-fluid px-3 px-md-4 py-3" style="width: 100%; max-width: none; margin: 0 auto;">
   <!-- Header -->
-  <div class="page-header">
+  <div class="page-header d-flex align-items-center justify-content-between mb-3">
     <div class="page-title">
-      <h2>Quản lý đơn hàng</h2>
-      <span
-        ><i class="fa-solid fa-circle text-success" style="font-size: 8px"></i>
-        <span id="orderCount">8</span> đơn hàng tại HP STORE</span
-      >
+      <h2 class="fw-bold mb-1 fs-4 text-dark">Quản lý đơn hàng</h2>
+      <span class="text-muted small">
+        <i class="fa-solid fa-circle text-success" style="font-size: 8px"></i>
+        Đang quản lý <span id="orderCount" class="fw-bold text-dark">0</span> đơn hàng trên toàn hệ thống
+      </span>
     </div>
     <button class="btn btn-export">
-      <i class="fa-solid fa-download"></i> Xuất báo cáo
+      <i class="fa-solid fa-file-excel me-1"></i> Xuất Excel
     </button>
   </div>
 
-  <!-- Toolbar -->
-  <div class="toolbar">
+  <!-- Toolbar: Search & Filter (Được tối ưu độ cao và khoảng trắng) -->
+  <div class="toolbar mb-3 p-2 p-md-3">
     <div class="search-wrapper">
       <i class="fa-solid fa-magnifying-glass"></i>
       <input
         type="text"
         class="search-input"
-        placeholder="Tìm kiếm theo mã đơn hoặc tên khách hàng..."
+        placeholder="Tìm kiếm theo mã đơn, họ tên hoặc email khách hàng..."
       />
     </div>
     <select class="filter-select">
-      <option selected><i class="fa-solid fa-filter"></i> Tất cả</option>
-      <option>Thành công</option>
-      <option>Đã giao</option>
-      <option>Đang giao</option>
+      <option selected><i class="fa-solid fa-filter"></i> Tất cả trạng thái</option>
+      <option>Chờ xác nhận</option>
       <option>Đang xử lý</option>
+      <option>Đang giao</option>
+      <option>Đã giao</option>
+      <option>Thành công</option>
       <option>Đã hủy</option>
     </select>
   </div>
 
   <div
     id="bulkActionContainer"
-    class="alert alert-primary d-none d-flex align-items-center justify-content-between p-3 mb-3"
-    style="border-radius: 8px"
+    class="alert alert-primary d-none d-flex align-items-center justify-content-between p-3 mb-3 border-0 shadow-sm"
+    style="border-radius: 12px; background: #e0f2fe;"
   >
-    <div>
-      <i class="fa-solid fa-circle-info me-2"></i>
-      Đang chọn: <b class="selected-count text-danger">0</b> đơn hàng khả dụng
-      trên trang này.
+    <div class="text-dark small">
+      <i class="fa-solid fa-circle-info text-primary me-2"></i>
+      Đang chọn: <b class="selected-count text-danger">0</b> đơn hàng khả dụng trên trang này.
     </div>
     <div>
       <button
         id="btnBulkApprove"
-        class="btn btn-success btn-sm fw-bold me-2 px-3"
+        class="btn btn-success btn-sm fw-bold me-2 px-3 rounded-pill"
       >
-        <i class="fa-solid fa-check me-1"></i> Duyệt hàng loạt (Chuyển trạng
-        thái tiếp theo)
+        <i class="fa-solid fa-check me-1"></i> Duyệt hàng loạt
       </button>
-      <button id="btnBulkCancel" class="btn btn-danger btn-sm px-3">
+      <button id="btnBulkCancel" class="btn btn-outline-danger btn-sm px-3 rounded-pill bg-white">
         <i class="fa-solid fa-xmark me-1"></i> Hủy các đơn đã chọn
       </button>
     </div>
   </div>
 
-  <!-- Table -->
-  <div class="content-card">
+  <!-- Table Card: Tối ưu lề và padding (Hình 4) -->
+  <div class="content-card shadow-sm border rounded-4 bg-white p-0 overflow-hidden">
     <div class="table-responsive">
-      <table class="table table-hover align-middle">
-        <thead>
+      <table class="table table-hover align-middle mb-0" id="ordersMainTable">
+        <thead class="bg-light">
           <tr>
-            <th width="40" class="text-center">
+            <th width="45" class="text-center py-3">
               <input
                 type="checkbox"
                 class="form-check-input"
                 id="checkAllOrders"
+                title="Chọn tất cả đơn hàng khả dụng"
               />
             </th>
-            <th>Mã đơn hàng</th>
-            <th>Khách hàng</th>
-            <th>Ngày đặt</th>
-            <th>Số lượng</th>
-            <th>Tổng tiền</th>
-            <th>Trạng thái</th>
-            <th class="text-center">Hành động</th>
+            <th class="py-3">Mã đơn hàng</th>
+            <th class="py-3">Khách hàng</th>
+            <th class="py-3">Ngày đặt</th>
+            <th class="py-3 text-center">Số lượng</th>
+            <th class="py-3 text-end">Tổng tiền</th>
+            <th class="py-3 text-center">Trạng thái</th>
+            <th class="py-3 text-center" width="80">Xem</th>
           </tr>
         </thead>
         <tbody id="orderTableBody"></tbody>
       </table>
       <div
         id="paginationContainer"
-        class="d-flex justify-content-center mt-3"
+        class="d-flex justify-content-center py-3 border-top bg-white"
       ></div>
     </div>
   </div>
 </div>
 
+<!-- Modal Chi tiết Đơn hàng: Thiết kế mới Tươi Sáng & Tối ưu khoảng trắng (Hình 4) -->
 <div
   class="modal fade"
   id="orderDetailModal"
@@ -97,11 +98,15 @@
   aria-hidden="true"
 >
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-light">
-        <h5 class="modal-title fw-bold" id="orderDetailModalLabel">
-          Chi tiết đơn hàng:
-          <span id="modalMaDonHang" class="text-primary"></span>
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <!-- Modal Header Tươi Sáng -->
+      <div class="modal-header bg-white border-bottom py-3 px-4">
+        <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="orderDetailModalLabel">
+          <span class="badge bg-danger rounded-circle p-2 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+            <i class="fa-solid fa-receipt text-white"></i>
+          </span>
+          <span>Chi tiết đơn hàng:</span>
+          <span id="modalMaDonHang" class="text-danger fw-bolder">---</span>
         </h5>
         <button
           type="button"
@@ -110,84 +115,75 @@
           aria-label="Close"
         ></button>
       </div>
-      <div class="modal-body py-4">
-        <div class="row g-3 mb-4">
+
+      <!-- Modal Body -->
+      <div class="modal-body p-4" style="background-color: #f8fafc;">
+        <div class="row g-3 mb-3">
+          <!-- Thông tin khách hàng -->
           <div class="col-md-6">
-            <h6 class="fw-bold text-muted text-uppercase small">
-              Thông tin khách hàng
-            </h6>
-            <div class="p-3 bg-light rounded shadow-sm">
-              <p class="mb-1">
-                <strong>Họ tên:</strong> <span id="modalKhachHang">---</span>
-              </p>
-              <p class="mb-1">
-                <strong>Số điện thoại:</strong> <span id="modalSDT">---</span>
-              </p>
-              <p class="mb-1">
-                <strong>Email:</strong> <span id="modalEmail">---</span>
-              </p>
-              <p class="mb-1">
-                <strong>Địa chỉ giao hàng:</strong>
-                <span id="modalDiaChi">---</span>
-              </p>
-              <p class="mb-0">
-                <strong>Tên đăng nhập:</strong>
-                <span id="modalTenDangNhap" class="badge bg-secondary"
-                  >---</span
-                >
-              </p>
+            <div class="card h-100 border-0 shadow-sm rounded-3 p-3 bg-white">
+              <h6 class="fw-bold text-primary text-uppercase small mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-user-check"></i> Thông tin người nhận
+              </h6>
+              <div class="small lh-lg">
+                <div class="d-flex justify-content-between"><span class="text-muted">Họ và tên:</span> <span class="fw-bold text-dark" id="modalKhachHang">---</span></div>
+                <div class="d-flex justify-content-between"><span class="text-muted">Số điện thoại:</span> <span class="fw-semibold text-dark" id="modalSDT">---</span></div>
+                <div class="d-flex justify-content-between"><span class="text-muted">Email:</span> <span class="text-dark" id="modalEmail">---</span></div>
+                <div class="d-flex justify-content-between"><span class="text-muted">Địa chỉ nhận:</span> <span class="text-dark text-end ms-2 fw-medium" id="modalDiaChi">---</span></div>
+                <div class="d-flex justify-content-between mt-2 pt-2 border-top"><span class="text-muted">Tài khoản đặt:</span> <span id="modalTenDangNhap" class="badge bg-light text-secondary rounded-pill border">---</span></div>
+              </div>
             </div>
           </div>
+
+          <!-- Thông tin đơn hàng -->
           <div class="col-md-6">
-            <h6 class="fw-bold text-muted text-uppercase small">
-              Thông tin đơn hàng
-            </h6>
-            <div class="p-3 bg-light rounded shadow-sm">
-              <p class="mb-1">
-                <strong>Ngày đặt:</strong> <span id="modalNgayDat">---</span>
-              </p>
-              <p class="mb-1">
-                <strong>Trạng thái:</strong>
-                <span id="modalTrangThai">---</span>
-              </p>
-              <p class="mb-1">
-                <strong>Tổng tiền thanh toán:</strong>
-                <span id="modalTongTien" class="text-danger fw-bold">---</span>
-              </p>
-              <p class="mb-0">
-                <strong>Ghi chú:</strong>
-                <em id="modalGhiChu" class="text-muted">Không có</em>
-              </p>
+            <div class="card h-100 border-0 shadow-sm rounded-3 p-3 bg-white">
+              <h6 class="fw-bold text-danger text-uppercase small mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-bag-shopping"></i> Thông tin thanh toán
+              </h6>
+              <div class="small lh-lg">
+                <div class="d-flex justify-content-between"><span class="text-muted">Ngày đặt hàng:</span> <span class="fw-semibold text-dark" id="modalNgayDat">---</span></div>
+                <div class="d-flex justify-content-between align-items-center"><span class="text-muted">Trạng thái hiện tại:</span> <span id="modalTrangThai" class="badge rounded-pill px-3 py-1">---</span></div>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top"><span class="text-muted fw-bold">Tổng tiền thanh toán:</span> <span id="modalTongTien" class="text-danger fw-bolder fs-5">0đ</span></div>
+                <div class="d-flex justify-content-between mt-1"><span class="text-muted">Ghi chú từ khách:</span> <em id="modalGhiChu" class="text-muted text-end ms-2">Không có</em></div>
+              </div>
             </div>
           </div>
         </div>
 
-        <h6 class="fw-bold text-muted text-uppercase small mb-2">
-          Danh sách sản phẩm mua
-        </h6>
-        <div class="table-responsive rounded border shadow-sm">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="table-dark">
-              <tr>
-                <th>Mã sản phẩm</th>
-                <th class="text-center">Số lượng</th>
-                <th class="text-end">Giá bán</th>
-                <th class="text-end">Giảm giá</th>
-                <th class="text-end">Thành tiền</th>
-              </tr>
-            </thead>
-            <tbody id="modalProductItems"></tbody>
-          </table>
+        <!-- Danh sách sản phẩm mua (Nền sáng tươi, KHÔNG dùng thead-dark) -->
+        <div class="card border-0 shadow-sm rounded-3 overflow-hidden bg-white">
+          <div class="card-header bg-white border-bottom py-2 px-3">
+            <h6 class="fw-bold text-dark small mb-0 text-uppercase d-flex align-items-center gap-2">
+              <i class="fa-solid fa-boxes-packing text-info"></i> Danh sách mặt hàng mua
+            </h6>
+          </div>
+          <div class="table-responsive mb-0">
+            <table class="table table-hover align-middle mb-0" style="font-size: 13.5px;">
+              <thead style="background: #f1f5f9; color: #475569; font-size: 12px; font-weight: 700; text-transform: uppercase;">
+                <tr>
+                  <th class="ps-3 py-2">Mã sản phẩm</th>
+                  <th class="text-center py-2">Số lượng</th>
+                  <th class="text-end py-2">Giá niêm yết</th>
+                  <th class="text-end py-2">Giảm giá</th>
+                  <th class="text-end pe-3 py-2">Thành tiền</th>
+                </tr>
+              </thead>
+              <tbody id="modalProductItems"></tbody>
+            </table>
+          </div>
         </div>
       </div>
-      <div class="modal-footer bg-light d-flex justify-content-between">
+
+      <!-- Modal Footer -->
+      <div class="modal-footer bg-white border-top py-3 px-4 d-flex justify-content-between">
         <div id="modalActionButtons"></div>
         <button
           type="button"
-          class="btn btn-secondary px-4"
+          class="btn btn-light border px-4 py-2 rounded-pill fw-semibold text-secondary"
           data-bs-dismiss="modal"
         >
-          Đóng
+          <i class="fa-solid fa-xmark me-1"></i> Đóng
         </button>
       </div>
     </div>

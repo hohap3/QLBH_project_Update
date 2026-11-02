@@ -1,108 +1,546 @@
-/* login.css */
+/* login.css - Thiết kế Mở Rộng Toàn Màn Hình Tối Ưu Khoảng Trắng, Cỡ Chữ Lớn & Slider Banner Chuẩn Khung Dọc */
 
-/* --- Màu nền tím đậm Gradient --- */
+:root {
+  --hp-primary: #d70018; /* Màu Đỏ Ruby đặc trưng của HP STORE / CellphoneS */
+  --hp-primary-dark: #b8001f;
+  --hp-primary-light: #fff1f2;
+  --hp-accent-gold: #f59e0b;
+  --hp-text-dark: #0f172a;
+  --hp-text-muted: #64748b;
+  --hp-border: #e2e8f0;
+}
+
+/* Nền toàn trang - Mở rộng không gian, tối ưu khoảng trắng */
 .bg-login-page {
-  background: radial-gradient(
-    circle at center,
-    #350066 0%,
-    #150030 100%
-  ) !important;
-}
-
-/* --- Card trắng: Bo góc lớn 20px, bóng mờ --- */
-.login-card {
-  border-radius: 20px !important;
-  max-width: 440px;
-  width: 100%;
-}
-
-/* --- Phần Logo: Gradient tím tươi, bo góc --- */
-.logo-box {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, #a16bff 0%, #6138ff 100%);
-  border-radius: 12px;
+  background: radial-gradient(circle at top left, #f8fafc 0%, #e2e8f0 100%) !important;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
-  font-size: 28px;
-  margin-left: auto;
-  margin-right: auto;
+  padding: 24px 20px;
 }
 
-.brand-name {
-  color: #6138ff;
-  font-size: 24px;
+/* Khối Card lớn 2 Cột mở rộng toàn màn hình */
+.login-split-card {
+  width: 95%;
+  max-width: 1400px;
+  height: 88vh;
+  min-height: 720px;
+  max-height: 920px;
+  background: #ffffff;
+  border-radius: 28px !important;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(226, 232, 240, 0.8) !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   CỘT TRÁI: FORM ĐĂNG NHẬP & BỐ CỤC CHỮ TO, THOÁNG ĐÃNG
+   ───────────────────────────────────────────────────────────── */
+.login-left-col {
+  flex: 0.95;
+  padding: 46px 54px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #ffffff;
+  overflow-y: auto;
+}
+
+.login-form-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Link quay lại trang chủ */
+.link-back-home {
+  color: var(--hp-primary);
+  text-decoration: none;
+  font-size: 15px;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  transition: all 0.2s ease;
 }
 
-/* --- Ô nhập liệu với icon nằm trong --- */
-.input-wrapper {
+.link-back-home:hover {
+  color: var(--hp-primary-dark);
+  transform: translateX(-3px);
+}
+
+.login-welcome-tag {
+  color: var(--hp-primary);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.login-heading {
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--hp-text-dark);
+  margin-bottom: 26px;
+  letter-spacing: -0.5px;
+}
+
+/* Form Inputs & Labels */
+.form-group-item {
+  margin-bottom: 18px !important;
+}
+
+.input-label {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.custom-input-box {
   position: relative;
   width: 100%;
 }
 
-.input-icon {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #aaa;
-  font-size: 18px;
-}
-
-.input-wrapper .form-control {
-  padding-left: 50px !important; /* Padding trái to để chừa chỗ cho icon */
-  border: 1px solid #ddd;
-  border-radius: 8px;
+.custom-input-box .form-control {
+  height: 52px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  padding: 12px 18px;
   font-size: 16px;
-  color: #333;
-  transition: all 0.3s ease;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background-color: #f8fafc;
+  color: #0f172a;
 }
 
-.input-wrapper .form-control:focus {
+.custom-input-box .form-control:focus {
+  background-color: #ffffff;
+  border-color: var(--hp-primary);
+  box-shadow: 0 0 0 4px rgba(215, 0, 24, 0.15);
   outline: none;
-  border-color: #6138ff;
-  box-shadow: 0 0 0 3px rgba(97, 56, 255, 0.1);
 }
 
-/* Nút hiện mật khẩu */
-.eye-btn {
+.toggle-password-btn {
   position: absolute;
-  right: 15px;
+  right: 16px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-  color: #aaa;
-  font-size: 16px;
+  padding: 6px;
 }
 
-.eye-btn:hover {
-  color: #6138ff;
+.toggle-password-btn:hover {
+  color: var(--hp-primary);
 }
 
-/* --- Liên kết Quên mật khẩu --- */
-.forgot-link {
-  color: #6138ff;
-  transition: opacity 0.3s;
+.forgot-pass-link {
+  font-size: 14.5px;
+  font-weight: 700;
+  transition: color 0.2s;
 }
 
-.forgot-link:hover {
-  opacity: 0.8;
+.forgot-pass-link:hover {
+  color: var(--hp-primary-dark) !important;
+  text-decoration: underline !important;
 }
 
-/* --- Nút Đăng nhập: Gradient tím-xanh --- */
-.submit-btn {
-  background: linear-gradient(90deg, #3855ff 0%, #6138ff 100%) !important;
-  color: white;
+/* Nút Đăng nhập chính chuẩn Đỏ Ruby CellphoneS / HP STORE */
+.btn-submit-login {
+  background: linear-gradient(135deg, #d70018 0%, #b8001f 100%) !important;
+  color: #ffffff !important;
   border: none !important;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: 14px !important;
+  height: 54px;
+  font-size: 17.5px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 20px rgba(215, 0, 24, 0.35);
+  letter-spacing: 0.3px;
 }
 
-.submit-btn:hover {
-  box-shadow: 0 5px 15px rgba(97, 56, 255, 0.3) !important;
+.btn-submit-login:hover {
+  background: linear-gradient(135deg, #b8001f 0%, #990019 100%) !important;
+  transform: translateY(-1.5px);
+  box-shadow: 0 8px 25px rgba(215, 0, 24, 0.45);
+  color: #ffffff !important;
+}
+
+.register-hint-text {
+  font-size: 15px;
+}
+
+.register-hint-text a {
+  font-size: 15.5px;
+}
+
+/* Hộp Chọn nhanh tài khoản Demo (1-Click) chuẩn Actor HP STORE */
+.demo-box-card {
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-top: 20px;
+}
+
+.demo-box-title {
+  font-size: 14.5px;
+  font-weight: 800;
+}
+
+.btn-demo-tag {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-demo-tag:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  color: #ffffff;
+}
+
+.btn-demo-admin { background-color: #d70018 !important; } /* Đỏ Ruby Quản trị viên */
+.btn-demo-manager { background-color: #0f766e !important; } /* Teal Quản lý Chi nhánh */
+.btn-demo-sales { background-color: #0284c7 !important; } /* Xanh Dương Nhân viên Sales */
+.btn-demo-customer { background-color: #ea580c !important; } /* Cam Khách hàng Member */
+
+.demo-helper-text {
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   CỘT PHẢI: SLIDER BANNER KHUYẾN MÃI & CÔNG NGHỆ KHUNG DỌC
+   ───────────────────────────────────────────────────────────── */
+.login-right-col {
+  flex: 1.15;
+  background: #0f172a;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Thương hiệu cố định nổi trên Slider */
+.slider-top-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: 26px 36px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0) 100%);
+  pointer-events: none;
+}
+
+.brand-badge-icon {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #d70018 0%, #b8001f 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.badge-partner-tag {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Slider Track chứa các Slide Banner */
+.banner-slider-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.banner-slide-item {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1), transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scale(1.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.banner-slide-item.active {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+  z-index: 5;
+}
+
+.slide-media-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Hình ảnh chuẩn tỷ lệ dọc (Portrait 3:4) khớp 100% với khung bên phải */
+.slide-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  transition: transform 7s ease-out;
+}
+
+.banner-slide-item.active .slide-banner-img {
+  transform: scale(1.04);
+}
+
+/* Lớp phủ chuyển sắc thông minh: Giữ sáng vùng thiết bị, phủ tối đáy để đọc chữ siêu rõ */
+.slide-overlay-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.45) 0%,
+    rgba(15, 23, 42, 0.05) 30%,
+    rgba(15, 23, 42, 0.4) 55%,
+    rgba(15, 23, 42, 0.95) 90%,
+    rgba(15, 23, 42, 1) 100%
+  );
+}
+
+/* Hộp Caption & Khuyến Mãi */
+.slide-caption-box {
+  position: relative;
+  z-index: 10;
+  padding: 28px 38px 84px 38px;
+  color: #ffffff;
+}
+
+.slide-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.badge-accent {
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  letter-spacing: 0.5px;
+}
+
+.slide-title {
+  font-size: 32px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.25;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.slide-desc {
+  font-size: 14.5px;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.6;
+  max-width: 580px;
+  margin-bottom: 0;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.btn-slide-action {
+  background: #d70018;
+  color: #ffffff !important;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 10px 24px;
+  border-radius: 9999px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 16px rgba(215, 0, 24, 0.4);
+  transition: all 0.25s ease;
+}
+
+.btn-slide-action:hover {
+  background: #b8001f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(215, 0, 24, 0.6);
+  color: #ffffff !important;
+}
+
+/* Nút điều hướng Prev / Next */
+.slider-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 25;
+  opacity: 0;
+  transition: all 0.25s ease;
+}
+
+.login-right-col:hover .slider-nav-btn {
+  opacity: 0.9;
+}
+
+.slider-nav-btn:hover {
+  opacity: 1 !important;
+  background: #d70018;
+  border-color: #d70018;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.slider-nav-btn.prev-btn { left: 22px; }
+.slider-nav-btn.next-btn { right: 22px; }
+
+/* Thanh điều khiển Indicator Dots + Footer */
+.slider-footer-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: 22px 38px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(0deg, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0) 100%);
+}
+
+.slider-dots-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slide-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.35);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+}
+
+.slide-dot:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.slide-dot.active {
+  width: 34px;
+  background: #d70018;
+  box-shadow: 0 0 12px rgba(215, 0, 24, 0.7);
+}
+
+.slider-contact-info {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   HIỆU ỨNG RUNG BÁO LỖI FORM
+   ───────────────────────────────────────────────────────────── */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RESPONSIVE
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .login-split-card {
+    height: auto;
+    min-height: 680px;
+  }
+  .login-left-col {
+    padding: 38px 34px;
+  }
+  .slide-caption-box {
+    padding: 24px 28px 72px 28px;
+  }
+}
+
+@media (max-width: 991px) {
+  .login-split-card {
+    flex-direction: column;
+    max-width: 540px;
+    height: auto;
+    min-height: auto;
+  }
+  .login-left-col {
+    padding: 38px 28px;
+  }
+  .login-right-col {
+    display: none;
+  }
 }

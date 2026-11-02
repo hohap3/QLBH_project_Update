@@ -26,16 +26,21 @@ exports.getBestSellers = async (req, res) => {
 };
 
 // 2. Lấy danh sách sản phẩm theo danh mục
+// 2. Lấy danh sách sản phẩm theo danh mục & bộ lọc nâng cao (Search, Mức giá, Brand)
 exports.getProducts = async (req, res) => {
   try {
     const maDM = req.query.category;
+    const search = req.query.search || req.query.q || null;
+    const minPrice = req.query.minPrice ? parseFloat(req.query.minPrice) : null;
+    const maxPrice = req.query.maxPrice ? parseFloat(req.query.maxPrice) : null;
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 8;
+    const limit = parseInt(req.query.limit, 10) || 10;
 
     const { products, totalItems } = await ProductModel.getProducts(
       maDM,
       page,
       limit,
+      { search, minPrice, maxPrice }
     );
 
     res.status(200).json({
@@ -43,7 +48,7 @@ exports.getProducts = async (req, res) => {
       products,
       totalItems,
       currentPage: page,
-      totalPages: Math.ceil(totalItems / limit),
+      totalPages: Math.ceil(totalItems / limit) || 1,
     });
   } catch (error) {
     res

@@ -29,6 +29,8 @@ const Order = {
           dh.ngaydat,
           dh.tongtien,
           dh.trangthai,
+          dh.makho,
+          dh.machinhanh,
           (SELECT COUNT(*)::INT FROM chitiet_donhang ct WHERE ct.madonhang = dh.madonhang) AS soluongsanpham
         FROM donhang dh
         LEFT JOIN khachhang kh ON dh.makh = kh.makh
@@ -38,14 +40,13 @@ const Order = {
       `;
       const dataResult = await pool.query(dataQuery, dataParams);
 
-      // Đếm tổng số bản ghi (Cần áp dụng let để tránh lỗi gán hằng số)
+      // Đếm tổng số bản ghi
       let countQuery = "SELECT COUNT(*) FROM donhang dh";
       const countParams = [];
 
       if (whereClause) {
         countQuery += ` ${whereClause}`;
         countParams.push(trangThaiFilter);
-        // Thay thế $3 của truy vấn dữ liệu thành $1 của truy vấn đếm số lượng
         countQuery = countQuery.replace("$3", "$1");
       }
 
@@ -70,6 +71,8 @@ const Order = {
         SELECT 
           dh.madonhang,
           dh.makh,
+          dh.makho,
+          dh.machinhanh,
           kh.mand,
           dh.ngaydat,
           dh.trangthai,
@@ -81,6 +84,8 @@ const Order = {
           kh.diachi AS diachikhachhang,
           nd.tendangnhap AS tendangnhap,
           ct.masp, 
+          sp.tensp,
+          sp.hinhanh,
           ct.soluong, 
           ct.giaban, 
           ct.giamgia
@@ -88,6 +93,7 @@ const Order = {
         LEFT JOIN khachhang kh ON dh.makh = kh.makh
         LEFT JOIN nguoidung nd ON kh.mand = nd.mand 
         LEFT JOIN chitiet_donhang ct ON dh.madonhang = ct.madonhang
+        LEFT JOIN sanpham sp ON ct.masp = sp.masp
         WHERE dh.madonhang = $1
       `;
       const result = await pool.query(query, [maDonHang]);
@@ -97,18 +103,85 @@ const Order = {
     }
   },
 
-  // 3. Cập nhật trạng thái đơn hàng (Dành cho Admin/Nhân viên duyệt đơn)
+  // 3. Cập nhật trạng thái đơn hàng (Dành cho Admin/Nhân viên duyệt đơn) kèm Tích điểm (Task 2) & Hoàn tồn kho (Task 3)
   updateStatus: async (maDonHang, trangThai) => {
+    const pool = await poolPromise;
+    const client = await pool.connect();
     try {
-      const pool = await poolPromise;
-      const query = `
-        UPDATE donhang 
-        SET trangthai = $1 
-        WHERE madonhang = $2
-      `;
-      return await pool.query(query, [trangThai, maDonHang]);
+      await client.query("BEGIN");
+
+      // 1. Lấy thông tin đơn hàng hiện tại
+      const orderRes = await client.query(
+        `SELECT madonhang, makh, makho, trangthai, tongtien FROM donhang WHERE madonhang = $1 FOR UPDATE`,
+        [maDonHang]
+      );
+
+      if (orderRes.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return { rowCount: 0 };
+      }
+
+      const currentOrder = orderRes.rows[0];
+      const oldStatus = currentOrder.trangthai;
+
+      // 2. Cập nhật trạng thái mới
+      await client.query(
+        `UPDATE donhang SET trangthai = $1 WHERE madonhang = $2`,
+        [trangThai, maDonHang]
+      );
+
+      // 3. TASK 2: TÍCH ĐIỂM KHI ĐƠN HÀNG 'Thành công' (1% giá trị, 1000đ = 1 điểm)
+      if (trangThai === "Thành công" && oldStatus !== "Thành công" && currentOrder.makh) {
+        const tongTien = parseFloat(currentOrder.tongtien) || 0;
+        const pointsEarned = Math.floor((tongTien * 0.01) / 1000);
+        if (pointsEarned > 0) {
+          await client.query(
+            `UPDATE khachhang SET diemtichluy = COALESCE(diemtichluy, 0) + $1 WHERE makh = $2`,
+            [pointsEarned, currentOrder.makh]
+          );
+        }
+      }
+
+      // 4. TASK 3: HOÀN TỒN KHO KHI ĐƠN HÀNG 'Đã hủy'
+      if (trangThai === "Đã hủy" && oldStatus !== "Đã hủy") {
+        const makho = currentOrder.makho || "KHO_TONG";
+        const itemsRes = await client.query(
+          `SELECT masp, soluong FROM chitiet_donhang WHERE madonhang = $1`,
+          [maDonHang]
+        );
+
+        for (const item of itemsRes.rows) {
+          const soLuong = parseInt(item.soluong, 10) || 0;
+          if (soLuong > 0) {
+            const stockRes = await client.query(
+              `SELECT soluongton FROM tonkho WHERE masp = $1 AND makho = $2 FOR UPDATE`,
+              [item.masp, makho]
+            );
+            const tonTruoc = stockRes.rows.length > 0 ? parseFloat(stockRes.rows[0].soluongton) : 0;
+            const tonSau = tonTruoc + soLuong;
+
+            await client.query(
+              `UPDATE tonkho SET soluongton = soluongton + $1, ngaycapnhat = NOW() WHERE masp = $2 AND makho = $3`,
+              [soLuong, item.masp, makho]
+            );
+
+            const maGD = "GD_HUY_" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000);
+            await client.query(
+              `INSERT INTO giaodichkho (magd, masp, makho, loaigd, soluong, tontruoc, tonsau, ngaygd)
+               VALUES ($1, $2, $3, 1, $4, $5, $6, NOW())`,
+              [maGD, item.masp, makho, soLuong, tonTruoc, tonSau]
+            );
+          }
+        }
+      }
+
+      await client.query("COMMIT");
+      return { rowCount: 1 };
     } catch (error) {
+      await client.query("ROLLBACK");
       throw error;
+    } finally {
+      client.release();
     }
   },
 
@@ -117,7 +190,7 @@ const Order = {
     try {
       const pool = await poolPromise;
       const query = `
-        SELECT dh.madonhang, kh.mand, dh.trangthai 
+        SELECT dh.madonhang, dh.makho, kh.mand, dh.trangthai 
         FROM donhang dh
         LEFT JOIN khachhang kh ON dh.makh = kh.makh
         WHERE dh.madonhang = $1
@@ -141,20 +214,43 @@ const Order = {
     }
   },
 
-  // 6. TRANSACTION: Hủy đơn + Hoàn kho an toàn
+  // 6. TRANSACTION: Hủy đơn + Hoàn kho đa chi nhánh (Phase 4 chuẩn bảng tonkho)
   processCancelAndRestoreStock: async (madonhang, productsList) => {
     const pool = await poolPromise;
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
 
+      // Lấy thông tin kho xuất của đơn hàng
+      const orderRes = await client.query(`SELECT makho FROM donhang WHERE madonhang = $1`, [madonhang]);
+      const makho = (orderRes.rows.length > 0 && orderRes.rows[0].makho) ? orderRes.rows[0].makho : "KHO_TONG";
+
       const updateOrderQuery = `UPDATE donhang SET trangthai = 'Đã hủy' WHERE madonhang = $1`;
       await client.query(updateOrderQuery, [madonhang]);
 
       if (productsList && productsList.length > 0) {
         for (const item of productsList) {
-          const restoreStockQuery = `UPDATE sanpham SET soluongton = soluongton + $1 WHERE masp = $2`;
-          await client.query(restoreStockQuery, [item.soluong, item.masp]);
+          const soLuong = parseInt(item.soluong, 10) || 0;
+          if (soLuong > 0) {
+            const stockRes = await client.query(
+              `SELECT soluongton FROM tonkho WHERE masp = $1 AND makho = $2 FOR UPDATE`,
+              [item.masp, makho]
+            );
+            const tonTruoc = stockRes.rows.length > 0 ? parseFloat(stockRes.rows[0].soluongton) : 0;
+            const tonSau = tonTruoc + soLuong;
+
+            await client.query(
+              `UPDATE tonkho SET soluongton = soluongton + $1, ngaycapnhat = NOW() WHERE masp = $2 AND makho = $3`,
+              [soLuong, item.masp, makho]
+            );
+
+            const maGD = "GD_HUY_" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000);
+            await client.query(
+              `INSERT INTO giaodichkho (magd, masp, makho, loaigd, soluong, tontruoc, tonsau, ngaygd)
+               VALUES ($1, $2, $3, 1, $4, $5, $6, NOW())`,
+              [maGD, item.masp, makho, soLuong, tonTruoc, tonSau]
+            );
+          }
         }
       }
 
@@ -167,6 +263,7 @@ const Order = {
     }
   },
 
+  // 7. Cập nhật trạng thái hàng loạt (HỦY hoặc DUYỆT)
   processBulkStatusUpdate: async (orderIds, actionType) => {
     const pool = await poolPromise;
     const client = await pool.connect();
@@ -175,25 +272,45 @@ const Order = {
 
       for (const id of orderIds) {
         if (actionType === "CANCEL") {
-          // Xử lý HỦY hàng loạt: Cần lấy chi tiết sản phẩm của từng đơn để hoàn kho trước
+          // Lấy kho hàng của đơn
+          const orderRes = await client.query(`SELECT makho FROM donhang WHERE madonhang = $1`, [id]);
+          const makho = (orderRes.rows.length > 0 && orderRes.rows[0].makho) ? orderRes.rows[0].makho : "KHO_TONG";
+
+          // Lấy chi tiết sản phẩm của từng đơn để hoàn kho
           const detailsQuery = `SELECT masp, soluong FROM chitiet_donhang WHERE madonhang = $1`;
           const detailsRes = await client.query(detailsQuery, [id]);
 
-          // Hoàn kho cho đơn này
           for (const item of detailsRes.rows) {
-            await client.query(
-              `UPDATE sanpham SET soluongton = soluongton + $1 WHERE masp = $2`,
-              [item.soluong, item.masp],
-            );
+            const soLuong = parseInt(item.soluong, 10) || 0;
+            if (soLuong > 0) {
+              const stockRes = await client.query(
+                `SELECT soluongton FROM tonkho WHERE masp = $1 AND makho = $2 FOR UPDATE`,
+                [item.masp, makho]
+              );
+              const tonTruoc = stockRes.rows.length > 0 ? parseFloat(stockRes.rows[0].soluongton) : 0;
+              const tonSau = tonTruoc + soLuong;
+
+              await client.query(
+                `UPDATE tonkho SET soluongton = soluongton + $1, ngaycapnhat = NOW() WHERE masp = $2 AND makho = $3`,
+                [soLuong, item.masp, makho]
+              );
+
+              const maGD = "GD_HUY_" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000);
+              await client.query(
+                `INSERT INTO giaodichkho (magd, masp, makho, loaigd, soluong, tontruoc, tonsau, ngaygd)
+                 VALUES ($1, $2, $3, 1, $4, $5, $6, NOW())`,
+                [maGD, item.masp, makho, soLuong, tonTruoc, tonSau]
+              );
+            }
           }
+
           // Chuyển trạng thái đơn sang Đã hủy
           await client.query(
             `UPDATE donhang SET trangthai = 'Đã hủy' WHERE madonhang = $1`,
-            [id],
+            [id]
           );
         } else if (actionType === "APPROVE") {
-          // Xử lý DUYỆT hàng loạt: Tự động nhảy cấp trạng thái kế tiếp theo quy trình
-          const orderQuery = `SELECT trangthai FROM donhang WHERE madonhang = $1`;
+          const orderQuery = `SELECT trangthai, makh, tongtien FROM donhang WHERE madonhang = $1`;
           const orderRes = await client.query(orderQuery, [id]);
 
           if (orderRes.rows.length > 0) {
@@ -202,6 +319,7 @@ const Order = {
 
             switch (currentStatus) {
               case "Chờ xác nhận":
+              case "Chờ xử lý":
                 nextStatus = "Đang xử lý";
                 break;
               case "Đang xử lý":
@@ -213,14 +331,25 @@ const Order = {
               case "Đã giao":
                 nextStatus = "Thành công";
                 break;
-              // Nếu đơn đã Thành công hoặc Đã hủy thì giữ nguyên trạng thái
             }
 
             if (nextStatus !== currentStatus) {
               await client.query(
                 `UPDATE donhang SET trangthai = $1 WHERE madonhang = $2`,
-                [nextStatus, id],
+                [nextStatus, id]
               );
+
+              // Tích điểm nếu đạt 'Thành công'
+              if (nextStatus === "Thành công" && orderRes.rows[0].makh) {
+                const tongTien = parseFloat(orderRes.rows[0].tongtien) || 0;
+                const pointsEarned = Math.floor((tongTien * 0.01) / 1000);
+                if (pointsEarned > 0) {
+                  await client.query(
+                    `UPDATE khachhang SET diemtichluy = COALESCE(diemtichluy, 0) + $1 WHERE makh = $2`,
+                    [pointsEarned, orderRes.rows[0].makh]
+                  );
+                }
+              }
             }
           }
         }

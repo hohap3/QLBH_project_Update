@@ -10,18 +10,18 @@ function generateRandomTransactionCode() {
 
 class WarehouseController {
   // [GET] /api/warehouse/transactions
-  // 🟢 CẬP NHẬT: API tiếp nhận tham số phân trang ?page=x
-  // [GET] /api/warehouse/transactions
   static async getAllTransactions(req, res) {
     try {
       const page = parseInt(req.query.page, 10) || 1;
-      const loaiGD = req.query.loaiGD || null; // Nhận '1', '2' hoặc null/trống từ frontend
+      const loaiGD = req.query.loaiGD || null;
+      const makho = req.query.makho || 'KHO_TONG'; // Thêm tham số kho
       const limit = 10;
 
       const paginationResult = await WarehouseModel.getAllTransactions(
         page,
         limit,
         loaiGD,
+        makho
       );
 
       res.status(200).json({
@@ -41,14 +41,16 @@ class WarehouseController {
     }
   }
 
-  // [GET] /api/warehouse/transactions/:maSP (Giữ nguyên)
+  // [GET] /api/warehouse/transactions/:maSP
   static async getTransactionsByProduct(req, res) {
     try {
       const { maSP } = req.params;
-      const data = await WarehouseModel.getTransactionsByProduct(maSP);
+      const makho = req.query.makho || 'KHO_TONG'; // Lọc theo kho
+
+      const data = await WarehouseModel.getTransactionsByProduct(maSP, makho);
       res.status(200).json({
         success: true,
-        message: `Lấy lịch sử kho của sản phẩm ${maSP} thành công!`,
+        message: `Lấy lịch sử kho của sản phẩm ${maSP} tại kho ${makho} thành công!`,
         data: data,
       });
     } catch (error) {
@@ -60,12 +62,14 @@ class WarehouseController {
     }
   }
 
-  // [POST] /api/warehouse/transaction (Giữ nguyên)
+  // [POST] /api/warehouse/transaction
   static async createTransaction(req, res) {
     try {
-      let { maSP, loaiGD, soLuong } = req.body; // 🟢 Bỏ bốc tách maGD từ req.body
+      let { maSP, loaiGD, soLuong, makho } = req.body; 
 
-      // 1. Kiểm tra các trường dữ liệu bắt buộc (Đã lược bỏ maGD)
+      if (!makho) makho = 'KHO_TONG'; // Gán mặc định nếu không có
+
+      // 1. Kiểm tra các trường dữ liệu bắt buộc
       if (
         !maSP ||
         loaiGD === undefined ||
@@ -75,16 +79,15 @@ class WarehouseController {
         return res.status(400).json({
           success: false,
           message:
-            "Vui lòng điền đầy đủ thông tin: Mã sản phẩm, Loại và Số lượng!",
+            "Vui lòng điền đầy đủ thông tin: Mã sản phẩm, Loại, Số lượng và Kho hàng!",
         });
       }
 
-      // 2. 🟢 TỰ ĐỘNG SINH MÃ GIAO DỊCH NGẪU NHIÊN CHUẨN VARCHAR(20)
-      // Sinh 9 bytes ngẫu nhiên = 18 ký tự Hex + 2 ký tự "GD" = Đúng 20 ký tự
+      // 2. TỰ ĐỘNG SINH MÃ GIAO DỊCH NGẪU NHIÊN CHUẨN VARCHAR(20)
       const randomHex = crypto.randomBytes(9).toString("hex").toUpperCase();
       const maGD = `GD${randomHex}`;
 
-      const parsedSoLuong = parseInt(soLuong, 10);
+      const parsedSoLuong = parseFloat(soLuong);
       const parsedLoaiGD = parseInt(loaiGD, 10);
 
       if (isNaN(parsedSoLuong) || parsedSoLuong <= 0) {
@@ -94,11 +97,11 @@ class WarehouseController {
         });
       }
 
-      if (parsedSoLuong > 10000) {
+      if (parsedSoLuong > 100000) {
         return res.status(400).json({
           success: false,
           message:
-            "Số lượng cho mỗi giao dịch không được phép vượt quá 10.000 đơn vị!",
+            "Số lượng cho mỗi giao dịch không được phép vượt quá giới hạn an toàn!",
         });
       }
 
@@ -109,10 +112,11 @@ class WarehouseController {
         });
       }
 
-      // 3. Truyền mã giao dịch vừa tự sinh xuống tầng Model xử lý DB Transaction
+      // 3. Gọi model xử lý DB Transaction với makho
       const result = await WarehouseModel.createTransaction({
-        maGD, // Chuỗi 20 ký tự vừa sinh ngẫu nhiên ở trên
+        maGD,
         maSP,
+        makho,
         loaiGD: parsedLoaiGD,
         soLuong: parsedSoLuong,
       });
@@ -121,8 +125,8 @@ class WarehouseController {
         success: true,
         message:
           parsedLoaiGD === 1
-            ? "Nhập kho sản phẩm thành công!"
-            : "Xuất kho sản phẩm thành công!",
+            ? `Nhập kho sản phẩm thành công vào kho ${makho}!`
+            : `Xuất kho sản phẩm thành công từ kho ${makho}!`,
         data: result,
       });
     } catch (error) {

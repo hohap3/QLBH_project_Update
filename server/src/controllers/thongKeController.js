@@ -4,7 +4,8 @@ const ThongKeModel = require("../models/thongKeModel");
 const ThongKeController = {
   getStatsCategory: async (req, res) => {
     try {
-      const data = await ThongKeModel.getSanPhamTheoDanhMuc();
+      const branch = req.branch || req.query?.branch;
+      const data = await ThongKeModel.getSanPhamTheoDanhMuc(branch);
       res.status(200).json({
         success: true,
         data: data,
@@ -20,10 +21,11 @@ const ThongKeController = {
 
   getDashboardOverview: async (req, res) => {
     try {
-      const stats = await ThongKeModel.getQuickStats();
+      const branch = req.branch || req.query?.branch;
+      const stats = await ThongKeModel.getQuickStats(branch);
       res.status(200).json({
         success: true,
-        data: stats, // Gửi cấu trúc kèm thông số tăng trưởng mới xuống Front-end
+        data: stats,
       });
     } catch (error) {
       console.error("CHI TIẾT LỖI OVERVIEW:", error.message);
@@ -37,9 +39,9 @@ const ThongKeController = {
 
   getTopProducts: async (req, res) => {
     try {
-      const data = await ThongKeModel.getTopSellingProducts();
+      const branch = req.branch || req.query?.branch;
+      const data = await ThongKeModel.getTopSellingProducts(branch);
 
-      // Định dạng lại key chữ hoa/thường để Front-end render thống nhất
       const formattedData = data.map((item) => ({
         label: item.label,
         totalQty: item.totalqty,
@@ -57,17 +59,16 @@ const ThongKeController = {
 
   getMonthlyStats: async (req, res) => {
     try {
-      const dbData = await ThongKeModel.getOrdersByMonth();
+      const branch = req.branch || req.query?.branch;
+      const dbData = await ThongKeModel.getOrdersByMonth(branch);
       const currentMonth = new Date().getMonth() + 1;
 
-      // Chuẩn hóa dữ liệu từ tháng 1 đến tháng hiện tại
       const formattedData = Array.from({ length: currentMonth }, (_, index) => {
         const monthNum = index + 1;
-        // 🟢 Ép kiểu dữ liệu về Number để so sánh chính xác tuyệt đối
         const matched = dbData.find((item) => Number(item.month) === monthNum);
         return {
           label: `T${monthNum}`,
-          value: matched ? parseInt(matched.ordercount) : 0, // 🟢
+          value: matched ? parseInt(matched.ordercount) : 0,
         };
       });
 
@@ -83,17 +84,16 @@ const ThongKeController = {
 
   getMonthlyRevenue: async (req, res) => {
     try {
-      const dbData = await ThongKeModel.getRevenueByMonth();
+      const branch = req.branch || req.query?.branch;
+      const dbData = await ThongKeModel.getRevenueByMonth(branch);
       const currentMonth = new Date().getMonth() + 1;
 
-      // Chuẩn hóa dữ liệu từ tháng 1 đến tháng hiện tại
       const formattedData = Array.from({ length: currentMonth }, (_, index) => {
         const monthNum = index + 1;
-        // 🟢 Ép kiểu dữ liệu về Number để so sánh chính xác tuyệt đối
         const matched = dbData.find((item) => Number(item.month) === monthNum);
         return {
           label: `T${monthNum}`,
-          value: matched ? parseFloat(matched.totalrevenue) : 0, // 🟢 FIX: Đổi từ item.totalrevenue thành matched.totalrevenue
+          value: matched ? parseFloat(matched.totalrevenue) : 0,
         };
       });
 
@@ -106,6 +106,34 @@ const ThongKeController = {
       res.status(500).json({
         success: false,
         message: "Lỗi hệ thống khi lấy thống kê doanh thu theo tháng",
+      });
+    }
+  },
+
+  getCustomerAnalytics: async (req, res) => {
+    try {
+      const branch = req.branch || req.query?.branch;
+      const data = await ThongKeModel.getCustomerAnalytics(branch);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Lỗi lấy Customer Analytics:", error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi hệ thống khi lấy phân tích khách hàng",
+      });
+    }
+  },
+
+  getInventoryAnalytics: async (req, res) => {
+    try {
+      const branch = req.branch || req.query?.branch;
+      const data = await ThongKeModel.getInventoryAnalytics(branch);
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Lỗi lấy Inventory Analytics:", error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi hệ thống khi lấy phân tích kho hàng",
       });
     }
   },

@@ -123,25 +123,25 @@ export async function initOrderManager() {
         let statusBadge = "";
         switch (order.trangthai) {
           case "Chờ xác nhận":
-            statusBadge = `<span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-semibold text-white" style="white-space: nowrap;font-size:16px">Chờ xác nhận</span>`;
+            statusBadge = `<span class="badge-status badge-status-pending"><i class="fa-regular fa-clock me-1"></i>Chờ xác nhận</span>`;
             break;
           case "Đang xử lý":
-            statusBadge = `<span class="badge bg-info text-dark rounded-pill px-3 py-2 fw-semibold text-white" style="white-space: nowrap;font-size:16px">Đang xử lý</span>`;
+            statusBadge = `<span class="badge-status badge-status-processing"><i class="fa-solid fa-arrows-rotate me-1"></i>Đang xử lý</span>`;
             break;
           case "Đang giao":
-            statusBadge = `<span class="badge bg-primary text-white rounded-pill px-3 py-2 fw-semibold text-white" style="white-space: nowrap;font-size:16px">Đang giao</span>`;
+            statusBadge = `<span class="badge-status badge-status-shipping"><i class="fa-solid fa-truck-fast me-1"></i>Đang giao</span>`;
             break;
           case "Đã giao":
-            statusBadge = `<span class="badge bg-success text-white rounded-pill px-3 py-2 fw-semibold text-white" style="white-space: nowrap;font-size:16px">Đã giao</span>`;
+            statusBadge = `<span class="badge-status badge-status-delivered"><i class="fa-solid fa-box-check me-1"></i>Đã giao</span>`;
             break;
           case "Thành công":
-            statusBadge = `<span class="badge bg-success text-white rounded-pill px-3 py-2 fw-semibold text-white" style="white-space: nowrap;font-size:16px"><i class="fa-solid fa-circle-check me-1"></i>Thành công</span>`;
+            statusBadge = `<span class="badge-status badge-status-success"><i class="fa-solid fa-circle-check me-1"></i>Thành công</span>`;
             break;
           case "Đã hủy":
-            statusBadge = `<span class="badge bg-danger text-white rounded-pill px-3 py-2 fw-semibold text-white" style="white-space: nowrap;font-size:16px">Đã hủy</span>`;
+            statusBadge = `<span class="badge-status badge-status-cancelled"><i class="fa-solid fa-ban me-1"></i>Đã hủy</span>`;
             break;
           default:
-            statusBadge = `<span class="badge bg-secondary text-white rounded-pill px-3 py-2 fw-semibold text-white" style="white-space: nowrap;font-size:16px">${order.trangthai || "Chưa rõ"}</span>`;
+            statusBadge = `<span class="badge-status badge-status-pending">${order.trangthai || "Chưa rõ"}</span>`;
         }
 
         const formattedTotal =
@@ -485,7 +485,16 @@ export async function initOrderManager() {
       document.getElementById("modalNgayDat").innerText = order.NgayDat
         ? new Date(order.NgayDat).toISOString().split("T")[0]
         : "---";
-      document.getElementById("modalTrangThai").innerText = order.TrangThai;
+      const modalTrangThaiEl = document.getElementById("modalTrangThai");
+      if (modalTrangThaiEl) {
+        modalTrangThaiEl.innerText = order.TrangThai || "---";
+        let bClass = "badge-status badge-status-pending";
+        if (order.TrangThai === "Thành công" || order.TrangThai === "Đã giao") bClass = "badge-status badge-status-success";
+        else if (order.TrangThai === "Đang giao") bClass = "badge-status badge-status-shipping";
+        else if (order.TrangThai === "Đang xử lý") bClass = "badge-status badge-status-processing";
+        else if (order.TrangThai === "Đã hủy") bClass = "badge-status badge-status-cancelled";
+        modalTrangThaiEl.className = bClass;
+      }
       document.getElementById("modalGhiChu").innerText =
         order.GhiChu || "Không có";
       document.getElementById("modalTongTien").innerText =

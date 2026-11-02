@@ -1,7 +1,7 @@
 <main class="container-fluid py-4 px-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="fw-bold text-dark">
-      <i class="fa-solid fa-users-gear me-2 text-primary"></i>Quản Lý Nhân Viên
+      <i class="fa-solid fa-users-gear me-2 text-primary"></i>Quản Lý Nhân Sự & Phân Quyền
     </h3>
     <button class="btn btn-primary shadow-sm" id="btnAddEmployee">
       <i class="fa-solid fa-user-plus me-2"></i>Thêm Nhân Viên Mới
@@ -14,7 +14,7 @@
         class="card p-3 border-0 border-start border-primary border-4 shadow-sm"
       >
         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-          Tổng số nhân viên
+          Tổng số nhân sự
         </div>
         <div class="h4 mb-0 font-weight-bold text-gray-800" id="totalEmployees">
           0
@@ -42,7 +42,7 @@
         <div class="col-md-3">
           <select class="form-select" id="filterStatus">
             <option value="">-- Tất cả trạng thái --</option>
-            <option value="1">Đang hoạt động</option>
+            <option value="1">Đang làm việc</option>
             <option value="0">Đang bị khóa</option>
           </select>
         </div>
@@ -56,17 +56,18 @@
         <thead class="table-light">
           <tr>
             <th class="ps-4">Mã NV</th>
-            <th>Tên Đăng Nhập</th>
+            <th>Tài Khoản</th>
             <th>Thông Tin Nhân Viên</th>
+            <th>Vai Trò</th>
+            <th>Chi Nhánh Công Tác</th>
             <th>Liên Hệ</th>
-            <th>Ngày Gia Nhập</th>
             <th>Trạng Thái</th>
             <th class="text-end pe-4">Thao Tác</th>
           </tr>
         </thead>
         <tbody id="employeeTableBody">
           <tr>
-            <td colspan="7" class="text-center py-5">
+            <td colspan="8" class="text-center py-5">
               <div class="spinner-border text-primary" role="status"></div>
               <p class="mt-2 mb-0 text-muted">
                 Đang tải danh sách nhân viên...
@@ -79,6 +80,7 @@
   </div>
 </main>
 
+<!-- Modal Thêm / Chỉnh Sửa Nhân Viên -->
 <div class="modal fade" id="employeeModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -94,7 +96,7 @@
         </div>
         <div class="modal-body p-4">
           <div class="row g-3">
-            <div class="col-md-12" id="usernameWrapper">
+            <div class="col-md-6" id="usernameWrapper">
               <label class="form-label fw-semibold"
                 >Tên Đăng Nhập <span class="text-danger">*</span></label
               >
@@ -103,6 +105,18 @@
                 id="tenDangNhap"
                 class="form-control"
                 placeholder="Nhập tên tài khoản"
+              />
+            </div>
+
+            <div class="col-md-6" id="passwordWrapper">
+              <label class="form-label fw-semibold"
+                >Mật Khẩu <span class="text-danger">*</span></label
+              >
+              <input
+                type="password"
+                id="matKhau"
+                class="form-control"
+                placeholder="Mật khẩu khởi tạo"
               />
             </div>
 
@@ -141,6 +155,15 @@
                 placeholder="name@company.com"
               />
             </div>
+
+            <div class="col-md-12" id="branchSelectWrapper">
+              <label class="form-label fw-semibold">Chi Nhánh Công Tác</label>
+              <select class="form-select" id="maChiNhanh">
+                <option value="CN_CHINH">Chi nhánh Trung Tâm (Hội sở)</option>
+                <option value="CN_1">Chi nhánh 1 (TP. Hồ Chí Minh)</option>
+                <option value="CN_2">Chi nhánh 2 (Hà Nội)</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="modal-footer border-0">
@@ -149,6 +172,61 @@
           </button>
           <button type="submit" class="btn btn-primary px-4">
             Lưu Dữ Liệu
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Phân Quyền & Bổ Nhiệm Quản Lý Chi Nhánh (Dành riêng cho Super Admin) -->
+<div class="modal fade" id="roleModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="roleForm">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold text-dark">
+            <i class="fa-solid fa-shield-halved text-primary me-2"></i>Phân Quyền Người Dùng
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="roleUserId" />
+          <div class="mb-3">
+            <label class="text-muted small mb-1">Người dùng được phân quyền:</label>
+            <div class="fw-bold fs-6 text-dark" id="roleTargetName">Nguyễn Văn A</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Vai trò mới <span class="text-danger">*</span></label>
+            <select class="form-select" id="newRoleSelect">
+              <option value="ADMIN">👑 Quản lý Tổng (Super Admin - Toàn quyền)</option>
+              <option value="MANAGER">👨‍💼 Quản lý Chi nhánh (Branch Manager)</option>
+              <option value="STAFF">👷 Nhân viên (Staff)</option>
+            </select>
+          </div>
+
+          <div class="mb-3" id="roleBranchWrapper">
+            <label class="form-label fw-semibold">Chi nhánh phụ trách <span class="text-danger">*</span></label>
+            <select class="form-select" id="newBranchSelect">
+              <option value="CN_CHINH">Kho Tổng Trung Tâm (Chi nhánh Chính)</option>
+              <option value="CN_1">Kho Chi nhánh 1 (TP. HCM)</option>
+              <option value="CN_2">Kho Chi nhánh 2 (Hà Nội)</option>
+            </select>
+            <small class="text-muted" id="roleBranchHelp">Quản lý chi nhánh chỉ xem được số liệu và dashboard của chi nhánh này.</small>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+            Hủy
+          </button>
+          <button type="submit" class="btn btn-primary px-4">
+            Xác Nhận Phân Quyền
           </button>
         </div>
       </form>

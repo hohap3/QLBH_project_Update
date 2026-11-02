@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BASE_URL } from "./common/header";
+import { BASE_URL } from "/src/JS/common/header";
 import Swal from "sweetalert2";
 
 const DEFAULT_IMAGE = "/img/default.jpg";
@@ -264,7 +264,7 @@ function renderOrdersToUI(ordersList) {
             ) {
               pathImg = item.hinhanh;
             } else {
-              pathImg = `https://qlbh-project.onrender.com/uploads/products/${item.hinhanh}`;
+              pathImg = `${BASE_URL.replace("/api", "")}/uploads/products/${item.hinhanh}`;
             }
           }
 

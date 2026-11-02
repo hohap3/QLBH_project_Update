@@ -1,125 +1,293 @@
-/* src/css/header.css */
+/* ==========================================================================
+   HP STORE DESIGN SYSTEM - HEADER COMPONENT TOKENS & STYLES
+   Bản sắc độc quyền HP STORE - Tối ưu khoảng cách hiển thị màn hình rộng
+   ========================================================================== */
 
 :root {
-  --primary-color: #6f42c1; /* Màu tím thương hiệu */
-  --secondary-color: #0d6efd; /* Màu xanh bộ trợ */
-  --hover-bg-color: #f0f7ff; /* Màu nền khi hover item */
+  /* HP STORE Brand Colors (Ruby Crimson & Obsidian Slate) */
+  --hp-brand-primary: #d90429;
+  --hp-brand-dark: #b8001f;
+  --hp-brand-light: #ef233c;
+  --hp-brand-accent: #fbbf24;
+  --hp-brand-tint: rgba(217, 4, 41, 0.08);
+
+  /* Surfaces */
+  --hp-surface-header: #d90429;
+  --hp-surface-topbar: #8d0018;
+  --hp-surface-base: #ffffff;
+  --hp-surface-muted: #f4f4f6;
+
+  /* Typography Colors */
+  --hp-text-primary: #1e1e24;
+  --hp-text-secondary: #64748b;
+  --hp-text-inverse: #ffffff;
+  --hp-text-muted-inverse: rgba(255, 255, 255, 0.88);
+
+  /* Radius & Shadows */
+  --hp-radius-sm: 6px;
+  --hp-radius-md: 10px;
+  --hp-radius-pill: 9999px;
+  --hp-focus-ring: 0 0 0 3px rgba(255, 255, 255, 0.45);
 }
 
-/* Kiểu dáng thanh tìm kiếm và gợi ý */
-.search-bar {
-  border-radius: 20px 0 0 20px;
-  padding-left: 20px;
+/* ─── Tối ưu độ rộng Container (Tránh khoảng trống 2 bên trên màn hình lớn) ─── */
+.container {
+  max-width: 1520px !important;
+  width: 95% !important;
+  margin-left: auto;
+  margin-right: auto;
 }
 
+@media (min-width: 1800px) {
+  .container {
+    max-width: 1620px !important;
+    width: 94% !important;
+  }
+}
+
+/* ─── Topbar Phụ ─── */
+.hp-topbar {
+  background-color: var(--hp-surface-topbar);
+  color: var(--hp-text-muted-inverse);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 26px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hp-topbar a {
+  color: var(--hp-text-muted-inverse);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.hp-topbar a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+/* ─── Main Header HP STORE ─── */
+.hp-main-header {
+  background: linear-gradient(90deg, #b8001f 0%, #d90429 50%, #ef233c 100%);
+  box-shadow: 0 3px 12px rgba(184, 0, 31, 0.22);
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+
+/* Logo HP STORE độc quyền */
+.hp-brand-logo {
+  text-decoration: none !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hp-logo-badge {
+  background: #ffffff;
+  color: var(--hp-brand-primary);
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: -0.5px;
+  padding: 3px 9px;
+  border-radius: 9px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hp-logo-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.hp-logo-text .title {
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 1.35rem;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.hp-logo-text .title span {
+  color: var(--hp-brand-accent);
+}
+
+.hp-logo-text .slogan {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 9.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Các nút điều hướng trên header đỏ */
+.hp-header-btn {
+  background-color: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  color: #ffffff !important;
+  border-radius: var(--hp-radius-md);
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.hp-header-btn:hover {
+  background-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+.hp-header-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--hp-focus-ring);
+}
+
+/* Thanh tìm kiếm HP STORE */
+.hp-search-container {
+  position: relative;
+  width: 100%;
+}
+
+.hp-search-input {
+  border-radius: var(--hp-radius-md);
+  border: none;
+  background-color: #ffffff;
+  padding: 9px 40px 9px 15px;
+  font-size: 13px;
+  color: var(--hp-text-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  transition: box-shadow 0.2s ease;
+}
+
+.hp-search-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.15);
+}
+
+.hp-search-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 14px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.hp-search-btn:hover {
+  color: var(--hp-brand-primary);
+}
+
+/* Gợi ý tìm kiếm */
 #search-suggestions {
-  border-radius: 0 0 15px 15px;
-  border: 1px solid #eee;
-  background: white;
+  position: absolute;
+  top: 105%;
+  left: 0;
+  width: 100%;
+  background: #ffffff;
+  border-radius: var(--hp-radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  z-index: 1050;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 #search-suggestions .list-group-item {
   border: none;
-  border-bottom: 1px solid #f8f9fa;
-  transition: background 0.2s;
-}
-
-#search-suggestions .list-group-item:last-child {
-  border-bottom: none;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 9px 14px;
+  transition: background 0.15s ease;
 }
 
 #search-suggestions .list-group-item:hover {
-  background-color: var(--hover-bg-color);
+  background-color: #fff1f2;
 }
 
-/* Kiểu dáng các nút Auth mặc định (Đăng nhập / Đăng ký) */
-.auth-buttons .btn {
-  border-radius: 10px;
-  padding: 6px 15px;
-  font-weight: 500;
-  transition: 0.3s;
+/* Nút Giỏ hàng */
+.hp-cart-btn {
+  background-color: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  color: #ffffff !important;
+  border-radius: var(--hp-radius-md);
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.btn-login {
-  color: var(--primary-color);
-  border: 1px solid var(--primary-color);
-  background-color: transparent;
-}
-
-.btn-login:hover {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.btn-register {
-  background-color: var(--primary-color);
-  color: white;
-  border: 1px solid var(--primary-color);
-}
-
-.btn-register:hover {
-  background-color: #5a32a3;
-  border-color: #5a32a3;
-  color: white;
-}
-
-/* Kiểu dáng nút Giỏ hàng */
-.btn-cart {
-  border-radius: 12px;
-  background: var(--secondary-color);
-  color: white;
-  transition: 0.3s;
-}
-
-.btn-cart:hover {
-  opacity: 0.9;
+.hp-cart-btn:hover {
+  background-color: rgba(255, 255, 255, 0.28);
   transform: translateY(-1px);
 }
 
-/* Khu vực Dropdown Người dùng khi đã đăng nhập */
-.user-dropdown {
-  position: relative;
-  padding-bottom: 10px; /* Vùng đệm để giữ trạng thái hover */
-  margin-bottom: -10px;
+.hp-cart-badge {
+  background-color: var(--hp-brand-accent);
+  color: #1e1e24;
+  font-weight: 800;
+  font-size: 11px;
+  border-radius: var(--hp-radius-pill);
+  padding: 1px 7px;
+  line-height: 14px;
 }
 
-.user-dropdown .nav-link {
-  color: #333;
-  font-weight: 500;
-  transition: 0.3s;
-  padding: 8px 12px;
-  border-radius: 20px;
+/* Nút Đăng nhập / HP Member */
+.hp-auth-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff !important;
+  border-radius: var(--hp-radius-md);
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
-.user-dropdown .nav-link:hover {
-  background-color: #f8f9fa;
+.hp-auth-btn:hover {
+  background-color: #ffffff;
+  color: var(--hp-brand-primary) !important;
+  transform: translateY(-1px);
 }
 
-/* Hiệu ứng tự động mở Menu mượt mà khi rê chuột (Hover) */
-.user-dropdown:hover .dropdown-menu,
-.dropdown-menu:hover {
-  display: block;
-  margin-top: 0; /* Xóa khoảng cách trống tránh mất dấu hover */
-  animation: headerFadeIn 0.2s ease-in-out;
+/* Dropdown Người dùng */
+.user-dropdown .dropdown-menu {
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  padding: 8px 0;
 }
 
 .user-dropdown .dropdown-item {
-  transition: 0.2s;
+  padding: 8px 16px;
+  font-weight: 500;
+  color: var(--hp-text-primary);
 }
 
 .user-dropdown .dropdown-item:hover {
-  background-color: var(--hover-bg-color);
-  color: var(--secondary-color);
-}
-
-/* Hiệu ứng chuyển động FadeIn */
-@keyframes headerFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  background-color: #fff1f2;
+  color: var(--hp-brand-primary);
 }

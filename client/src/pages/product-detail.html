@@ -14,13 +14,14 @@
     />
     <link rel="stylesheet" href="/src/styles/product-detail.css" />
   </head>
-  <body class="bg-light">
+  <body>
     <header id="main-header"></header>
 
-    <main class="container my-5">
-      <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+    <main class="container py-4 my-2">
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="/"><i class="fa-solid fa-house me-1"></i>Trang chủ</a></li>
           <li class="breadcrumb-item">
             <a href="#" id="breadcrumb-category">Danh mục</a>
           </li>
@@ -34,157 +35,189 @@
         </ol>
       </nav>
 
-      <div class="card border-0 shadow-sm p-4" style="border-radius: 20px">
-        <div class="row g-5">
-          <div class="col-md-6">
-            <div class="img-detail-wrapper text-center">
-              <img
-                src=""
-                id="product-detail-img"
-                class="product-img-large img-fluid"
-                alt="Sản phẩm"
-              />
+      <!-- Khối chính sản phẩm: Tối ưu khoảng trắng (Hình 1) -->
+      <div class="card product-main-card p-3 p-md-4 mb-4">
+        <div class="row g-4 align-items-start">
+          
+          <!-- Cột Trái (5 cols): Kính lúp & Bộ sưu tập góc cạnh -->
+          <div class="col-lg-5">
+            <div class="img-detail-wrapper">
+              <!-- Khung Kính lúp Phóng to (Magnifier Lens Zoom) -->
+              <div class="magnifier-container shadow-sm" id="magnifierContainer">
+                <img
+                  src=""
+                  id="product-detail-img"
+                  class="product-img-large img-fluid"
+                  alt="Sản phẩm"
+                />
+                <!-- Kính lúp tròn di chuyển theo chuột -->
+                <div class="magnifier-lens" id="magnifierLens"></div>
+                <!-- Nhãn chỉ dẫn -->
+                <div class="zoom-hint-badge">
+                  <i class="fa-solid fa-magnifying-glass-plus me-1"></i> Rê chuột để soi kính lúp
+                </div>
+              </div>
+
+              <!-- Thumbnails chọn góc nhìn (Mặt trước, Mặt sau, Cạnh bên, Cụm Camera, Hộp máy) -->
+              <div class="angle-thumbnails" id="angleThumbnailsContainer">
+                <!-- Sẽ được render động từ JS -->
+              </div>
             </div>
           </div>
 
-          <div class="col-md-6 d-flex flex-column justify-content-between">
+          <!-- Cột Phải (7 cols): Thông tin chi tiết & Đặt mua chuẩn CellphoneS -->
+          <div class="col-lg-7 d-flex flex-column justify-content-between">
             <div>
-              <span
-                class="badge bg-primary-subtle text-primary mb-2 px-3 py-2 rounded-pill fw-bold"
-                id="product-detail-category"
-                style="font-size: 0.85rem"
-                >Danh mục</span
-              >
-              <h2 class="fw-bold text-dark mb-2" id="product-detail-name">
-                Tên sản phẩm công nghệ
-              </h2>
-
-              <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="text-warning small">
-                  <i class="fa fa-star"></i><i class="fa fa-star"></i
-                  ><i class="fa fa-star"></i><i class="fa fa-star"></i
-                  ><i class="fa fa-star"></i>
-                </div>
-                <small class="text-muted"
-                  >| Đã bán: <span id="product-detail-sold">0</span> sản
-                  phẩm</small
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span
+                  class="badge bg-danger-subtle text-danger px-3 py-1 rounded-pill fw-bold"
+                  id="product-detail-category"
+                  style="font-size: 0.8rem"
+                  >Danh mục</span
                 >
-                <small class="text-muted"
-                  >| Tình trạng:
-                  <span class="text-success fw-bold" id="product-detail-status"
-                    >Còn hàng</span
-                  ></small
-                >
+                <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-bold" id="product-detail-status">
+                  <i class="fa-solid fa-circle-check me-1"></i>Còn hàng
+                </span>
               </div>
 
-              <hr class="text-muted my-3" />
-              <div class="price-detail my-3" id="product-detail-price">0đ</div>
+              <h1 class="product-title mb-2" id="product-detail-name">
+                Tên sản phẩm công nghệ
+              </h1>
 
-              <div class="my-4">
-                <h6 class="fw-bold text-secondary">Mô tả ngắn:</h6>
-                <p
-                  class="text-muted"
-                  id="product-detail-desc"
-                  style="line-height: 1.6"
-                >
-                  Đang tải dữ liệu mô tả cho sản phẩm...
-                </p>
+              <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                <div class="text-warning small">
+                  <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+                  <span class="text-dark fw-bold ms-1">4.9</span>
+                </div>
+                <small class="text-muted">
+                  | Đã bán: <span id="product-detail-sold" class="fw-bold text-dark">0</span>
+                </small>
+                <small class="text-muted">
+                  | Kho hàng: <span id="product-detail-stock" class="fw-bold text-dark">0</span> sản phẩm
+                </small>
+              </div>
+
+              <!-- Giá tiền & Giảm giá -->
+              <div class="d-flex align-items-baseline gap-3 mb-3">
+                <div class="price-detail" id="product-detail-price">0đ</div>
+                <div class="price-original" id="product-original-price"></div>
+                <div class="badge-discount" id="product-discount-percent">-15%</div>
+              </div>
+
+              <!-- Khối Đặc điểm nổi bật chuẩn CellphoneS -->
+              <div class="highlight-features-box">
+                <h6><i class="fa-solid fa-award me-1"></i> Đặc điểm nổi bật</h6>
+                <ul id="product-highlight-features">
+                  <li>Thiết kế cao cấp, đường nét tinh tế, viền siêu mỏng hiện đại.</li>
+                  <li>Hiệu năng vượt trội, xử lý mượt mà mọi tác vụ học tập, làm việc và giải trí đỉnh cao.</li>
+                  <li>Màn hình hiển thị sắc nét, công nghệ bảo vệ mắt tiên tiến thế hệ mới.</li>
+                  <li>Thời lượng pin bền bỉ cả ngày dài, tích hợp công nghệ sạc nhanh thông minh.</li>
+                </ul>
+              </div>
+
+              <!-- Khối Khuyến mãi & Ưu đãi HP Member (CellphoneS Style) -->
+              <div class="promo-box shadow-sm">
+                <div class="promo-header">
+                  <i class="fa-solid fa-gift"></i> Khuyến mãi & Ưu đãi độc quyền HP Member
+                </div>
+                <div class="promo-body">
+                  <p><i class="fa-solid fa-circle-check text-danger me-1"></i> <b>Giảm thêm tới 500.000đ</b> cho khách hàng thành viên (HP Smember).</p>
+                  <p><i class="fa-solid fa-circle-check text-danger me-1"></i> <b>Thu cũ đổi mới:</b> Trợ giá lên đến <b>2.000.000đ</b> cho mọi dòng máy.</p>
+                  <p><i class="fa-solid fa-circle-check text-danger me-1"></i> Trả góp <b>0% lãi suất</b>, duyệt hồ sơ nhanh qua thẻ tín dụng và CCCD.</p>
+                  <p><i class="fa-solid fa-truck-fast text-danger me-1"></i> <b>Giao hàng siêu tốc 2h</b> miễn phí tại TP. HCM & Hà Nội.</p>
+                </div>
               </div>
             </div>
 
-            <div class="bg-light p-3 rounded-4 mb-2">
+            <!-- Khối Chọn số lượng & Hành động Mua hàng -->
+            <div class="p-3 bg-light rounded-3 border">
               <div class="d-flex align-items-center gap-3 mb-3">
-                <span class="fw-bold text-secondary">Số lượng:</span>
-                <div class="input-group width-auto" style="width: 140px">
-                  <button
-                    class="btn btn-outline-secondary rounded-start-pill"
-                    type="button"
-                    id="btn-decrease"
-                  >
-                    -
-                  </button>
-                  <input
-                    type="number"
-                    id="quantity-input"
-                    class="form-control quantity-input"
-                    value="1"
-                    min="1"
-                  />
-                  <button
-                    class="btn btn-outline-secondary rounded-end-pill"
-                    type="button"
-                    id="btn-increase"
-                  >
-                    +
-                  </button>
+                <span class="fw-bold text-secondary small">Số lượng:</span>
+                <div class="input-group" style="width: 120px">
+                  <button class="btn btn-outline-secondary btn-sm" type="button" id="btn-decrease">-</button>
+                  <input type="number" id="quantity-input" class="form-control form-control-sm quantity-input" value="1" min="1" />
+                  <button class="btn btn-outline-secondary btn-sm" type="button" id="btn-increase">+</button>
                 </div>
-                <small class="text-muted"
-                  >(Còn lại <span id="product-detail-stock">0</span> sản phẩm
-                  trong kho)</small
-                >
+                <small class="text-muted small">
+                  (Bảo hành 12 tháng chính hãng tại hệ thống 120 cửa hàng)
+                </small>
               </div>
 
               <div class="row g-2">
-                <div class="col-12">
-                  <button
-                    class="btn btn-primary w-100 py-3 btn-add-to-cart-lg rounded-pill fw-bold"
-                    id="btn-add-to-cart"
-                  >
-                    <i class="fa-solid fa-cart-plus me-2"></i>Thêm vào giỏ hàng
+                <div class="col-8">
+                  <button class="btn btn-buy-now w-100 d-flex flex-column align-items-center justify-content-center" id="btn-buy-now">
+                    <span class="fw-bold fs-6">MUA NGAY</span>
+                    <small style="font-size: 11px; font-weight: normal; text-transform: none;">(Giao tận nơi hoặc nhận tại cửa hàng)</small>
+                  </button>
+                </div>
+                <div class="col-4">
+                  <button class="btn btn-add-cart w-100 h-100 d-flex flex-column align-items-center justify-content-center" id="btn-add-to-cart">
+                    <i class="fa-solid fa-cart-plus mb-1"></i>
+                    <span style="font-size: 12.5px;">Thêm vào giỏ</span>
                   </button>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
 
-      <div class="row mt-5">
-        <div class="col-lg-8 mb-4">
-          <div
-            class="card border-0 shadow-sm p-4 h-100"
-            style="border-radius: 20px"
-          >
-            <h4 class="fw-bold text-primary mb-4">
-              <i class="fa-solid fa-file-lines me-2"></i>Thông tin chi tiết sản
-              phẩm
+      <!-- Khối Thông tin chi tiết & Bảng thông số (Hình 1) -->
+      <div class="row g-4 mb-4">
+        <!-- Cột Trái (8 cols): Bài viết mô tả chi tiết -->
+        <div class="col-lg-8">
+          <div class="info-section-card h-100">
+            <h4 class="fw-bold text-danger mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+              <i class="fa-solid fa-file-lines"></i>
+              <span>Thông tin chi tiết sản phẩm</span>
             </h4>
-            <div
-              class="text-muted"
-              style="line-height: 1.8"
-              id="product-full-description"
-            >
-              Nội dung bài viết giới thiệu chi tiết về sản phẩm, các tính năng
-              nổi bật cũng như trải nghiệm sử dụng thực tế sẽ hiển thị tại đây.
+            <div class="article-collapse-wrapper" id="articleCollapseWrapper">
+              <div class="text-secondary" style="line-height: 1.8; font-size: 14.5px;" id="product-full-description">
+                Đang tải bài viết mô tả chi tiết cho sản phẩm...
+              </div>
+              <div class="article-fade-overlay" id="articleFadeOverlay"></div>
+            </div>
+            <div class="text-center mt-3">
+              <button class="btn btn-toggle-article" id="btnToggleArticle" type="button">
+                Xem thêm nội dung <i class="fa-solid fa-chevron-down ms-1"></i>
+              </button>
             </div>
           </div>
         </div>
 
-        <div class="col-lg-4 mb-4">
-          <div
-            class="card border-0 shadow-sm p-4 h-100"
-            style="border-radius: 20px"
-          >
-            <h5 class="fw-bold text-dark mb-4">
-              <i class="fa-solid fa-gears me-2"></i>Thông số kỹ thuật
+        <!-- Cột Phải (4 cols): Bảng Thông số kỹ thuật chuẩn CellphoneS -->
+        <div class="col-lg-4">
+          <div class="info-section-card h-100">
+            <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+              <i class="fa-solid fa-microchip text-danger"></i>
+              <span>Thông số kỹ thuật</span>
             </h5>
-            <table class="table table-striped align-middle mb-0">
-              <tbody>
+            <table class="table spec-table align-middle mb-0">
+              <tbody id="specsTableBody">
                 <tr>
                   <td class="spec-label">Mã sản phẩm</td>
-                  <td id="spec-id">-</td>
+                  <td class="spec-value" id="spec-id">-</td>
                 </tr>
                 <tr>
                   <td class="spec-label">Danh mục</td>
-                  <td id="spec-category">-</td>
+                  <td class="spec-value" id="spec-category">-</td>
                 </tr>
                 <tr>
                   <td class="spec-label">Nhà cung cấp</td>
-                  <td id="spec-vendor">-</td>
+                  <td class="spec-value" id="spec-vendor">-</td>
                 </tr>
                 <tr>
                   <td class="spec-label">Đơn vị tính</td>
-                  <td id="spec-unit">-</td>
+                  <td class="spec-value" id="spec-unit">Cái</td>
+                </tr>
+                <tr>
+                  <td class="spec-label">Bảo hành</td>
+                  <td class="spec-value text-success">12 Tháng Chính Hãng</td>
+                </tr>
+                <tr>
+                  <td class="spec-label">Tình trạng máy</td>
+                  <td class="spec-value">Mới 100% Nguyên Seal</td>
                 </tr>
               </tbody>
             </table>
@@ -192,15 +225,16 @@
         </div>
       </div>
 
-      <section class="mt-5 pt-3">
-        <div class="mb-4">
-          <h3 class="fw-bold text-primary mb-1">Sản phẩm tương tự</h3>
-          <p class="text-muted mb-0">
-            Các thiết bị công nghệ cùng ngành hàng có thể bạn quan tâm
-          </p>
+      <!-- Khối Sản phẩm tương tự -->
+      <section class="mt-4 pt-2">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <h3 class="fw-bold text-dark mb-0 fs-5">Sản phẩm tương tự</h3>
+            <p class="text-muted small mb-0">Các thiết bị công nghệ cùng ngành hàng được quan tâm nhiều</p>
+          </div>
         </div>
         <div
-          class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4"
+          class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3"
           id="related-products-container"
         ></div>
       </section>
@@ -214,7 +248,6 @@
 
     <script type="module">
       import { loadFooter } from "/src/JS/common/footer.js";
-
       document.addEventListener("DOMContentLoaded", () => {
         loadFooter();
       });

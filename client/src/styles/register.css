@@ -1,35 +1,61 @@
-/* register.css */
+/* register.css - Đồng bộ giao diện HP STORE / CellphoneS */
 
-/* --- Nền Gradient đặc trưng --- */
+:root {
+  --hp-primary: #d70018;
+  --hp-primary-dark: #b8001f;
+  --hp-primary-light: #ef233c;
+  --hp-bg-page: #f1f5f9;
+  --hp-text-dark: #0f172a;
+  --hp-text-muted: #64748b;
+  --hp-border: #e2e8f0;
+}
+
+/* --- Nền Gradient đồng bộ với Dashboard và Trang chủ --- */
 .bg-register-page {
-  background: radial-gradient(
-    circle at center,
-    #350066 0%,
-    #150030 100%
-  ) !important;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 40px 20px;
+  padding: 40px 15px;
 }
 
 /* --- Card trắng bo góc lớn --- */
 .register-card {
-  background-color: white;
+  background-color: #ffffff;
   width: 100%;
-  max-width: 480px;
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  max-width: 490px;
+  border-radius: 20px !important;
+  padding: 36px 32px !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
 }
 
 /* --- Tiêu đề & Brand --- */
+.hp-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #d70018 0%, #b8001f 100%);
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 18px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(215, 0, 24, 0.25);
+  margin-bottom: 8px;
+}
+
 .brand-name {
-  color: #6138ff;
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 5px;
+  color: var(--hp-text-dark);
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.brand-name span {
+  color: var(--hp-primary);
 }
 
 /* --- Input Styling (Icon nằm trong) --- */
@@ -43,55 +69,69 @@
   left: 15px;
   top: 50%;
   transform: translateY(-50%);
-  color: #adb5bd;
+  color: #94a3b8;
   font-size: 16px;
 }
 
 .input-wrapper .form-control {
-  padding: 12px 15px 12px 45px !important;
-  border: 1px solid #dee2e6;
+  padding-left: 46px !important;
+  padding-right: 42px;
+  height: 44px;
+  border: 1px solid #cbd5e1;
   border-radius: 10px;
-  background-color: #fff;
-  transition: all 0.2s ease-in-out;
+  font-size: 14.5px;
+  color: var(--hp-text-dark);
+  transition: all 0.25s ease;
+  background-color: #ffffff;
 }
 
 .input-wrapper .form-control:focus {
-  border-color: #a16bff;
-  box-shadow: 0 0 0 4px rgba(161, 107, 255, 0.1);
+  outline: none;
+  border-color: var(--hp-primary);
+  box-shadow: 0 0 0 3px rgba(215, 0, 24, 0.12);
 }
 
-/* --- Nút ẩn/hiện mật khẩu --- */
 .eye-btn {
   position: absolute;
-  right: 15px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #adb5bd;
   cursor: pointer;
+  color: #94a3b8;
+  font-size: 16px;
+  padding: 4px;
 }
 
-/* --- Nút Đăng ký (Màu hồng tím theo res.jpg) --- */
-.submit-btn-register {
-  background: linear-gradient(90deg, #e91e63 0%, #9c27b0 100%) !important;
-  color: white;
+.eye-btn:hover {
+  color: var(--hp-primary);
+}
+
+/* --- Nút Đăng ký --- */
+.submit-btn {
+  background: linear-gradient(135deg, #d70018 0%, #b8001f 100%) !important;
+  color: #ffffff !important;
   border: none !important;
-  border-radius: 10px;
-  padding: 14px;
-  font-weight: 600;
-  margin-top: 20px;
-  transition: opacity 0.3s;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  font-size: 15.5px !important;
+  height: 46px;
+  box-shadow: 0 4px 14px rgba(215, 0, 24, 0.28) !important;
+  transition: all 0.25s ease !important;
 }
 
-.submit-btn-register:hover {
-  opacity: 0.9;
-  box-shadow: 0 8px 20px rgba(233, 30, 99, 0.3);
+.submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(215, 0, 24, 0.38) !important;
 }
 
-/* --- Link đăng nhập --- */
 .login-link {
-  color: #6138ff;
+  color: var(--hp-primary);
   text-decoration: none;
   font-weight: 600;
+}
+
+.login-link:hover {
+  text-decoration: underline;
 }

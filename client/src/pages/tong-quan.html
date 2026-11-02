@@ -1,14 +1,18 @@
 <div class="container-fluid px-3 px-md-4 py-4" style="width: 100%; max-width: none; margin: 0 auto;">
-  <!-- ROW 0: KPIs (6 Cards) -->
+  <!-- ROW 0: KPIs (6 Cards Liên kết - Hình 2) -->
   <div class="row g-3 mb-4">
     <!-- 1. Doanh thu -->
     <div class="col-md-4 col-lg-2">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-xl-4 bg-white d-flex flex-column justify-content-between">
+      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-xl-4 bg-white d-flex flex-column justify-content-between kpi-card-interactive" data-kpi-action="scroll-revenue" title="Nhấp để xem biểu đồ Doanh thu chi tiết">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <p class="text-muted mb-0 fw-medium" style="font-size: 14px;">Doanh thu</p>
+          <div class="d-flex align-items-center gap-1">
+            <p class="text-muted mb-0 fw-medium" style="font-size: 14px;">Doanh thu</p>
+            <i class="fa-solid fa-arrow-up-right-from-square kpi-link-badge text-danger"></i>
+          </div>
           <i class="fa-solid fa-dollar-sign text-success bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;"></i>
         </div>
-        <div class="fs-3 fw-bold mb-3 text-dark lh-1" id="totalRevenue" style="letter-spacing: -0.5px;">0đ</div>
+        <div class="fs-3 fw-bold mb-1 text-dark lh-1" id="totalRevenue" style="letter-spacing: -0.5px;">0đ</div>
+        <div id="revenueSub" class="text-muted small mb-2" style="font-size: 11px; min-height: 16px;"></div>
         <div class="d-flex align-items-center flex-wrap gap-1">
           <span class="badge rounded-pill bg-light text-secondary" id="revenueBadge" style="font-size: 12px; font-weight: 600;"><span id="revenueTrend">--</span></span>
           <span class="text-muted" style="font-size: 12px;">so với kỳ trước</span>
@@ -17,9 +21,12 @@
     </div>
     <!-- 2. Đơn hàng -->
     <div class="col-md-4 col-lg-2">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-xl-4 bg-white d-flex flex-column justify-content-between">
+      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-xl-4 bg-white d-flex flex-column justify-content-between kpi-card-interactive" data-kpi-page="don-hang" title="Nhấp để mở trang Quản lý đơn hàng">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <p class="text-muted mb-0 fw-medium" style="font-size: 14px;">Đơn hàng</p>
+          <div class="d-flex align-items-center gap-1">
+            <p class="text-muted mb-0 fw-medium" style="font-size: 14px;">Đơn hàng</p>
+            <i class="fa-solid fa-arrow-up-right-from-square kpi-link-badge text-primary"></i>
+          </div>
           <i class="fa-solid fa-cart-shopping text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;"></i>
         </div>
         <div class="fs-3 fw-bold mb-3 text-dark lh-1" id="totalOrders" style="letter-spacing: -0.5px;">0</div>
@@ -31,9 +38,12 @@
     </div>
     <!-- 3. Khách hàng -->
     <div class="col-md-4 col-lg-2">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-xl-4 bg-white d-flex flex-column justify-content-between">
+      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-xl-4 bg-white d-flex flex-column justify-content-between kpi-card-interactive" data-kpi-page="khach-hang" title="Nhấp để mở trang Quản lý khách hàng">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <p class="text-muted mb-0 fw-medium" style="font-size: 14px;">Khách mới</p>
+          <div class="d-flex align-items-center gap-1">
+            <p class="text-muted mb-0 fw-medium" style="font-size: 14px;">Khách mới</p>
+            <i class="fa-solid fa-arrow-up-right-from-square kpi-link-badge text-info"></i>
+          </div>
           <i class="fa-solid fa-users text-info bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;"></i>
         </div>
         <div class="fs-3 fw-bold mb-3 text-dark lh-1" id="totalCustomers" style="letter-spacing: -0.5px;">0</div>
@@ -45,10 +55,11 @@
     </div>
     <!-- 4. Lợi nhuận -->
     <div class="col-md-4 col-lg-2">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-xl-4 bg-white d-flex flex-column justify-content-between">
+      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-xl-4 bg-white d-flex flex-column justify-content-between kpi-card-interactive" data-kpi-action="scroll-revenue" title="Nhấp để xem chi tiết Lợi nhuận">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <div class="d-flex flex-column">
+          <div class="d-flex align-items-center gap-1">
             <p class="text-muted mb-0 fw-medium" style="font-size: 14px;">Lợi nhuận gộp</p>
+            <i class="fa-solid fa-arrow-up-right-from-square kpi-link-badge text-warning"></i>
           </div>
           <i class="fa-solid fa-chart-line text-warning bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;"></i>
         </div>
@@ -61,9 +72,12 @@
     </div>
     <!-- 5. Giá trị trung bình đơn -->
     <div class="col-md-4 col-lg-2">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-xl-4 bg-white d-flex flex-column justify-content-between">
+      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-xl-4 bg-white d-flex flex-column justify-content-between kpi-card-interactive" data-kpi-page="don-hang" title="Nhấp để xem danh sách Đơn hàng & AOV">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <p class="text-muted mb-0 fw-medium" style="font-size: 14px;">AOV</p>
+          <div class="d-flex align-items-center gap-1">
+            <p class="text-muted mb-0 fw-medium" style="font-size: 14px;">AOV</p>
+            <i class="fa-solid fa-arrow-up-right-from-square kpi-link-badge text-danger"></i>
+          </div>
           <i class="fa-solid fa-receipt text-danger bg-danger bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;"></i>
         </div>
         <div class="fs-3 fw-bold mb-3 text-dark lh-1" id="totalAOV" style="letter-spacing: -0.5px;">0đ</div>
@@ -72,18 +86,20 @@
         </div>
       </div>
     </div>
-    <!-- 6. Tồn kho (TODO API) -->
+    <!-- 6. Tồn kho (Thời gian thực) -->
     <div class="col-md-4 col-lg-2">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-xl-4 bg-white opacity-75 d-flex flex-column justify-content-between">
+      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-xl-4 bg-white d-flex flex-column justify-content-between kpi-card-interactive" data-kpi-page="quanly-khohang" title="Nhấp để mở trang Quản lý kho hàng">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <div class="d-flex flex-column">
+          <div class="d-flex align-items-center gap-1">
             <p class="text-muted mb-0 fw-medium" style="font-size: 14px;">Tồn kho</p>
+            <i class="fa-solid fa-arrow-up-right-from-square kpi-link-badge text-primary"></i>
           </div>
-          <i class="fa-solid fa-boxes-stacked text-secondary bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;"></i>
+          <i class="fa-solid fa-boxes-stacked text-primary bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;"></i>
         </div>
-        <div class="fs-3 fw-bold mb-3 text-muted lh-1" id="totalInventory" style="letter-spacing: -0.5px;">--</div>
+        <div class="fs-3 fw-bold mb-3 text-dark lh-1" id="totalInventory" style="letter-spacing: -0.5px;">0 SP</div>
         <div class="d-flex align-items-center flex-wrap gap-1">
-          <span class="badge rounded-pill bg-light text-secondary" style="font-size: 12px; font-weight: 600;">TODO API</span>
+          <span class="badge rounded-pill bg-success bg-opacity-10 text-success" id="inventoryBadge" style="font-size: 12px; font-weight: 600;">Thời gian thực</span>
+          <span class="text-muted" style="font-size: 12px;" id="inventorySub">toàn hệ thống</span>
         </div>
       </div>
     </div>
@@ -161,75 +177,71 @@
 
   <!-- ROW 3: Customer Analytics (6) & Inventory Analytics (6) -->
   <div class="row g-3 mb-4">
-    <!-- Customer Analytics (TODO API) -->
+    <!-- Customer Analytics -->
     <div class="col-lg-6">
-      <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white border-top border-primary border-4 opacity-75">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white border-top border-primary border-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div class="d-flex align-items-center gap-2">
             <i class="fa-solid fa-users text-primary fs-5"></i>
             <h6 class="fw-bold mb-0 text-dark">Customer Analytics</h6>
           </div>
-          <span class="badge bg-warning text-dark">TODO API</span>
+          <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary fw-semibold" style="font-size: 12px;">Phân khúc</span>
         </div>
         <div class="row g-3">
           <div class="col-6">
             <div class="p-3 bg-light rounded-3">
               <div class="text-muted small mb-1">Khách quay lại</div>
-              <h5 class="fw-bold mb-0">--</h5>
+              <h5 class="fw-bold mb-0 text-dark" id="returningCustomers">0</h5>
             </div>
           </div>
           <div class="col-6">
             <div class="p-3 bg-light rounded-3">
               <div class="text-muted small mb-1">Khách VIP</div>
-              <h5 class="fw-bold mb-0">--</h5>
+              <h5 class="fw-bold mb-0 text-dark" id="vipCustomers">0</h5>
             </div>
           </div>
-          <div class="col-12 mt-3">
-             <div class="d-flex flex-column align-items-center justify-content-center text-muted p-4 border rounded-3" style="border-style: dashed !important; border-color: #cbd5e1 !important; background: #f8fafc;">
-                <i class="fa-solid fa-users-slash fs-1 mb-3 text-secondary opacity-50"></i>
-                <div class="fw-medium mb-1 text-dark">Chưa có dữ liệu phân tích</div>
-                <div class="small text-center" style="max-width: 200px;">Hệ thống chưa thu thập đủ dữ liệu phân khúc khách hàng kỳ này.</div>
-             </div>
+          <div class="col-12 mt-2">
+            <div style="height: 220px; position: relative;" class="w-100">
+              <canvas id="customerChart"></canvas>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Inventory Analytics (TODO API) -->
+    <!-- Inventory Analytics -->
     <div class="col-lg-6">
-      <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white border-top border-warning border-4 opacity-75">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white border-top border-warning border-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div class="d-flex align-items-center gap-2">
             <i class="fa-solid fa-boxes-stacked text-warning fs-5"></i>
             <h6 class="fw-bold mb-0 text-dark">Inventory Analytics</h6>
           </div>
-          <span class="badge bg-warning text-dark">TODO API</span>
+          <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning fw-semibold" style="font-size: 12px;">Trạng thái kho</span>
         </div>
         <div class="row g-3">
           <div class="col-4">
             <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-3 text-center">
-              <h5 class="fw-bold mb-0">--</h5>
-              <div class="small">Sắp hết</div>
+              <h5 class="fw-bold mb-0" id="lowStockCount">0</h5>
+              <div class="small fw-medium">Sắp hết</div>
             </div>
           </div>
           <div class="col-4">
             <div class="p-3 bg-warning bg-opacity-10 text-warning rounded-3 text-center">
-              <h5 class="fw-bold mb-0">--</h5>
-              <div class="small">Bán chậm</div>
+              <h5 class="fw-bold mb-0" id="slowStockCount">0</h5>
+              <div class="small fw-medium">Bán chậm</div>
             </div>
           </div>
           <div class="col-4">
             <div class="p-3 bg-success bg-opacity-10 text-success rounded-3 text-center">
-              <h5 class="fw-bold mb-0">--</h5>
-              <div class="small">Tồn nhiều</div>
+              <h5 class="fw-bold mb-0" id="highStockCount">0</h5>
+              <div class="small fw-medium">Tồn nhiều</div>
             </div>
           </div>
-          <div class="col-12 mt-3">
-             <div class="d-flex flex-column align-items-center justify-content-center text-muted p-4 border rounded-3" style="border-style: dashed !important; border-color: #cbd5e1 !important; background: #f8fafc;">
-                <i class="fa-solid fa-box-open fs-1 mb-3 text-secondary opacity-50"></i>
-                <div class="fw-medium mb-1 text-dark">Kho hàng đang trống</div>
-                <div class="small text-center" style="max-width: 200px;">Hãy bắt đầu nhập hàng để theo dõi biến động tồn kho tại đây.</div>
-             </div>
+          <div class="col-12 mt-2">
+            <div style="height: 220px; position: relative;" class="w-100">
+              <canvas id="inventoryChart"></canvas>
+            </div>
           </div>
         </div>
       </div>

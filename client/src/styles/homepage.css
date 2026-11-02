@@ -1,342 +1,738 @@
+/* ==========================================================================
+   HP STORE - DESIGN SYSTEM & STOREFRONT HOMEPAGE TOKENS
+   Thiết kế độc quyền HP STORE - Khắc phục hoàn toàn khoảng trống 2 bên màn hình
+   ========================================================================== */
+
 :root {
-  --primary-color: #6f42c1;
-  --secondary-color: #0d6efd;
-}
+  --hp-red: #d90429;
+  --hp-red-dark: #b8001f;
+  --hp-red-hover: #9b001a;
+  --hp-red-subtle: #fff1f2;
+  --hp-red-gradient: linear-gradient(135deg, #d90429 0%, #ef233c 100%);
+  --hp-hotsale-gradient: linear-gradient(90deg, #b8001f 0%, #d90429 60%, #ef233c 100%);
 
-/* Hiệu ứng Carousel Fade */
-.carousel-fade .carousel-item {
-  transition-duration: 0.8s; /* Tăng thời gian chuyển cảnh */
-}
+  --hp-bg: #f5f5f7;
+  --hp-card-bg: #ffffff;
+  --hp-text-main: #1e1e24;
+  --hp-text-muted: #64748b;
+  --hp-border-light: #e2e8f0;
+  --hp-border-card: #f1f5f9;
 
-.carousel-item img {
-  height: 400px;
-  object-fit: cover;
-  border-radius: 15px;
-}
+  --hp-radius-card: 14px;
+  --hp-radius-btn: 9px;
+  --hp-radius-pill: 9999px;
 
-/* Tùy chỉnh nút Header */
-.auth-buttons .btn {
-  border-radius: 10px;
-  padding: 6px 15px;
-  font-weight: 500;
-  transition: 0.3s;
-}
-
-.btn-login {
-  color: var(--primary-color);
-  border: 1px solid var(--primary-color);
-}
-
-.btn-login:hover {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.btn-register {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.btn-register:hover {
-  background-color: #5a32a3;
-  color: white;
-}
-
-.btn-cart {
-  border-radius: 10px;
-  background: var(--secondary-color);
-  color: white;
+  --hp-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --hp-shadow-hover: 0 10px 28px rgba(217, 4, 41, 0.12);
+  --hp-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f8f9fa;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  background-color: var(--hp-bg);
+  color: var(--hp-text-main);
+  line-height: 1.5;
 }
 
-/* Header */
-.navbar-brand img {
-  height: 40px;
+/* ─── TỐI ƯU CONTAINER RỘNG KHÔNG BỊ TRỐNG 2 BÊN ─── */
+.container,
+.container-lg,
+.container-md,
+.container-sm,
+.container-xl,
+.container-xxl {
+  max-width: 1520px !important;
+  width: 95% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
-.search-bar {
-  border-radius: 20px;
+
+@media (min-width: 1800px) {
+  .container,
+  .container-xxl {
+    max-width: 1620px !important;
+    width: 94% !important;
+  }
+}
+
+/* ─── 1. HERO SECTION 3 CỘT (Layout rộng cân đối) ─── */
+.hp-hero-grid {
+  display: grid;
+  grid-template-columns: 230px 1fr 275px;
+  gap: 14px;
+  margin-top: 14px;
+  position: relative;
+}
+
+@media (max-width: 1250px) {
+  .hp-hero-grid {
+    grid-template-columns: 220px 1fr;
+  }
+  .hp-hero-right {
+    display: none;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .hp-hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .hp-category-sidebar,
+  .hp-mega-flyout {
+    display: none !important;
+  }
+}
+
+/* Cột 1: Menu danh mục dọc */
+.hp-category-sidebar {
+  background: #ffffff;
+  border-radius: var(--hp-radius-card);
+  padding: 8px 0;
+  box-shadow: var(--hp-shadow-card);
+  border: 1px solid var(--hp-border-card);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1060;
+}
+
+.hp-cat-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  text-decoration: none;
+  transition: var(--hp-transition);
+}
+
+.hp-cat-link i.cat-icon {
+  width: 22px;
+  text-align: center;
+  margin-right: 8px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.hp-cat-link:hover,
+.hp-cat-link.active-flyout {
+  background-color: var(--hp-red-subtle);
+  color: var(--hp-red);
   padding-left: 20px;
 }
-.btn-cart {
-  border-radius: 12px;
-  background: var(--secondary-color);
-  color: white;
-}
-.user-dropdown {
-  color: white;
-  border-radius: 20px;
-  padding: 5px 20px;
+
+.hp-cat-link:hover i.cat-icon,
+.hp-cat-link.active-flyout i.cat-icon {
+  color: var(--hp-red);
 }
 
-/* Carousel */
-.carousel-item img {
-  height: 450px;
-  object-fit: cover;
-  border-radius: 15px;
-}
-.carousel {
-  margin-top: 20px;
-  border-radius: 15px;
-  overflow: hidden;
+.hp-cat-link i.fa-chevron-right {
+  font-size: 10px;
+  color: #94a3b8;
 }
 
-.carousel-caption h5 {
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 2rem;
-  /* Tạo đổ bóng để nổi trên nền sáng */
-  text-shadow:
-    2px 2px 4px rgba(0, 0, 0, 0.5),
-    0 0 10px rgba(0, 0, 0, 0.2);
-}
-
-.carousel-caption p {
-  color: #ffffff;
-  font-weight: 500;
-  font-size: 1.2rem;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-}
-
-/* Tùy chọn: Thêm một lớp nền mờ nhẹ dưới chữ để tăng độ đọc 
-       nếu ảnh quá sáng (flashy) */
-.carousel-caption {
-  background: rgba(0, 0, 0, 0.15); /* Phủ một lớp đen mờ cực mỏng */
-  border-radius: 15px;
-  padding: 20px;
-  bottom: 10%; /* Chỉnh vị trí chữ cao lên một chút */
-}
-
-/* Footer */
-footer {
-  background-color: white;
-  border-top: 1px solid #dee2e6;
-  margin-top: 50px;
-}
-.footer-title {
-  font-weight: bold;
-  color: var(--primary-color);
-  margin-bottom: 20px;
-}
-.footer-link {
-  text-decoration: none;
-  color: #6c757d;
-  transition: 0.3s;
-}
-.footer-link:hover {
-  color: var(--primary-color);
-}
-
-.product-card {
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-}
-.product-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
-}
-.card-img-top {
-  height: 200px;
-  object-fit: contain;
-}
-
-.product-card .img-container {
-  background: linear-gradient(
-    180deg,
-    #f0f3ff 0%,
-    #ffffff 100%
-  ); /* Nền xanh tím rất nhạt */
-  border-radius: 15px 15px 0 0;
-  padding: 30px;
-  position: relative;
-  text-align: center;
-}
-
-.product-card .wishlist-btn {
+/* ─── MEGA MENU FLYOUT PANEL CHUẨN CELLPHONES (Hình 4) ─── */
+.hp-mega-flyout {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  background: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  left: 244px;
+  top: 0;
+  width: 960px;
+  max-width: calc(100vw - 280px);
+  min-height: 480px;
+  max-height: 540px;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: var(--hp-radius-card);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
+  border: 1px solid #e2e8f0;
+  z-index: 1050;
+  padding: 22px 26px;
+  animation: fadeInFlyout 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInFlyout {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.hp-flyout-content {
+  display: grid;
+  grid-template-columns: 1.15fr 1.05fr 0.9fr;
+  gap: 22px;
+}
+
+.hp-flyout-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hp-flyout-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  color: #cbd5e0;
+  gap: 6px;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 6px;
+}
+
+.hp-flyout-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hp-flyout-chip {
+  padding: 6px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #334155;
   cursor: pointer;
-  transition: 0.3s;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  user-select: none;
 }
 
-.product-card .wishlist-btn:hover {
-  color: #ff4d4f;
-  transform: scale(1.1);
+.hp-flyout-chip:hover {
+  background: #fff1f2;
+  border-color: #d70018;
+  color: #d70018;
+  transform: translateY(-1px);
 }
 
-.product-card .price-text {
-  color: #3b82f6; /* Màu xanh dương giống trong hình */
-  font-size: 1.4rem;
+.hp-flyout-chip.hot-chip {
+  background: #fff5f5;
+  border-color: #fecaca;
+  color: #d70018;
+}
+
+.hp-flyout-chip.hot-chip:hover {
+  background: #d70018;
+  color: #ffffff;
+  border-color: #d70018;
+}
+
+.hp-flyout-badge-hot {
+  background: #ef4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.hp-flyout-promo-box {
+  background: linear-gradient(135deg, #fff1f2 0%, #fee2e2 100%);
+  border: 1px dashed #fca5a5;
+  border-radius: 10px;
+  padding: 14px;
+  color: #991b1b;
+  font-size: 12px;
+}
+
+.hp-flyout-promo-box strong {
+  color: #b91c1c;
+  font-size: 13px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Cột 2: Main Banner Slider trung tâm */
+.hp-hero-center {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hp-carousel-card {
+  border-radius: var(--hp-radius-card);
+  overflow: hidden;
+  box-shadow: var(--hp-shadow-card);
+  background: #ffffff;
+  border: 1px solid var(--hp-border-card);
+}
+
+.hp-carousel-card .carousel-item img {
+  height: 350px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.hp-carousel-tabs {
+  display: flex;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  overflow-x: auto;
+}
+
+.hp-carousel-tab {
+  flex: 1;
+  min-width: 130px;
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 11.5px;
   font-weight: 700;
+  color: #475569;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--hp-transition);
 }
 
-.add-to-cart-btn {
-  background: linear-gradient(
-    90deg,
-    #6366f1 0%,
-    #a855f7 100%
-  ); /* Nút gradient tím xanh */
-  border: none;
-  border-radius: 12px;
-  font-weight: 500;
-  transition: 0.3s;
+.hp-carousel-tab.active,
+.hp-carousel-tab:hover {
+  color: var(--hp-red);
+  border-bottom-color: var(--hp-red);
+  background-color: #fff9fa;
 }
 
-.add-to-cart-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
+/* 3 Banner phụ bên dưới */
+.hp-sub-banners {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
-.filter-btn {
-  background-color: #fff;
-  color: #333;
-  border: 1px solid #eee;
-  transition: 0.3s;
-}
-.filter-btn:hover,
-.filter-btn.active {
-  background-color: #6f42c1 !important;
-  color: #fff !important;
-  border-color: #6f42c1;
-}
-.product-card {
-  border-radius: 20px;
-  transition: all 0.3s ease;
-}
-.product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
-}
-.img-container {
-  background: linear-gradient(180deg, #f8f0ff 0%, #ffffff 100%);
-  padding: 2rem;
-  position: relative;
-}
-.wishlist-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: white;
-  border-radius: 50%;
-  width: 35px;
-  height: 35px;
+.hp-sub-banner-item {
+  background: #ffffff;
+  border-radius: var(--hp-radius-card);
+  padding: 12px 16px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #ccc;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  gap: 12px;
+  box-shadow: var(--hp-shadow-card);
+  text-decoration: none;
+  border: 1px solid var(--hp-border-card);
+  transition: transform var(--hp-transition), box-shadow var(--hp-transition);
 }
-.price-text {
-  color: #6f42c1;
+
+.hp-sub-banner-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.hp-sub-banner-item h6 {
+  font-size: 13px;
   font-weight: 700;
-  font-size: 1.25rem;
-}
-.add-to-cart-btn {
-  background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
-  border: none;
-  border-radius: 12px;
-  padding: 10px;
+  margin-bottom: 2px;
+  color: var(--hp-text-main);
 }
 
-#search-suggestions {
-  border-radius: 0 0 15px 15px;
-  border: 1px solid #eee;
-  background: white;
+.hp-sub-banner-item p {
+  font-size: 11.5px;
+  color: var(--hp-text-muted);
+  margin-bottom: 0;
 }
 
-#search-suggestions .list-group-item {
-  border: none;
-  border-bottom: 1px solid #f8f9fa;
-  transition: background 0.2s;
+/* Cột 3: Widget ưu đãi bên phải */
+.hp-hero-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-#search-suggestions .list-group-item:last-child {
+.hp-widget-box {
+  background: #ffffff;
+  border-radius: var(--hp-radius-card);
+  padding: 14px 16px;
+  box-shadow: var(--hp-shadow-card);
+  border: 1px solid var(--hp-border-card);
+}
+
+.hp-widget-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--hp-text-main);
+  margin-bottom: 8px;
+}
+
+.hp-widget-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--hp-red);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 7px 14px;
+  border-radius: var(--hp-radius-btn);
+  text-decoration: none;
+  transition: background var(--hp-transition);
+}
+
+.hp-widget-btn:hover {
+  background: var(--hp-red-dark);
+  color: #ffffff;
+}
+
+.hp-widget-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.hp-widget-list li {
+  font-size: 12px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #f1f5f9;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.hp-widget-list li:last-child {
   border-bottom: none;
 }
 
-#search-suggestions .list-group-item:hover {
-  background-color: #f0f7ff;
+/* ─── 2. SUPER DEAL DẢI NGANG BANNER ─── */
+.hp-strip-banner {
+  margin-top: 18px;
+  background: linear-gradient(90deg, #9b001a 0%, #d90429 50%, #ef233c 100%);
+  border-radius: var(--hp-radius-card);
+  padding: 14px 24px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 16px rgba(217, 4, 41, 0.22);
 }
 
-.user-dropdown:hover .dropdown-menu {
-  display: block;
-  margin-top: 0; /* Ngăn chặn khoảng cách làm mất hover */
-  animation: fadeIn 0.3s ease;
+/* ─── 3. FLASH SALE / DEAL SỐC MỖI NGÀY ─── */
+.hp-flashsale-section {
+  margin-top: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 2px solid #ef233c;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(217, 4, 41, 0.09);
 }
 
-.user-dropdown .dropdown-toggle::after {
-  display: none; /* Ẩn dấu mũi tên mặc định nếu muốn */
+.hp-flashsale-header {
+  background: var(--hp-hotsale-gradient);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
 }
 
-.user-dropdown .dropdown-item:hover {
-  background-color: #f0f7ff;
-  color: #3b82f6;
+.hp-flashsale-title {
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 19px;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0;
 }
 
-/* Hiệu ứng xuất hiện mượt mà */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+.hp-countdown-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+.hp-countdown-digit {
+  background: #111827;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 5px 9px;
+  border-radius: 6px;
+  min-width: 32px;
+  text-align: center;
+}
+
+/* Tag chọn danh mục con (Pills filter) */
+.hp-pills-filter {
+  display: flex;
+  gap: 8px;
+  padding: 12px 24px;
+  overflow-x: auto;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+}
+
+.hp-pill-btn {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--hp-radius-pill);
+  padding: 7px 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: var(--hp-transition);
+}
+
+.hp-pill-btn:hover {
+  background: var(--hp-red-subtle);
+  color: var(--hp-red);
+  border-color: #fca5a5;
+}
+
+.hp-pill-btn.active {
+  background: var(--hp-red);
+  color: #ffffff;
+  border-color: var(--hp-red);
+  box-shadow: 0 2px 8px rgba(217, 4, 41, 0.3);
+}
+
+/* ─── 4. PRODUCT CARD CHUẨN HP STORE (5 CỘT TRÊN MÀN RỘNG) ─── */
+.hp-product-grid {
+  padding: 18px 24px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+
+@media (min-width: 1700px) {
+  .hp-product-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+}
+
+@media (max-width: 1299.98px) {
+  .hp-product-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
-/* Tinh chỉnh text chào */
-.user-dropdown .nav-link {
-  color: #333;
-  transition: 0.3s;
-  padding: 8px 12px;
-  border-radius: 20px;
+@media (max-width: 991.98px) {
+  .hp-product-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
-.user-dropdown .nav-link:hover {
-  background-color: #f8f9fa;
+@media (max-width: 767.98px) {
+  .hp-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
 }
 
-.user-dropdown {
+.hp-product-card {
+  background: #ffffff;
+  border-radius: var(--hp-radius-card);
+  border: 1px solid var(--hp-border-card);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
   position: relative;
-  padding-bottom: 10px; /* Tạo một vùng đệm nhỏ phía dưới */
-  margin-bottom: -10px;
+  transition: var(--hp-transition);
+  text-decoration: none;
+  color: inherit;
+  box-shadow: var(--hp-shadow-card);
 }
 
-.user-dropdown:hover .dropdown-menu {
-  display: block;
-  /* Đẩy menu sát lên để chạm vào vùng đệm của nút */
-  margin-top: 0;
-  animation: fadeIn 0.2s ease-in-out;
+.hp-product-card:hover {
+  box-shadow: var(--hp-shadow-hover);
+  border-color: #fca5a5;
+  transform: translateY(-4px);
+  color: inherit;
 }
 
-/* Đảm bảo menu không bị mất khi đang rê chuột trong chính nó */
-.dropdown-menu:hover {
-  display: block;
+.hp-product-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(217, 4, 41, 0.4);
 }
 
-/* Hiệu ứng fadeIn mượt mà */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Badges góc trái */
+.hp-card-badges {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 2;
+}
+
+.hp-badge-discount {
+  background: var(--hp-red);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.hp-badge-installment {
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Nút Yêu thích */
+.hp-btn-wishlist {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 2;
+  transition: color var(--hp-transition);
+}
+
+.hp-btn-wishlist:hover {
+  color: var(--hp-red);
+}
+
+/* Ảnh sản phẩm */
+.hp-card-img-wrap {
+  width: 100%;
+  height: 175px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+  overflow: hidden;
+}
+
+.hp-card-img-wrap img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform var(--hp-transition);
+}
+
+.hp-product-card:hover .hp-card-img-wrap img {
+  transform: scale(1.06);
+}
+
+/* Tên sản phẩm */
+.hp-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e1e24;
+  line-height: 1.4;
+  height: 38px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin-bottom: 6px;
+  transition: color var(--hp-transition);
+}
+
+.hp-product-card:hover .hp-card-title {
+  color: var(--hp-red);
+}
+
+/* Giá sản phẩm */
+.hp-card-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.hp-price-sale {
+  color: var(--hp-red);
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.hp-price-original {
+  color: #94a3b8;
+  text-decoration: line-through;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+/* Box Quyền lợi HP Member / Thu cũ */
+.hp-card-perks {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 7px;
+  padding: 6px 9px;
+  font-size: 11.5px;
+  color: #475569;
+  margin-bottom: 10px;
+  line-height: 1.35;
+}
+
+.hp-card-perks .highlight {
+  color: var(--hp-red);
+  font-weight: 700;
+}
+
+/* Footer thẻ */
+.hp-card-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.hp-rating-stars {
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+/* ─── 5. FLOATING HOTLINE BUTTON ─── */
+.hp-floating-hotline {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--hp-red);
+  color: #ffffff;
+  border-radius: var(--hp-radius-pill);
+  padding: 11px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 13.5px;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(217, 4, 41, 0.45);
+  z-index: 1000;
+  transition: transform var(--hp-transition), background var(--hp-transition);
+}
+
+.hp-floating-hotline:hover {
+  transform: scale(1.05);
+  background: var(--hp-red-dark);
+  color: #ffffff;
 }

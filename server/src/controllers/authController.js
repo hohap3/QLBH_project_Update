@@ -170,6 +170,7 @@ exports.login = async (req, res) => {
         maND: user.mand,
         username: user.tendangnhap,
         role: user.mavaitro,
+        machinhanh: user.machinhanh || null,
       },
       process.env.JWT_SECRET,
       { expiresIn: "24h" },
@@ -183,6 +184,7 @@ exports.login = async (req, res) => {
         username: user.tendangnhap,
         fullname: user.hoten,
         role: user.mavaitro,
+        machinhanh: user.machinhanh || null,
       },
     });
   } catch (error) {
@@ -219,6 +221,7 @@ exports.verifyRole = async (req, res) => {
       role: user.mavaitro,
       username: user.tendangnhap,
       fullname: user.hoten,
+      machinhanh: user.machinhanh || null,
     });
   } catch (error) {
     console.error("VERIFY ROLE ERROR:", error);

@@ -3,7 +3,7 @@ import "bootstrap";
 import Swal from "sweetalert2";
 import axios from "axios";
 
-const BASE_URL = "https://qlbh-project.onrender.com/api";
+import { BASE_URL } from "/src/JS/common/header";
 
 const checkLoggedIn = () => {
   const userData = JSON.parse(localStorage.getItem("hpstore_user"));

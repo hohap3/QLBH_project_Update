@@ -1,9 +1,16 @@
 // src/JS/auth-guard.js
 import Swal from "sweetalert2";
 import axios from "axios";
+import { BASE_URL } from "/src/JS/common/header";
 
 // Ẩn nội dung body ngay lập tức để tránh tình trạng giao diện bị nhấp nháy (FOUC) trước khi check quyền
-document.body.style.display = "none";
+if (typeof document !== "undefined") {
+  if (document.body) {
+    document.body.style.display = "none";
+  } else if (document.documentElement) {
+    document.documentElement.style.visibility = "hidden";
+  }
+}
 
 /**
  * Hàm kiểm tra và phân quyền truy cập hệ thống (Thời gian thực)
@@ -30,9 +37,9 @@ export async function checkAuth(allowedRoles) {
       return;
     }
 
-    // ─── ĐỒNG BỘ URL: Chuyển sang domain Render thực tế giống các module khác ───
+    // ─── ĐỒNG BỘ URL: Dùng BASE_URL đồng bộ với môi trường hiện tại ───
     const response = await axios.get(
-      "https://qlbh-project.onrender.com/api/auth/verify-role",
+      `${BASE_URL}/auth/verify-role`,
       {
         headers: {
           Authorization: `Bearer ${user.token}`,
@@ -40,16 +47,22 @@ export async function checkAuth(allowedRoles) {
       },
     );
 
-    // Lấy vai trò thực tế chuẩn xác được Backend giải mã từ Token trong SQL Server/PostgreSQL
+    // Lấy vai trò thực tế chuẩn xác được Backend giải mã từ Token trong PostgreSQL
     const realRole = response.data.role;
 
-    // Cập nhật lại thông tin chuẩn vào localStorage đề phòng người dùng cố tình chỉnh sửa bậy trước đó
+    // Cập nhật lại thông tin chuẩn vào localStorage
     user.role = realRole;
     user.fullname = response.data.fullname;
+    user.machinhanh = response.data.machinhanh || user.machinhanh || null;
     localStorage.setItem("hpstore_user", JSON.stringify(user));
+    localStorage.setItem("user", JSON.stringify(user));
+    if (user.token) localStorage.setItem("token", user.token);
 
-    // 2. Kiểm tra quyền hạn thời gian thực
-    if (!allowedRoles.includes(realRole)) {
+    // 2. Kiểm tra quyền hạn thời gian thực (Không phân biệt chữ hoa/thường)
+    const normalizedAllowed = (allowedRoles || []).map((r) => String(r).toUpperCase());
+    const normalizedReal = String(realRole || "").toUpperCase();
+
+    if (!normalizedAllowed.includes(normalizedReal)) {
       await Swal.fire({
         icon: "error",
         title: "Không đủ quyền hạn",
@@ -59,19 +72,21 @@ export async function checkAuth(allowedRoles) {
       });
 
       // Điều hướng thông minh dựa trên VAI TRÒ THỰC TẾ
-      if (realRole === "Employee" || realRole === "STAFF") {
+      if (normalizedReal === "EMPLOYEE" || normalizedReal === "STAFF") {
         window.location.href = "/src/pages/employeeManager.html";
-      } else if (realRole === "Manager" || realRole === "ADMIN") {
+      } else if (normalizedReal === "MANAGER" || normalizedReal === "ADMIN") {
         window.location.href = "/src/pages/dashboard.html";
       } else {
-        // Khách hàng hoặc tài khoản vãng lai -> Đẩy thẳng về trang chủ cửa hàng
         window.location.href = "/";
       }
       return;
     }
 
     // Nếu Token hợp lệ + Quyền hạn chính xác -> Cho phép hiển thị giao diện toàn trang
-    document.body.style.display = "block";
+    if (typeof document !== "undefined") {
+      if (document.documentElement) document.documentElement.style.visibility = "visible";
+      if (document.body) document.body.style.display = "block";
+    }
   } catch (error) {
     console.error("Auth Guard Error:", error);
 

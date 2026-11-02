@@ -1,5 +1,11 @@
-// src/JS/header.js
-export const BASE_URL = "https://qlbh-project.onrender.com/api";
+// src/JS/common/header.js
+export const BASE_URL =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1")
+    ? "http://localhost:5000/api"
+    : "https://qlbh-project.onrender.com/api";
+
 import Swal from "sweetalert2";
 
 function injectHeaderCSS() {
@@ -12,63 +18,144 @@ function injectHeaderCSS() {
   }
 }
 
-// Hàm khởi tạo và chạy đồng bộ tất cả các tính năng của Header
+// Khởi tạo Header
 export function initHeader() {
   renderHeader();
   injectHeaderCSS();
   checkLoginStatus();
+  updateCartBadge();
 }
 
-// Tự động chạy khi trang tải xong trong phạm vi module này
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initHeader);
 } else {
   initHeader();
 }
 
-// Hàm tự động sinh giao diện Header cố định
+// Cập nhật số lượng giỏ hàng trên Header
+export function updateCartBadge() {
+  const savedUser = localStorage.getItem("hpstore_user") || localStorage.getItem("user");
+  let totalItems = 0;
+
+  if (savedUser) {
+    try {
+      const u = JSON.parse(savedUser);
+      const uid = u.id || u.maND;
+      const userCart = JSON.parse(localStorage.getItem(`hpstore_cart_${uid}`)) || [];
+      totalItems = userCart.reduce((sum, item) => sum + (parseInt(item.SoLuong || item.soluong) || 0), 0);
+    } catch (e) {}
+  } else {
+    const guestCart = JSON.parse(localStorage.getItem("hpstore_cart_guest")) || [];
+    totalItems = guestCart.reduce((sum, item) => sum + (parseInt(item.SoLuong || item.soluong) || 0), 0);
+  }
+
+  const badgeEl = document.getElementById("cart-count");
+  if (badgeEl) {
+    badgeEl.innerText = totalItems;
+  }
+}
+
+// Sinh giao diện Header chuẩn HP STORE (Độc quyền, không sợ trùng lặp thương hiệu)
 export function renderHeader() {
   const headerElement = document.getElementById("main-header");
   if (!headerElement) return;
 
-  headerElement.className = "bg-white shadow-sm sticky-top";
   headerElement.innerHTML = `
-        <div class="container py-3">
-            <div class="row align-items-center">
-                <div class="col-lg-2 col-md-3 col-6">
-                    <a class="navbar-brand d-flex align-items-center" href="/">
-                        <i class="fa-solid fa-store text-primary me-2" style="font-size: 1.5rem;"></i>
-                        <div>
-                            <strong class="text-primary d-block" style="font-size: 1.1rem;">HP STORE</strong>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-lg-5 col-md-4 d-none d-md-block position-relative">
-                    <div class="input-group">
-                        <div class="position-relative w-100">
-                          <input type="text" id="search-input" class="form-control" placeholder="Tìm sản phẩm hoặc danh mục...">
-                          <div id="search-suggestions" class="list-group position-absolute w-100 shadow-lg d-none" style="top: 100%; z-index: 1050; max-height: 350px; overflow-y: auto;"></div>
-                        </div>
-                    </div>
-                    <div id="search-suggestions" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 1000; top: 100%; max-height: 300px; overflow-y: auto;">
-                    </div>
-                </div>
-
-                <div class="col-lg-5 col-md-5 col-6 d-flex justify-content-end align-items-center gap-2 auth-buttons" id="auth-section">
-                    <a href="/src/pages/login.html" class="btn btn-login d-none d-sm-inline-block">Đăng nhập</a>
-                    <a href="/src/pages/register.html" class="btn btn-register d-none d-sm-inline-block">Đăng ký</a>
-                    
-                    <div class="vr mx-2 d-none d-sm-block"></div>
-                    <button class="btn btn-cart position-relative" id="btn-header-cart">
-                        <i class="fa fa-shopping-cart"></i>
-                        <span class="d-none d-lg-inline ms-1">Giỏ hàng</span>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cart-count">0</span>
-                    </button>
-                </div>
-            </div>
+    <!-- 1. Topbar Tiện ích Siêu khuyến mãi & Hỗ trợ -->
+    <div class="hp-topbar py-1 d-none d-lg-block">
+      <div class="container d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <span><i class="fa-solid fa-circle-check text-warning me-1"></i> Sản phẩm <b>Chính hãng - Xuất VAT đầy đủ</b></span>
+          <span>•</span>
+          <span><i class="fa-solid fa-truck-fast text-info me-1"></i> <b>Giao siêu tốc 2h - Miễn phí</b> cho đơn từ 300k</span>
+          <span>•</span>
+          <span><i class="fa-solid fa-arrows-rotate text-success me-1"></i> <b>Thu cũ đổi mới</b> trợ giá lên đến 5 triệu</span>
         </div>
-    `;
+        <div class="d-flex align-items-center gap-3">
+          <a href="#"><i class="fa-solid fa-location-dot me-1"></i> Hệ thống 120 cửa hàng</a>
+          <a href="/src/pages/order-history.html"><i class="fa-solid fa-receipt me-1"></i> Tra cứu đơn hàng</a>
+          <span><i class="fa-solid fa-phone me-1"></i> Tổng đài <b>1800.6868</b> (Miễn phí)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Main Navigation Header HP STORE -->
+    <div class="hp-main-header py-2">
+      <div class="container">
+        <div class="row align-items-center g-2 g-md-3">
+          
+          <!-- Logo HP STORE độc quyền -->
+          <div class="col-auto">
+            <a class="hp-brand-logo" href="/" title="HP STORE - Hệ thống Bán lẻ Công nghệ Chính hãng">
+              <span class="hp-logo-badge"><i class="fa-solid fa-bolt me-1"></i>HP</span>
+              <div class="hp-logo-text d-none d-sm-flex">
+                <span class="title">HP <span>STORE</span></span>
+                <span class="slogan">Công nghệ chính hãng</span>
+              </div>
+            </a>
+          </div>
+
+          <!-- Nút Danh mục -->
+          <div class="col-auto d-none d-xl-block">
+            <button class="hp-header-btn" type="button" id="btnHeaderCategory" onclick="document.getElementById('category-filter')?.scrollIntoView({behavior: 'smooth'})">
+              <i class="fa-solid fa-grid-2 me-1"></i>
+              <i class="fa-solid fa-bars"></i>
+              <span>Danh mục SP</span>
+            </button>
+          </div>
+
+          <!-- Nút Chọn vị trí xem giá -->
+          <div class="col-auto d-none d-lg-block">
+            <div class="dropdown">
+              <button class="hp-header-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-location-dot"></i>
+                <div class="text-start" style="line-height: 1.1;">
+                  <span style="font-size: 10px; opacity: 0.85; display: block;">Xem kho tại</span>
+                  <span id="currentLocationText">TP. Hồ Chí Minh</span>
+                </div>
+              </button>
+              <ul class="dropdown-menu shadow">
+                <li><a class="dropdown-item" href="#" onclick="document.getElementById('currentLocationText').innerText='TP. Hồ Chí Minh'; return false;"><i class="fa-solid fa-building me-2 text-danger"></i>Chi nhánh 1: TP. Hồ Chí Minh</a></li>
+                <li><a class="dropdown-item" href="#" onclick="document.getElementById('currentLocationText').innerText='Hà Nội'; return false;"><i class="fa-solid fa-landmark me-2 text-primary"></i>Chi nhánh 2: Hà Nội (Cầu Giấy)</a></li>
+                <li><a class="dropdown-item" href="#" onclick="document.getElementById('currentLocationText').innerText='Kho Tổng Trung Tâm'; return false;"><i class="fa-solid fa-warehouse me-2 text-warning"></i>Kho Tổng Trung Tâm</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Thanh tìm kiếm thông minh -->
+          <div class="col flex-grow-1 position-relative">
+            <div class="hp-search-container">
+              <input type="text" id="search-input" class="hp-search-input" placeholder="Bạn cần tìm sản phẩm gì? (iPhone, Laptop Gaming, Smartwatch...)" autocomplete="off">
+              <button class="hp-search-btn" id="btnSearchSubmit" type="button" aria-label="Tìm kiếm"><i class="fa-solid fa-magnifying-glass"></i></button>
+              <div id="search-suggestions" class="list-group d-none"></div>
+            </div>
+          </div>
+
+          <!-- Nhóm Action: Đơn hàng, Giỏ hàng, Đăng nhập / HP Member -->
+          <div class="col-auto d-flex align-items-center gap-2" id="auth-section">
+            <a href="/src/pages/order-history.html" class="hp-header-btn d-none d-md-flex" title="Tra cứu tiến độ giao hàng">
+              <i class="fa-solid fa-truck-ramp-box fs-6"></i>
+              <span class="d-none d-xxl-inline">Đơn hàng</span>
+            </a>
+
+            <!-- Giỏ hàng -->
+            <button class="hp-cart-btn" id="btn-header-cart" type="button" aria-label="Xem giỏ hàng">
+              <i class="fa-solid fa-cart-shopping fs-6"></i>
+              <span class="d-none d-sm-inline">Giỏ hàng</span>
+              <span class="hp-cart-badge" id="cart-count">0</span>
+            </button>
+
+            <!-- Tài khoản / Đăng nhập mặc định -->
+            <a href="/src/pages/login.html" class="hp-auth-btn" id="btn-login-nav">
+              <i class="fa-regular fa-circle-user fs-5"></i>
+              <span class="d-none d-sm-inline">HP Member</span>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  `;
 
   const cartBtn = document.getElementById("btn-header-cart");
   if (cartBtn) {
@@ -78,129 +165,95 @@ export function renderHeader() {
   }
 }
 
-// Hàm kiểm tra trạng thái đăng nhập và thay đổi giao diện động
+// Kiểm tra trạng thái đăng nhập và hiển thị Menu cá nhân HP Member
 export function checkLoginStatus() {
   const authSection = document.getElementById("auth-section");
   if (!authSection) return;
 
-  const userData = JSON.parse(localStorage.getItem("hpstore_user"));
+  let userData = null;
+  try {
+    const raw = localStorage.getItem("hpstore_user") || localStorage.getItem("user");
+    if (raw) userData = JSON.parse(raw);
+  } catch (e) {}
 
-  if (userData && userData.token) {
-    authSection.innerHTML = `
-            <div class="dropdown user-dropdown">
-                <a class="nav-link d-flex align-items-center gap-2 py-2" href="#" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="user-avatar-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" 
-                         style="width: 35px; height: 35px; border-radius: 50%;">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
-                    <span class="fw-bold text-dark d-none d-sm-inline">Chào, ${userData.name ? userData.name.split(" ").pop() : "Khách"}</span>
-                    <i class="fa-solid fa-chevron-down ms-1 small text-muted d-none d-sm-inline"></i>
-                </a>
-                
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" 
-                    style="border-radius: 15px; min-width: 200px; margin-top: 10px;">
-                    <li class="px-3 py-2">
-                        <div class="small text-muted">Tài khoản cá nhân</div>
-                        <div class="fw-bold text-truncate">${userData.name || "Người dùng"}</div>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item py-2" href="/src/pages/hoso.html">
-                        <i class="fa-solid fa-circle-user me-2 text-muted"></i>Hồ sơ của tôi</a></li>
-                    <li><a class="dropdown-item py-2" href="/src/pages/order-history.html">
-                        <i class="fa-solid fa-box me-2 text-muted"></i>Đơn hàng đã mua</a>
-                    </li>
-                    
-                    ${
-                      userData.role === "Manager"
-                        ? `
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item py-2 text-primary fw-bold" href="/src/pages/dashboard.html">
-                        <i class="fa-solid fa-gauge-high me-2"></i>Trang quản trị</a></li>
-                    `
-                        : ""
-                    }
+  if (userData && (userData.token || userData.id)) {
+    const displayName = userData.name || userData.fullname || userData.username || "Hội viên";
+    const userRole = String(userData.role || "").toUpperCase();
 
-                    ${
-                      userData.role === "Employee"
-                        ? `
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item py-2 text-success fw-bold" href="/src/pages/employeeManager.html">
-                        <i class="fa-solid fa-user-tie me-2"></i>Giao diện nhân viên</a></li>
-                    `
-                        : ""
-                    }
-                    
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item py-2 text-danger" id="btnLogout" style="cursor: pointer;">
-                        <i class="fa-solid fa-power-off me-2"></i>Đăng xuất</a></li>
-                </ul>
+    // Thay thế nút đăng nhập bằng menu Dropdown HP Member cao cấp
+    const loginBtn = document.getElementById("btn-login-nav");
+    if (loginBtn) {
+      const dropdownContainer = document.createElement("div");
+      dropdownContainer.className = "dropdown user-dropdown";
+      dropdownContainer.innerHTML = `
+        <button class="hp-header-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background: rgba(255,255,255,0.25);">
+          <div class="d-flex align-items-center gap-2">
+            <div style="width: 26px; height: 26px; background: #ffffff; color: var(--hp-brand-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px;">
+              ${displayName.substring(0, 1).toUpperCase()}
             </div>
+            <div class="text-start d-none d-sm-block" style="line-height: 1.1;">
+              <span style="font-size: 10px; opacity: 0.85;">HP Member</span>
+              <span class="fw-bold d-block text-truncate" style="max-width: 95px;">${displayName}</span>
+            </div>
+          </div>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow">
+          <li class="px-3 py-2 border-bottom">
+            <div class="small text-muted">Hội viên HP STORE</div>
+            <div class="fw-bold text-danger">${displayName}</div>
+            <small class="badge bg-danger-subtle text-danger border border-danger-subtle mt-1">Hạng: HP VIP Member</small>
+          </li>
+          <li><a class="dropdown-item py-2" href="/src/pages/hoso.html"><i class="fa-solid fa-id-card me-2 text-secondary"></i>Tài khoản của tôi</a></li>
+          <li><a class="dropdown-item py-2" href="/src/pages/order-history.html"><i class="fa-solid fa-box-open me-2 text-secondary"></i>Lịch sử mua hàng</a></li>
+          
+          ${
+            ["MANAGER", "ADMIN"].includes(userRole)
+              ? `
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item py-2 text-primary fw-bold" href="/src/pages/dashboard.html" onclick="localStorage.setItem('current_admin_page', 'tong-quan')"><i class="fa-solid fa-gauge-high me-2"></i>Trang Quản trị Hệ thống</a></li>
+            `
+              : ""
+          }
 
-            <div class="vr mx-2 d-none d-sm-block"></div>
+          ${
+            ["EMPLOYEE", "STAFF"].includes(userRole)
+              ? `
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item py-2 text-success fw-bold" href="/src/pages/employeeManager.html"><i class="fa-solid fa-user-gear me-2"></i>Giao diện Nhân viên</a></li>
+            `
+              : ""
+          }
 
-            <button class="btn btn-cart position-relative" id="btn-header-cart-logged">
-                <i class="fa fa-shopping-cart"></i>
-                <span class="d-none d-lg-inline ms-1">Giỏ hàng</span>
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cart-count">0</span>
-            </button>
-        `;
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item py-2 text-danger" id="btnLogout" href="#" style="cursor: pointer;"><i class="fa-solid fa-power-off me-2"></i>Đăng xuất</a></li>
+        </ul>
+      `;
 
-    const currentUserId = userData.MaND || userData.id;
-    const userCart =
-      JSON.parse(localStorage.getItem(`hpstore_cart_${currentUserId}`)) || [];
-    const totalItems = userCart.reduce(
-      (sum, item) => sum + (parseInt(item.SoLuong) || 0),
-      0,
-    );
+      loginBtn.replaceWith(dropdownContainer);
 
-    const badge = document.getElementById("cart-count");
-    if (badge) {
-      badge.innerText = totalItems;
-    }
-
-    const cartBtnLogged = document.getElementById("btn-header-cart-logged");
-    if (cartBtnLogged) {
-      cartBtnLogged.addEventListener("click", () => {
-        window.location.href = "/src/pages/cart.html";
-      });
-    }
-
-    // Đính ký sự kiện logout chuẩn xác
-    const logoutBtn = document.getElementById("btnLogout");
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", handleLogout);
+      const logoutBtn = dropdownContainer.querySelector("#btnLogout");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          Swal.fire({
+            title: "Xác nhận đăng xuất?",
+            text: "Bạn có chắc chắn muốn rời khỏi tài khoản HP STORE?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#d90429",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Đăng xuất",
+            cancelButtonText: "Ở lại",
+          }).then((res) => {
+            if (res.isConfirmed) {
+              localStorage.removeItem("hpstore_user");
+              localStorage.removeItem("user");
+              localStorage.removeItem("token");
+              window.location.reload();
+            }
+          });
+        });
+      }
     }
   }
-}
-
-export function handleLogout(e) {
-  if (e) e.preventDefault();
-  Swal.fire({
-    title: "Bạn muốn đăng xuất?",
-    text: "Hẹn gặp lại bạn tại HP STORE nhé!",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonColor: "#0d6efd",
-    cancelButtonColor: "#dc3545",
-    confirmButtonText: "Đăng xuất",
-    cancelButtonText: "Ở lại",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // 1. Lấy thông tin user hiện tại ra để biết Mã ND nhằm xóa đúng giỏ hàng
-      const userData = JSON.parse(localStorage.getItem("hpstore_user"));
-      if (userData) {
-        const currentUserId = userData.MaND || userData.id;
-        // 2. Xóa sạch giỏ hàng của tài khoản này khỏi máy tính
-        // localStorage.removeItem(`hpstore_cart_${currentUserId}`);
-      }
-
-      // 3. Xóa session đăng nhập tài khoản
-      localStorage.removeItem("hpstore_user");
-      localStorage.removeItem("current_employee_page");
-      localStorage.removeItem("current_admin_page");
-
-      // Điều hướng về trang chủ
-      window.location.href = "/";
-    }
-  });
 }

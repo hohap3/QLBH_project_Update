@@ -29,7 +29,7 @@ class AuthModel {
   static async findByMaND(maND) {
     try {
       const result = await pool.query(
-        "SELECT mand, tendangnhap, hoten, mavaitro, trangthai FROM nguoidung WHERE mand = $1",
+        "SELECT mand, tendangnhap, hoten, mavaitro, machinhanh, trangthai FROM nguoidung WHERE mand = $1",
         [maND],
       );
       return result.rows[0];

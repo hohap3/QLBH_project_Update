@@ -27,7 +27,8 @@ const productManagerModel = {
       queryArgs.push(limit, offset);
 
       const dataQuery = `
-        SELECT sp.*, dm.tendanhmuc AS "tendanhmuc", ncc.tenncc AS "tenncc"
+        SELECT sp.*, dm.tendanhmuc AS "tendanhmuc", ncc.tenncc AS "tenncc",
+          COALESCE((SELECT SUM(soluongton) FROM tonkho WHERE masp = sp.masp), 0) AS "soluongton"
         FROM sanpham sp
         LEFT JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
         LEFT JOIN nhacungcap ncc ON sp.mancc = ncc.mancc
@@ -56,7 +57,8 @@ const productManagerModel = {
       const parsedId = isNaN(maSP) ? maSP : parseInt(maSP, 10);
 
       const query = `
-        SELECT sp.*, dm.tendanhmuc AS "tendanhmuc", ncc.tenncc AS "tenncc"
+        SELECT sp.*, dm.tendanhmuc AS "tendanhmuc", ncc.tenncc AS "tenncc",
+          COALESCE((SELECT SUM(soluongton) FROM tonkho WHERE masp = sp.masp), 0) AS "soluongton"
         FROM sanpham sp
         LEFT JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
         LEFT JOIN nhacungcap ncc ON sp.mancc = ncc.mancc
@@ -69,65 +71,93 @@ const productManagerModel = {
     }
   },
 
-  // Thêm sản phẩm mới
+  // Thêm sản phẩm mới (Tích hợp phân kho Phase 4)
   createProduct: async (data) => {
+    const pool = await poolPromise;
+    const client = await pool.connect();
     try {
-      const pool = await poolPromise;
+      await client.query("BEGIN");
       const query = `
-        INSERT INTO sanpham (masp, tensp, gianhap, giaban, soluongton, mota, donvitinh, madanhmuc, mancc, hinhanh)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        INSERT INTO sanpham (masp, tensp, gianhap, giaban, mota, donvitinh, madanhmuc, mancc, hinhanh)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       `;
       const values = [
         data.MaSP,
         data.TenSP,
         parseFloat(data.GiaNhap) || 0,
         parseFloat(data.GiaBan) || 0,
-        parseInt(data.SoLuongTon) || 0,
         data.MoTa || null,
         data.DonViTinh || null,
         data.MaDanhMuc,
         data.MaNCC,
         data.HinhAnh || null,
       ];
-      await pool.query(query, values);
+      await client.query(query, values);
+
+      // Thêm tồn kho ban đầu vào Kho Tổng
+      const initStock = parseInt(data.SoLuongTon, 10) || 0;
+      await client.query(
+        `INSERT INTO tonkho (makho, masp, soluongton, soluongtamgiu)
+         VALUES ('KHO_TONG', $1, $2, 0)
+         ON CONFLICT (makho, masp) DO UPDATE SET soluongton = EXCLUDED.soluongton`,
+        [data.MaSP, initStock]
+      );
+
+      await client.query("COMMIT");
       return true;
     } catch (error) {
+      await client.query("ROLLBACK");
       throw error;
+    } finally {
+      client.release();
     }
   },
 
-  // Cập nhật thông tin sản phẩm
+  // Cập nhật thông tin sản phẩm (Tích hợp phân kho Phase 4)
   updateProduct: async (maSP, data) => {
+    const pool = await poolPromise;
+    const client = await pool.connect();
     try {
-      const pool = await poolPromise;
-
-      // 🌟 ÉP KIỂU AN TOÀN: Nếu ID là số thì chuyển về số, nếu là chuỗi (như Sony_WH-1000XM5) giữ nguyên
+      await client.query("BEGIN");
       const parsedId = isNaN(maSP) ? maSP : parseInt(maSP, 10);
 
       const query = `
         UPDATE sanpham 
         SET tensp = $1, gianhap = $2, giaban = $3, 
-            soluongton = $4, mota = $5, donvitinh = $6, 
-            madanhmuc = $7, mancc = $8, hinhanh = $9
-        WHERE masp = $10
+            mota = $4, donvitinh = $5, 
+            madanhmuc = $6, mancc = $7, hinhanh = $8
+        WHERE masp = $9
       `;
       const values = [
         data.TenSP,
         parseFloat(data.GiaNhap) || 0,
         parseFloat(data.GiaBan) || 0,
-        parseInt(data.SoLuongTon, 10) || 0,
         data.MoTa || null,
         data.DonViTinh || null,
         data.MaDanhMuc,
         data.MaNCC,
         data.HinhAnh || null,
-        parsedId, // <-- Đã được xử lý bọc lót chống crash lỗi kiểu dữ liệu
+        parsedId,
       ];
+      await client.query(query, values);
 
-      await pool.query(query, values);
+      if (data.SoLuongTon !== undefined) {
+        const updateStock = parseInt(data.SoLuongTon, 10) || 0;
+        await client.query(
+          `INSERT INTO tonkho (makho, masp, soluongton, soluongtamgiu)
+           VALUES ('KHO_TONG', $1, $2, 0)
+           ON CONFLICT (makho, masp) DO UPDATE SET soluongton = EXCLUDED.soluongton`,
+          [parsedId, updateStock]
+        );
+      }
+
+      await client.query("COMMIT");
       return true;
     } catch (error) {
-      throw error; // Ném lỗi để Controller bắt được trọn vẹn chi tiết dữ liệu
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
     }
   },
 
