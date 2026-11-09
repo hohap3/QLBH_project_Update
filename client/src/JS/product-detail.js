@@ -220,6 +220,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         quantityInput.value = 0;
         quantityInput.disabled = true;
       }
+      const btnStickyCart = document.getElementById("btnStickyCart");
+      const btnStickyBuy = document.getElementById("btnStickyBuy");
+      if (btnStickyCart) {
+        btnStickyCart.disabled = true;
+        btnStickyCart.classList.add("disabled");
+      }
+      if (btnStickyBuy) {
+        btnStickyBuy.disabled = true;
+        btnStickyBuy.classList.add("disabled");
+        btnStickyBuy.innerText = "HẾT HÀNG";
+      }
     }
 
     if (branchStockList) {
@@ -760,32 +771,59 @@ function setupStickyMobileBar() {
 
   if (!stickyBar || !mainBuyBtn) return;
 
+  // Tránh đăng ký nhiều lần khi hàm được gọi lại
+  if (stickyBar.dataset.initialized === "true") return;
+  stickyBar.dataset.initialized = "true";
+
   if (btnStickyCart) {
     btnStickyCart.addEventListener("click", () => {
-      document.getElementById("btn-add-to-cart")?.click();
+      const mainAddToCartBtn = document.getElementById("btn-add-to-cart");
+      if (mainAddToCartBtn && !mainAddToCartBtn.disabled) {
+        mainAddToCartBtn.click();
+      }
     });
   }
 
   if (btnStickyBuy) {
     btnStickyBuy.addEventListener("click", () => {
-      mainBuyBtn.click();
+      if (mainBuyBtn && !mainBuyBtn.disabled) {
+        mainBuyBtn.click();
+      }
     });
   }
+
+  // Tối ưu hiệu năng scroll bằng requestAnimationFrame
+  let ticking = false;
+  const checkStickyVisibility = () => {
+    if (window.innerWidth >= 768) {
+      stickyBar.classList.remove("visible");
+      return;
+    }
+    const rect = mainBuyBtn.getBoundingClientRect();
+    // Khi cuộn vượt qua nút Mua hàng chính (mép dưới của nút trượt lên trên mép hiển thị)
+    if (rect.bottom < 60) {
+      stickyBar.classList.add("visible");
+    } else {
+      stickyBar.classList.remove("visible");
+    }
+  };
 
   window.addEventListener(
     "scroll",
     () => {
-      if (window.innerWidth >= 768) {
-        stickyBar.classList.remove("visible");
-        return;
-      }
-      const rect = mainBuyBtn.getBoundingClientRect();
-      if (rect.bottom < 80) {
-        stickyBar.classList.add("visible");
-      } else {
-        stickyBar.classList.remove("visible");
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          checkStickyVisibility();
+          ticking = false;
+        });
+        ticking = true;
       }
     },
     { passive: true }
   );
+
+  window.addEventListener("resize", checkStickyVisibility, { passive: true });
+
+  // Kiểm tra ngay sau khi khởi tạo
+  checkStickyVisibility();
 }

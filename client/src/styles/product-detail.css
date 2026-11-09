@@ -545,14 +545,20 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid #e2e8f0;
-  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
-  padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px)) 16px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)) 16px;
   transform: translateY(110%);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, visibility 0.35s ease;
 }
 
 .sticky-mobile-action-bar.visible {
   transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .sticky-bar-content {
@@ -560,34 +566,45 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  max-width: 720px;
+  margin: 0 auto;
 }
 
 .sticky-bar-info {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   overflow: hidden;
-  max-width: 48%;
+  min-width: 0;
+  flex: 1;
 }
 
 .sticky-bar-price {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   font-weight: 800;
-  font-size: 16px;
-  color: var(--hp-primary);
+  font-size: 17px;
+  color: #d70018;
   line-height: 1.2;
+  letter-spacing: -0.3px;
 }
 
 .sticky-bar-name {
-  font-size: 11px;
-  color: #64748b;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-size: 11.5px;
+  color: #475569;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.3;
+  margin-top: 2px;
 }
 
 .sticky-bar-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .btn-sticky-cart {
@@ -596,41 +613,85 @@ body {
   min-width: 44px;
   min-height: 44px;
   border-radius: 10px;
-  border: 1.5px solid var(--hp-primary);
+  border: 1.5px solid #d70018;
   background: #ffffff;
-  color: var(--hp-primary);
+  color: #d70018;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 17px;
   padding: 0;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.btn-sticky-cart:hover {
+.btn-sticky-cart:hover,
+.btn-sticky-cart:active {
   background-color: #fef2f2;
+  color: #b8001f;
+  border-color: #b8001f;
+  transform: scale(0.96);
+}
+
+.btn-sticky-cart:disabled,
+.btn-sticky-cart.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  border-color: #cbd5e1;
+  color: #94a3b8;
 }
 
 .btn-sticky-buy {
   background: linear-gradient(135deg, #d70018 0%, #b8001f 100%);
   color: #ffffff;
-  font-weight: 800;
-  font-size: 14.5px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
   border-radius: 10px;
   border: none;
   height: 44px;
   min-height: 44px;
-  padding: 0 18px;
+  padding: 0 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 10px rgba(215, 0, 24, 0.3);
+  box-shadow: 0 4px 14px rgba(215, 0, 24, 0.35);
   white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-sticky-buy:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.06);
+  box-shadow: 0 6px 18px rgba(215, 0, 24, 0.42);
+  color: #ffffff;
+}
+
+.btn-sticky-buy:active {
+  transform: scale(0.97);
+}
+
+.btn-sticky-buy:disabled,
+.btn-sticky-buy.disabled {
+  background: #cbd5e1 !important;
+  color: #64748b !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .sticky-mobile-action-bar {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  main.container {
+    padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+  }
 }
