@@ -2,8 +2,8 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/src/pages/:path*",
-      "destination": "/:path*"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
