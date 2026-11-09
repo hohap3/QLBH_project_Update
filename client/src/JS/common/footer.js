@@ -15,10 +15,8 @@ export async function loadFooter() {
         }
 
         // 🔵 2. Gọi file HTML tĩnh của footer về trang
-        const response = await fetch('/src/pages/common/footer.html');
-        if (!response.ok) throw new Error('Không thể tải file footer.html');
-        
-        const footerHtml = await response.text();
+        // Import dạng ?raw để Vite nhúng HTML vào bundle (fetch "/src/..." không tồn tại trên Vercel)
+        const { default: footerHtml } = await import('../../pages/common/footer.html?raw');
         footerContainer.innerHTML = footerHtml;
     } catch (error) {
         console.error('Lỗi khi tải component Footer kèm CSS:', error);

@@ -1,27 +1,20 @@
 // src/JS/common/header.js
+// Có thể ghi đè bằng biến môi trường VITE_API_URL (vd: trong client/.env.local)
 export const BASE_URL =
-  typeof window !== "undefined" &&
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== "undefined" &&
   (window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1")
     ? "http://localhost:5000/api"
-    : "https://qlbh-project.onrender.com/api";
+    : "https://qlbh-project.onrender.com/api");
 
 import Swal from "sweetalert2";
-
-function injectHeaderCSS() {
-  const cssPath = "/src/styles/header.css";
-  if (!document.querySelector(`link[href="${cssPath}"]`)) {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = cssPath;
-    document.head.appendChild(link);
-  }
-}
+// Import CSS qua Vite để được bundle khi build (link động "/src/..." không tồn tại trên Vercel)
+import "../../styles/header.css";
 
 // Khởi tạo Header
 export function initHeader() {
   renderHeader();
-  injectHeaderCSS();
   checkLoginStatus();
   updateCartBadge();
 }
