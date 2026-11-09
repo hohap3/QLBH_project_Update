@@ -75,24 +75,84 @@ function initImageMagnifier(imgId, containerId, lensId, zoomRatio = 2.4) {
   });
 }
 
-// ─── 3. TẠO BỘ SƯU TẬP GÓC NHÌN (THUMBNAILS GÓC CẠNH) ───
-function renderAngleThumbnails(mainImgUrl) {
+// ─── 3. TẠO BỘ SƯU TẬP GÓC NHÌN (THUMBNAILS ĐA GÓC CHỤP THỰC TẾ) ───
+function getProductAngleSet(mainImgUrl, sp) {
+  const name = (sp?.tensp || "").toLowerCase();
+  const cat = (sp?.tendanhmuc || "").toLowerCase();
+
+  let prefix = "iphone";
+  if (
+    name.includes("samsung") ||
+    name.includes("galaxy") ||
+    name.includes("z fold") ||
+    name.includes("z flip") ||
+    name.includes("s21") ||
+    name.includes("s22") ||
+    name.includes("s23") ||
+    name.includes("s24")
+  ) {
+    prefix = "samsung";
+  } else if (
+    name.includes("laptop") ||
+    name.includes("macbook") ||
+    name.includes("dell") ||
+    name.includes("asus") ||
+    name.includes("hp victus") ||
+    name.includes("lenovo") ||
+    cat.includes("laptop")
+  ) {
+    prefix = "laptop";
+  } else if (
+    name.includes("iphone") ||
+    name.includes("apple") ||
+    name.includes("ipad") ||
+    name.includes("pro max")
+  ) {
+    prefix = "iphone";
+  } else {
+    prefix = "samsung";
+  }
+
+  return [
+    {
+      label: "Mặt trước",
+      type: "front",
+      imgUrl: mainImgUrl || `/img/angles/${prefix}_front.jpg`,
+    },
+    {
+      label: "Mặt sau",
+      type: "back",
+      imgUrl: `/img/angles/${prefix}_back.jpg`,
+    },
+    {
+      label: "Cạnh viền",
+      type: "side",
+      imgUrl: `/img/angles/${prefix}_side.jpg`,
+    },
+    {
+      label: "Cụm Camera",
+      type: "camera",
+      imgUrl: `/img/angles/${prefix}_camera.jpg`,
+    },
+    {
+      label: "Hộp & PK",
+      type: "box",
+      imgUrl: `/img/angles/${prefix}_box.jpg`,
+    },
+  ];
+}
+
+function renderAngleThumbnails(mainImgUrl, sp) {
   const container = document.getElementById("angleThumbnailsContainer");
   if (!container) return;
 
-  const angles = [
-    { label: "Mặt trước", type: "front", icon: "fa-mobile-screen" },
-    { label: "Mặt sau", type: "back", icon: "fa-mobile" },
-    { label: "Cạnh viền", type: "side", icon: "fa-slash" },
-    { label: "Cụm Camera", type: "camera", icon: "fa-camera" },
-    { label: "Hộp & PK", type: "box", icon: "fa-box-open" },
-  ];
+  const angles = getProductAngleSet(mainImgUrl, sp);
 
   container.innerHTML = angles
     .map(
       (angle, idx) => `
-      <button type="button" class="thumb-angle-btn ${idx === 0 ? "active" : ""}" data-angle="${angle.type}">
-        <img src="${mainImgUrl}" alt="${angle.label}" onerror="this.onerror=null; this.src='${DEFAULT_IMAGE}';" />
+      <button type="button" class="thumb-angle-btn ${idx === 0 ? "active" : ""}" data-angle="${angle.type}" data-img="${angle.imgUrl}">
+        <img src="${angle.imgUrl}" alt="${angle.label}" onerror="this.onerror=null; this.src='${DEFAULT_IMAGE}';" />
         <span>${angle.label}</span>
       </button>
     `
@@ -100,18 +160,26 @@ function renderAngleThumbnails(mainImgUrl) {
     .join("");
 
   const mainImgEl = document.getElementById("product-detail-img");
+  const lens = document.getElementById("magnifierLens");
 
   container.querySelectorAll(".thumb-angle-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       container.querySelectorAll(".thumb-angle-btn").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
 
-      // Cập nhật góc nhìn và hiệu ứng kính lúp
-      mainImgEl.style.opacity = "0.7";
+      const newImgUrl = btn.getAttribute("data-img") || mainImgUrl;
+
+      // Hiệu ứng mượt mà khi đổi góc ảnh
+      mainImgEl.style.opacity = "0.4";
+      mainImgEl.style.transform = "scale(0.97)";
       setTimeout(() => {
-        mainImgEl.src = mainImgUrl;
+        mainImgEl.src = newImgUrl;
         mainImgEl.style.opacity = "1";
-      }, 100);
+        mainImgEl.style.transform = "scale(1)";
+        if (lens) {
+          lens.style.backgroundImage = `url("${newImgUrl}")`;
+        }
+      }, 120);
     });
   });
 }
@@ -148,7 +216,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initImageMagnifier("product-detail-img", "magnifierContainer", "magnifierLens", 2.4);
 
     // Khởi tạo các góc nhìn sản phẩm
-    renderAngleThumbnails(mainImgUrl);
+    renderAngleThumbnails(mainImgUrl, sp);
 
     // Tiêu đề & Thông số cơ bản
     document.getElementById("product-detail-category").innerText = sp.tendanhmuc || "Công nghệ";

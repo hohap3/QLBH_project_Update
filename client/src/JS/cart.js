@@ -116,9 +116,13 @@ function renderCartPage() {
   }
 
   // Lấy danh sách các mã sản phẩm được tích chọn trước đó (nếu có)
-  const checkedItems =
-    JSON.parse(localStorage.getItem(getCheckedItemsKey())) ||
-    cart.map((item) => item.MaSP || item.masp);
+  let storedChecked = JSON.parse(localStorage.getItem(getCheckedItemsKey()));
+  if (!storedChecked || !Array.isArray(storedChecked)) {
+    // Mặc định chọn tất cả sản phẩm và lưu đồng bộ ngay vào LocalStorage
+    storedChecked = cart.map((item) => String(item.MaSP || item.masp));
+    localStorage.setItem(getCheckedItemsKey(), JSON.stringify(storedChecked));
+  }
+  const checkedItems = storedChecked.map(String);
 
   baseSubTotal = 0;
 
@@ -127,9 +131,9 @@ function renderCartPage() {
       const giaBan = parseFloat(item.GiaBan || item.giaban) || 0;
       const soLuong = parseInt(item.SoLuong || item.soluong) || 0;
       const itemTotal = giaBan * soLuong;
-      const maSP = item.MaSP || item.masp;
+      const maSP = String(item.MaSP || item.masp);
 
-      // Kiểm tra xem sản phẩm này có đang được tích chọn hay không
+      // Kiểm tra xem sản phẩm này có đang được tích chọn hay không (so sánh string an toàn)
       const isChecked = checkedItems.includes(maSP) ? "checked" : "";
 
       // 🟢 CHỈ CỘNG VÀO TỔNG TIỀN NẾU SẢN PHẨM ĐƯỢC TÍCH CHỌN MUA
@@ -194,11 +198,11 @@ window.handleSingleCheck = function () {
 
   checkboxes.forEach((cb) => {
     if (cb.checked) {
-      checkedMaspList.push(cb.getAttribute("data-masp"));
+      checkedMaspList.push(String(cb.getAttribute("data-masp")));
     }
   });
 
-  // Lưu lại danh sách được chọn sang LocalStorage
+  // Lưu lại danh sách được chọn sang LocalStorage dạng String
   localStorage.setItem(getCheckedItemsKey(), JSON.stringify(checkedMaspList));
 
   // Vẽ lại giao diện tiền tệ và trạng thái
@@ -211,8 +215,8 @@ window.handleSelectAll = function (selectAllCheckbox) {
   const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
 
   if (selectAllCheckbox.checked) {
-    // Tích hết -> Lấy toàn bộ mã sản phẩm
-    const allMasp = cart.map((item) => item.MaSP || item.masp);
+    // Tích hết -> Lấy toàn bộ mã sản phẩm dạng String
+    const allMasp = cart.map((item) => String(item.MaSP || item.masp));
     localStorage.setItem(getCheckedItemsKey(), JSON.stringify(allMasp));
   } else {
     // Bỏ tích hết -> Mảng rỗng
@@ -510,20 +514,27 @@ function handleCheckoutRedirect() {
   // 🟢 CẬP NHẬT: Lấy danh sách sản phẩm thực sự được tích chọn để mua đi thanh toán
   const cartKey = getCartKey();
   const fullCart = JSON.parse(localStorage.getItem(cartKey)) || [];
-  const checkedItems =
-    JSON.parse(localStorage.getItem(getCheckedItemsKey())) || [];
+  
+  let rawChecked = JSON.parse(localStorage.getItem(getCheckedItemsKey()));
+  // Nếu chưa có bộ nhớ tích chọn trong localStorage, mặc định chọn tất cả sản phẩm
+  if (!rawChecked || !Array.isArray(rawChecked)) {
+    rawChecked = fullCart.map((item) => String(item.MaSP || item.masp));
+    localStorage.setItem(getCheckedItemsKey(), JSON.stringify(rawChecked));
+  }
+  const checkedItems = rawChecked.map(String);
 
-  // Lọc ra các sản phẩm nằm trong danh sách checked
-  const checkoutCart = fullCart.filter((item) =>
-    checkedItems.includes(item.MaSP || item.masp),
-  );
+  // Lọc ra các sản phẩm nằm trong danh sách checked (chuyển sang String so sánh an toàn 100%)
+  const checkoutCart = fullCart.filter((item) => {
+    const idStr = String(item.MaSP || item.masp);
+    return checkedItems.includes(idStr);
+  });
 
   if (checkoutCart.length === 0) {
     Swal.fire({
       icon: "warning",
       title: "Chưa chọn sản phẩm",
       text: "Vui lòng tích chọn ít nhất một sản phẩm trong giỏ hàng để tiến hành thanh toán!",
-      confirmButtonColor: "#6366f1",
+      confirmButtonColor: "#d70018",
     });
     return;
   }
