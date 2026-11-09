@@ -165,18 +165,47 @@ document.addEventListener("DOMContentLoaded", async () => {
       originalPriceEl.innerText = `${new Intl.NumberFormat("vi-VN").format(giaGoc)}đ`;
     }
 
+    // Cập nhật thông tin cho Sticky Mobile Action Bar
+    const stickyPrice = document.getElementById("stickyMobilePrice");
+    const stickyName = document.getElementById("stickyMobileName");
+    if (stickyPrice) stickyPrice.innerText = `${new Intl.NumberFormat("vi-VN").format(giaban)}đ`;
+    if (stickyName) stickyName.innerText = sp.tensp;
+    setupStickyMobileBar();
+
     // Tình trạng kho
     const statusElement = document.getElementById("product-detail-status");
     const btnAddToCart = document.getElementById("btn-add-to-cart");
     const btnBuyNow = document.getElementById("btn-buy-now");
     const quantityInput = document.getElementById("quantity-input");
 
-    if (sp.soluongton > 0) {
-      statusElement.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i>Còn hàng (${sp.soluongton} SP)`;
-      statusElement.className = "badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-bold";
+    // Cập nhật tình trạng kho tổng & kho chi nhánh (Visual Status Indicators với Pulse animation)
+    const branchStockList = document.getElementById("branchStockList");
+    if (sp.soluongton > 5) {
+      statusElement.className = "status-indicator-badge in-stock";
+      statusElement.innerHTML = `
+        <span class="pulse-dot-wrapper">
+          <span class="pulse-ring"></span>
+          <span class="pulse-dot"></span>
+        </span>
+        <span>Còn hàng tại các Chi nhánh (${sp.soluongton} SP)</span>
+      `;
+    } else if (sp.soluongton > 0) {
+      statusElement.className = "status-indicator-badge low-stock";
+      statusElement.innerHTML = `
+        <span class="pulse-dot-wrapper warning">
+          <span class="pulse-ring"></span>
+          <span class="pulse-dot"></span>
+        </span>
+        <span>Sắp về hàng (Còn ${sp.soluongton} SP cuối)</span>
+      `;
     } else {
-      statusElement.innerHTML = `<i class="fa-solid fa-ban me-1"></i>Tạm hết hàng`;
-      statusElement.className = "badge bg-danger-subtle text-danger px-3 py-1 rounded-pill fw-bold";
+      statusElement.className = "status-indicator-badge out-of-stock";
+      statusElement.innerHTML = `
+        <span class="pulse-dot-wrapper danger">
+          <span class="pulse-dot"></span>
+        </span>
+        <span>Tạm hết hàng</span>
+      `;
 
       if (btnAddToCart) {
         btnAddToCart.disabled = true;
@@ -191,6 +220,119 @@ document.addEventListener("DOMContentLoaded", async () => {
         quantityInput.value = 0;
         quantityInput.disabled = true;
       }
+    }
+
+    if (branchStockList) {
+      const stock = sp.soluongton || 0;
+      let hcmHTML = "";
+      let hnHTML = "";
+      let tongHTML = "";
+
+      if (stock > 5) {
+        hcmHTML = `
+          <div class="branch-stock-item">
+            <div>
+              <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                <span class="pulse-dot-wrapper"><span class="pulse-ring"></span><span class="pulse-dot"></span></span>
+                <span>Chi nhánh 1: TP. Hồ Chí Minh</span>
+              </div>
+              <div class="branch-stock-meta ps-3">120 Nguyễn Thái Học, Q.1 • <b>Giao siêu tốc 2h</b></div>
+            </div>
+            <span class="badge bg-success-subtle text-success fw-bold rounded-pill px-3 py-1">Còn hàng</span>
+          </div>`;
+        hnHTML = `
+          <div class="branch-stock-item">
+            <div>
+              <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                <span class="pulse-dot-wrapper"><span class="pulse-ring"></span><span class="pulse-dot"></span></span>
+                <span>Chi nhánh 2: Hà Nội</span>
+              </div>
+              <div class="branch-stock-meta ps-3">250 Cầu Giấy, Q. Cầu Giấy • <b>Giao siêu tốc 2h</b></div>
+            </div>
+            <span class="badge bg-success-subtle text-success fw-bold rounded-pill px-3 py-1">Còn hàng</span>
+          </div>`;
+        tongHTML = `
+          <div class="branch-stock-item">
+            <div>
+              <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                <span class="pulse-dot-wrapper"><span class="pulse-ring"></span><span class="pulse-dot"></span></span>
+                <span>Kho Tổng Trung Tâm</span>
+              </div>
+              <div class="branch-stock-meta ps-3">Tổng kho điều phối toàn quốc • Sẵn hàng chuyển kho</div>
+            </div>
+            <span class="badge bg-success-subtle text-success fw-bold rounded-pill px-3 py-1">Còn hàng (${stock} SP)</span>
+          </div>`;
+      } else if (stock > 0) {
+        hcmHTML = `
+          <div class="branch-stock-item">
+            <div>
+              <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                <span class="pulse-dot-wrapper"><span class="pulse-ring"></span><span class="pulse-dot"></span></span>
+                <span>Chi nhánh 1: TP. Hồ Chí Minh</span>
+              </div>
+              <div class="branch-stock-meta ps-3">120 Nguyễn Thái Học, Q.1</div>
+            </div>
+            <span class="badge bg-success-subtle text-success fw-bold rounded-pill px-3 py-1">Còn ${stock} SP</span>
+          </div>`;
+        hnHTML = `
+          <div class="branch-stock-item">
+            <div>
+              <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                <span class="pulse-dot-wrapper warning"><span class="pulse-ring"></span><span class="pulse-dot"></span></span>
+                <span>Chi nhánh 2: Hà Nội</span>
+              </div>
+              <div class="branch-stock-meta ps-3">250 Cầu Giấy, Q. Cầu Giấy • Dự kiến về hàng 1-2 ngày</div>
+            </div>
+            <span class="badge bg-warning-subtle text-warning fw-bold rounded-pill px-3 py-1">Sắp về hàng</span>
+          </div>`;
+        tongHTML = `
+          <div class="branch-stock-item">
+            <div>
+              <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                <span class="pulse-dot-wrapper"><span class="pulse-ring"></span><span class="pulse-dot"></span></span>
+                <span>Kho Tổng Trung Tâm</span>
+              </div>
+              <div class="branch-stock-meta ps-3">Trung tâm điều phối toàn quốc</div>
+            </div>
+            <span class="badge bg-success-subtle text-success fw-bold rounded-pill px-3 py-1">Còn hàng</span>
+          </div>`;
+      } else {
+        hcmHTML = `
+          <div class="branch-stock-item">
+            <div>
+              <div class="fw-bold text-muted d-flex align-items-center gap-2">
+                <span class="pulse-dot-wrapper danger"><span class="pulse-dot"></span></span>
+                <span>Chi nhánh 1: TP. Hồ Chí Minh</span>
+              </div>
+              <div class="branch-stock-meta ps-3">120 Nguyễn Thái Học, Q.1 • Nhận thông báo khi có hàng</div>
+            </div>
+            <span class="badge bg-danger-subtle text-danger fw-bold rounded-pill px-3 py-1">Tạm hết hàng</span>
+          </div>`;
+        hnHTML = `
+          <div class="branch-stock-item">
+            <div>
+              <div class="fw-bold text-muted d-flex align-items-center gap-2">
+                <span class="pulse-dot-wrapper danger"><span class="pulse-dot"></span></span>
+                <span>Chi nhánh 2: Hà Nội</span>
+              </div>
+              <div class="branch-stock-meta ps-3">250 Cầu Giấy, Q. Cầu Giấy • Nhận thông báo khi có hàng</div>
+            </div>
+            <span class="badge bg-danger-subtle text-danger fw-bold rounded-pill px-3 py-1">Tạm hết hàng</span>
+          </div>`;
+        tongHTML = `
+          <div class="branch-stock-item">
+            <div>
+              <div class="fw-bold text-muted d-flex align-items-center gap-2">
+                <span class="pulse-dot-wrapper danger"><span class="pulse-dot"></span></span>
+                <span>Kho Tổng Trung Tâm</span>
+              </div>
+              <div class="branch-stock-meta ps-3">Vui lòng liên hệ hotline 1800.6868 để đặt trước</div>
+            </div>
+            <span class="badge bg-secondary-subtle text-secondary fw-bold rounded-pill px-3 py-1">Hết hàng</span>
+          </div>`;
+      }
+
+      branchStockList.innerHTML = hcmHTML + hnHTML + tongHTML;
     }
 
     // Bảng thông số kỹ thuật chi tiết
@@ -606,4 +748,44 @@ async function loadRelatedProducts(categoryId, currentProductId) {
   } catch (error) {
     console.error("Không thể tải khối sản phẩm liên quan:", error);
   }
+}
+
+
+// ─── THIẾT LẬP THANH TÁC VỤ DÍNH ĐÁY CHO MOBILE (STICKY ACTION BAR) ───
+function setupStickyMobileBar() {
+  const stickyBar = document.getElementById("stickyMobileBar");
+  const mainBuyBtn = document.getElementById("btn-buy-now");
+  const btnStickyCart = document.getElementById("btnStickyCart");
+  const btnStickyBuy = document.getElementById("btnStickyBuy");
+
+  if (!stickyBar || !mainBuyBtn) return;
+
+  if (btnStickyCart) {
+    btnStickyCart.addEventListener("click", () => {
+      document.getElementById("btn-add-to-cart")?.click();
+    });
+  }
+
+  if (btnStickyBuy) {
+    btnStickyBuy.addEventListener("click", () => {
+      mainBuyBtn.click();
+    });
+  }
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (window.innerWidth >= 768) {
+        stickyBar.classList.remove("visible");
+        return;
+      }
+      const rect = mainBuyBtn.getBoundingClientRect();
+      if (rect.bottom < 80) {
+        stickyBar.classList.add("visible");
+      } else {
+        stickyBar.classList.remove("visible");
+      }
+    },
+    { passive: true }
+  );
 }

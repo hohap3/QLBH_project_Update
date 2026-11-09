@@ -1,3 +1,10 @@
+body, input, button, select, textarea {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 /* donhang.css - Tối ưu khoảng trắng & Màu sắc tươi sáng chuẩn HP STORE */
 
 :root {
@@ -55,7 +62,7 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: #475569;
   font-size: 15px;
 }
 
@@ -133,63 +140,84 @@
   text-decoration: underline !important;
 }
 
-/* Status Badges - Màu sắc tươi sáng chuẩn Pastel */
+/* Status Badges - Chuẩn hóa màu sắc trạng thái (Visual Status Indicators) */
 .badge-status {
-  padding: 5px 12px;
-  border-radius: 20px;
+  padding: 6px 14px;
+  border-radius: 9999px;
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   white-space: nowrap;
+  letter-spacing: 0.2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.badge-status-pending {
-  background-color: #fff7ed !important;
-  color: #ea580c !important;
-  border: 1px solid #fed7aa;
-}
-
+/* 1. Chờ xử lý / Chờ xác nhận (Vàng hổ phách - Amber) */
+.badge-status-pending,
 .badge-status-processing {
-  background-color: #eff6ff !important;
-  color: #2563eb !important;
-  border: 1px solid #bfdbfe;
+  background-color: #fffbeb !important;
+  color: #b45309 !important;
+  border: 1px solid #fcd34d !important;
 }
 
+/* 2. Đang giao (Xanh lam - Blue/Indigo) */
 .badge-status-shipping {
-  background-color: #f0fdf4 !important;
-  color: #16a34a !important;
-  border: 1px solid #bbf7d0;
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border: 1px solid #93c5fd !important;
 }
 
+/* 3. Đã giao / Hoàn tất / Thành công (Xanh ngọc lục bảo - Emerald Green) */
 .badge-status-delivered,
 .badge-status-success {
   background-color: #ecfdf5 !important;
-  color: #059669 !important;
-  border: 1px solid #a7f3d0;
+  color: #047857 !important;
+  border: 1px solid #6ee7b7 !important;
 }
 
+/* 4. Đã hủy (Xám tro có gạch ngang - Muted slate with strikethrough) */
 .badge-status-cancelled {
-  background-color: #fef2f2 !important;
-  color: #dc2626 !important;
-  border: 1px solid #fecaca;
+  background-color: #f1f5f9 !important;
+  color: #64748b !important;
+  border: 1px solid #cbd5e1 !important;
+  text-decoration: line-through;
 }
 
-/* Nút Xem chi tiết */
+.badge-status-cancelled i {
+  text-decoration: none !important;
+  display: inline-block;
+}
+
+/* Nút Xem chi tiết (Touch Target chuẩn WCAG 2.2 & Apple HIG) */
 .btn-view {
-  color: #64748b;
+  color: #334155;
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 15px;
   transition: all 0.2s ease;
   cursor: pointer;
+  position: relative;
+}
+
+.btn-view::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: -4px;
+  right: -4px;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .btn-view:hover {
@@ -197,4 +225,25 @@
   color: #ffffff;
   border-color: var(--hp-primary);
   transform: scale(1.08);
+}
+
+/* ─── SHIMMER SKELETON ROW ANIMATION ─── */
+@keyframes shimmerWave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #f1f5f9 25%,
+    #e2e8f0 37%,
+    #f1f5f9 63%
+  );
+  background-size: 200% 100%;
+  animation: shimmerWave 1.5s ease-in-out infinite;
 }

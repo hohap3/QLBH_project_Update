@@ -1,3 +1,10 @@
+body, input, button, select, textarea {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 /* ==========================================================================
    HP STORE DESIGN SYSTEM - HEADER COMPONENT TOKENS & STYLES
    Bản sắc độc quyền HP STORE - Tối ưu khoảng cách hiển thị màn hình rộng
@@ -19,7 +26,7 @@
 
   /* Typography Colors */
   --hp-text-primary: #1e1e24;
-  --hp-text-secondary: #64748b;
+  --hp-text-secondary: #334155;
   --hp-text-inverse: #ffffff;
   --hp-text-muted-inverse: rgba(255, 255, 255, 0.88);
 
@@ -59,6 +66,10 @@
   color: var(--hp-text-muted-inverse);
   text-decoration: none;
   transition: color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 4px 8px;
 }
 
 .hp-topbar a:hover {
@@ -81,6 +92,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
 }
 
 .hp-logo-badge {
@@ -123,17 +135,20 @@
   margin-top: 2px;
 }
 
-/* Các nút điều hướng trên header đỏ */
+/* Các nút điều hướng trên header đỏ (Touch target chuẩn Apple HIG ≥ 44x44px) */
 .hp-header-btn {
   background-color: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.24);
   color: #ffffff !important;
   border-radius: var(--hp-radius-md);
-  padding: 7px 12px;
-  font-size: 12px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 14px;
+  font-size: 12.5px;
   font-weight: 600;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
   text-decoration: none;
   transition: all 0.2s ease;
@@ -151,18 +166,21 @@
   box-shadow: var(--hp-focus-ring);
 }
 
-/* Thanh tìm kiếm HP STORE */
+/* Thanh tìm kiếm HP STORE (Touch target input & icon search ≥ 44px) */
 .hp-search-container {
   position: relative;
   width: 100%;
+  display: flex;
+  align-items: center;
 }
 
 .hp-search-input {
   border-radius: var(--hp-radius-md);
   border: none;
   background-color: #ffffff;
-  padding: 9px 40px 9px 15px;
-  font-size: 13px;
+  min-height: 44px;
+  padding: 10px 46px 10px 16px;
+  font-size: 13.5px;
   color: var(--hp-text-primary);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   width: 100%;
@@ -176,15 +194,23 @@
 
 .hp-search-btn {
   position: absolute;
-  right: 6px;
+  right: 2px;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
   border: none;
-  color: #64748b;
-  font-size: 14px;
-  padding: 4px 8px;
+  color: #334155;
+  font-size: 15px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  border-radius: var(--hp-radius-md);
+  transition: color 0.15s ease;
 }
 
 .hp-search-btn:hover {
@@ -210,7 +236,10 @@
 #search-suggestions .list-group-item {
   border: none;
   border-bottom: 1px solid #f1f5f9;
-  padding: 9px 14px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
   transition: background 0.15s ease;
 }
 
@@ -218,17 +247,20 @@
   background-color: #fff1f2;
 }
 
-/* Nút Giỏ hàng */
+/* Nút Giỏ hàng (Touch Target ≥ 44x44px) */
 .hp-cart-btn {
   background-color: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.24);
   color: #ffffff !important;
   border-radius: var(--hp-radius-md);
-  padding: 7px 14px;
-  font-size: 12px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 14px;
+  font-size: 12.5px;
   font-weight: 600;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   position: relative;
   cursor: pointer;
@@ -246,21 +278,24 @@
   font-weight: 800;
   font-size: 11px;
   border-radius: var(--hp-radius-pill);
-  padding: 1px 7px;
+  padding: 2px 7px;
   line-height: 14px;
 }
 
-/* Nút Đăng nhập / HP Member */
+/* Nút Đăng nhập / HP Member (Touch Target ≥ 44x44px) */
 .hp-auth-btn {
   background-color: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: #ffffff !important;
   border-radius: var(--hp-radius-md);
-  padding: 7px 14px;
-  font-size: 12px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 14px;
+  font-size: 12.5px;
   font-weight: 600;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   text-decoration: none;
   transition: all 0.2s ease;
@@ -282,7 +317,10 @@
 }
 
 .user-dropdown .dropdown-item {
-  padding: 8px 16px;
+  padding: 10px 16px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
   font-weight: 500;
   color: var(--hp-text-primary);
 }
@@ -290,4 +328,24 @@
 .user-dropdown .dropdown-item:hover {
   background-color: #fff1f2;
   color: var(--hp-brand-primary);
+}
+
+/* ─── Responsive Mobile Touch Targets (Khoảng cách an toàn tối thiểu 8px) ─── */
+@media (max-width: 768px) {
+  .hp-main-header .container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  #auth-section {
+    gap: 8px !important; /* Đảm bảo tối thiểu 8px giữa các vùng chạm */
+  }
+
+  .hp-cart-btn,
+  .hp-auth-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 10px;
+    justify-content: center;
+  }
 }

@@ -9,11 +9,15 @@
   --hp-primary-light: #ef233c;
   --hp-bg-page: #f8fafc;
   --hp-text-dark: #0f172a;
-  --hp-text-muted: #64748b;
+  --hp-text-muted: #475569;
   --hp-border: #e2e8f0;
 }
 
 body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   background-color: var(--hp-bg-page);
   color: var(--hp-text-dark);
 }
@@ -21,7 +25,7 @@ body {
 /* Breadcrumb */
 .breadcrumb-item a {
   text-decoration: none;
-  color: #64748b;
+  color: #334155;
   font-size: 13.5px;
   transition: color 0.15s;
 }
@@ -145,7 +149,7 @@ body {
 .thumb-angle-btn span {
   font-size: 10px;
   font-weight: 600;
-  color: #64748b;
+  color: #475569;
   margin-top: 2px;
 }
 
@@ -170,7 +174,7 @@ body {
 
 .price-original {
   font-size: 1.1rem;
-  color: #94a3b8;
+  color: #475569;
   text-decoration: line-through;
   font-weight: 500;
 }
@@ -254,6 +258,7 @@ body {
   border-radius: 10px;
   font-weight: 800;
   font-size: 16px;
+  min-height: 52px;
   padding: 10px 16px;
   text-transform: uppercase;
   transition: all 0.2s ease;
@@ -273,6 +278,7 @@ body {
   border-radius: 10px;
   font-weight: 700;
   font-size: 14.5px;
+  min-height: 52px;
   padding: 10px 16px;
   transition: all 0.2s ease;
 }
@@ -282,11 +288,44 @@ body {
   color: var(--hp-primary-dark);
 }
 
+/* Nút tăng/giảm số lượng (+ / -) chuẩn Touch Target Apple HIG ≥ 44x44px */
+#btn-decrease,
+#btn-increase {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1.5px solid #cbd5e1 !important;
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+  border-radius: 8px !important;
+  transition: all 0.15s ease !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+}
+
+#btn-decrease:hover,
+#btn-increase:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+
 .quantity-input {
-  width: 50px;
-  text-align: center;
-  border-color: #cbd5e1;
-  font-weight: 600;
+  width: 54px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  text-align: center !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  color: #0f172a !important;
 }
 
 /* ─── THÔNG TIN CHI TIẾT & BẢNG THÔNG SỐ (HÌNH 1 TỐI ƯU KHOẢNG TRẮNG) ─── */
@@ -314,7 +353,7 @@ body {
 .spec-label {
   width: 38%;
   font-weight: 600;
-  color: #64748b;
+  color: #334155;
 }
 
 .spec-value {
@@ -358,4 +397,240 @@ body {
 .btn-toggle-article:hover {
   background: var(--hp-primary);
   color: #ffffff;
+}
+
+/* ─── VISUAL STATUS INDICATORS & PULSE ANIMATIONS ─── */
+.status-indicator-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.status-indicator-badge.in-stock {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.status-indicator-badge.low-stock {
+  background-color: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.status-indicator-badge.out-of-stock {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.pulse-dot-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 10px;
+  height: 10px;
+}
+
+.pulse-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+}
+
+.pulse-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background-color: #10b981;
+  opacity: 0.75;
+  animation: pulsePing 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.pulse-dot-wrapper.warning .pulse-dot,
+.pulse-dot-wrapper.warning .pulse-ring {
+  background-color: #f59e0b;
+}
+
+.pulse-dot-wrapper.danger .pulse-dot {
+  background-color: #ef4444;
+}
+.pulse-dot-wrapper.danger .pulse-ring {
+  display: none;
+}
+
+@keyframes pulsePing {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* Branch Stock Availability Card */
+.branch-stock-card {
+  border-color: #e2e8f0 !important;
+  background-color: #ffffff;
+}
+
+.branch-stock-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.branch-stock-item:hover {
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.branch-stock-meta {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+/* ─── RESPONSIVE MOBILE TOUCH TARGETS (Apple HIG & WCAG 2.2) ─── */
+@media (max-width: 768px) {
+  .product-title {
+    font-size: 1.35rem;
+  }
+
+  .thumb-angle-btn {
+    width: 56px;
+    height: 56px;
+  }
+
+  .btn-buy-now,
+  .btn-add-cart {
+    min-height: 50px;
+  }
+
+  /* Đảm bảo khoảng cách tối thiểu 8px giữa các vùng chạm */
+  .angle-thumbnails {
+    gap: 8px;
+  }
+}
+
+/* ─── STICKY MOBILE ACTION BAR (CellphoneS Style) ─── */
+.sticky-mobile-action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1050;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px)) 16px;
+  transform: translateY(110%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sticky-mobile-action-bar.visible {
+  transform: translateY(0);
+}
+
+.sticky-bar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sticky-bar-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-width: 48%;
+}
+
+.sticky-bar-price {
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--hp-primary);
+  line-height: 1.2;
+}
+
+.sticky-bar-name {
+  font-size: 11px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sticky-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-sticky-cart {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1.5px solid var(--hp-primary);
+  background: #ffffff;
+  color: var(--hp-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-sticky-cart:hover {
+  background-color: #fef2f2;
+}
+
+.btn-sticky-buy {
+  background: linear-gradient(135deg, #d70018 0%, #b8001f 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 14.5px;
+  border-radius: 10px;
+  border: none;
+  height: 44px;
+  min-height: 44px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(215, 0, 24, 0.3);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-sticky-buy:hover {
+  filter: brightness(1.08);
 }

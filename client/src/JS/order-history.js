@@ -219,7 +219,7 @@ function renderOrdersToUI(ordersList) {
 
       switch (order.trangthai) {
         case "Chờ xác nhận":
-          statusBadgeHTML = `<span class="badge-status" style="background-color: #fff3cd; color: #856404; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;"><i class="fa-solid fa-clock-rotate-left"></i> Chờ xác nhận</span>`;
+          statusBadgeHTML = `<span class="badge-status fw-bold" style="background-color: #fffbeb; color: #b45309; border: 1px solid #fcd34d; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem;"><i class="fa-solid fa-clock-rotate-left me-1"></i> Chờ xác nhận</span>`;
           actionButtonsHTML = `
             <button class="btn btn-outline-danger px-3" style="border-radius: 8px;" onclick="window.cancelOrder('${order.madonhang}')">
                 <i class="fa-solid fa-trash-can me-1"></i> Hủy đơn
@@ -227,14 +227,14 @@ function renderOrdersToUI(ordersList) {
           `;
           break;
         case "Đang xử lý":
-          statusBadgeHTML = `<span class="badge-status" style="background-color: #e1f5fe; color: #0288d1; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;"><i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý</span>`;
+          statusBadgeHTML = `<span class="badge-status fw-bold" style="background-color: #fffbeb; color: #b45309; border: 1px solid #fcd34d; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem;"><i class="fa-solid fa-spinner fa-spin me-1"></i> Đang xử lý</span>`;
           break;
         case "Đang giao":
-          statusBadgeHTML = `<span class="badge-status" style="background-color: #e3f2fd; color: #0d6efd; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;"><i class="fa-solid fa-truck-fast"></i> Đang giao hàng</span>`;
+          statusBadgeHTML = `<span class="badge-status fw-bold" style="background-color: #eff6ff; color: #1d4ed8; border: 1px solid #93c5fd; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem;"><i class="fa-solid fa-truck-fast me-1"></i> Đang giao</span>`;
           break;
         case "Thành công":
         case "Đã giao":
-          statusBadgeHTML = `<span class="badge-status" style="background-color: #e8f5e9; color: #1b5e20; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;"><i class="fa-solid fa-circle-check"></i> Thành công</span>`;
+          statusBadgeHTML = `<span class="badge-status fw-bold" style="background-color: #ecfdf5; color: #047857; border: 1px solid #6ee7b7; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem;"><i class="fa-solid fa-circle-check me-1"></i> Đã giao / Hoàn tất</span>`;
           actionButtonsHTML = `
             <button class="btn btn-success px-3 text-white" style="border-radius: 8px;" onclick="window.viewInvoice('${order.madonhang}')">
                 <i class="fa-solid fa-file-invoice me-1"></i> Xuất hóa đơn
@@ -242,7 +242,7 @@ function renderOrdersToUI(ordersList) {
           `;
           break;
         case "Đã hủy":
-          statusBadgeHTML = `<span class="badge-status" style="background-color: #ffebee; color: #c62828; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;"><i class="fa-solid fa-circle-xmark"></i> Đã hủy bỏ</span>`;
+          statusBadgeHTML = `<span class="badge-status fw-bold" style="background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; text-decoration: line-through; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem;"><i class="fa-solid fa-circle-xmark me-1" style="text-decoration: none;"></i> Đã hủy</span>`;
           break;
         default:
           statusBadgeHTML = `<span class="badge-status bg-secondary text-white">${order.trangthai}</span>`;

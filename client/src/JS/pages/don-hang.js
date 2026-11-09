@@ -46,6 +46,27 @@ export async function initOrderManager() {
         url += `&trangThai=${encodeURIComponent(selectedStatus)}`;
       }
 
+      // Render Skeleton Rows chống giật trang CLS
+      if (orderTableBody) {
+        orderTableBody.innerHTML = Array(6)
+          .fill(0)
+          .map(
+            () => `
+          <tr>
+            <td class="text-center align-middle"><div class="skeleton-shimmer rounded" style="width: 20px; height: 20px; margin: auto;"></div></td>
+            <td class="align-middle"><div class="skeleton-shimmer rounded" style="width: 80px; height: 16px;"></div></td>
+            <td class="align-middle"><div class="skeleton-shimmer rounded" style="width: 140px; height: 16px;"></div></td>
+            <td class="align-middle"><div class="skeleton-shimmer rounded" style="width: 100px; height: 16px;"></div></td>
+            <td class="align-middle"><div class="skeleton-shimmer rounded" style="width: 110px; height: 16px;"></div></td>
+            <td class="align-middle"><div class="skeleton-shimmer rounded" style="width: 80px; height: 16px;"></div></td>
+            <td class="align-middle"><div class="skeleton-shimmer rounded-pill" style="width: 105px; height: 26px;"></div></td>
+            <td class="text-center align-middle"><div class="skeleton-shimmer rounded" style="width: 38px; height: 38px; margin: auto;"></div></td>
+          </tr>
+        `
+          )
+          .join("");
+      }
+
       const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });

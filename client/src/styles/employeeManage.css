@@ -1,6 +1,9 @@
 body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   background-color: #f8f9fa;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .table-container {
@@ -66,7 +69,7 @@ body {
 }
 
 #sidebarMenu::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #475569;
 }
 
 /* Đảm bảo khối nội dung chính không bị che khuất do Sidebar dùng position: fixed */

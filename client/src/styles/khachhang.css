@@ -4,8 +4,11 @@
 }
 
 body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   background-color: var(--bg-color);
-  font-family: "Segoe UI", sans-serif;
   color: #333;
 }
 
@@ -24,7 +27,7 @@ body {
 }
 
 .page-title span {
-  color: #888;
+  color: #475569;
   font-size: 0.9rem;
 }
 
@@ -136,17 +139,32 @@ body {
   font-weight: 600;
 }
 
-/* Action Buttons */
+/* Action Buttons (Touch Target chuẩn Apple HIG ≥ 40x40px với khoảng cách an toàn 8px) */
 .btn-action {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-left: 5px;
+  margin: 0 4px;
   border: none;
-  transition: all 0.2s;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.btn-action::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: -3px;
+  right: -3px;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .btn-view {

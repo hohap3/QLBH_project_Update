@@ -143,7 +143,7 @@ function renderCartPage() {
       return `
     <tr data-masp="${maSP}">
         <td class="text-center align-middle">
-            <input type="checkbox" class="form-check-input cart-item-checkbox" style="width: 19px; height: 19px; cursor: pointer;" data-masp="${maSP}" ${isChecked} onchange="handleSingleCheck()">
+            <input type="checkbox" class="form-check-input cart-item-checkbox" style="width: 22px; height: 22px; cursor: pointer;" data-masp="${maSP}" ${isChecked} onchange="handleSingleCheck()">
         </td>
         <td>
             <div class="d-flex align-items-center gap-3">
@@ -156,16 +156,16 @@ function renderCartPage() {
         </td>
         <td>
             <div class="d-flex justify-content-center">
-                <div class="quantity-input-group d-flex align-items-center" style="border: 1px solid #ddd; border-radius:5px;">
-                    <button type="button" class="btn btn-sm btn-light px-2" onclick="changeQty('${maSP}', -1)">-</button>
-                    <input type="text" value="${soLuong}" class="text-center border-0 fw-bold" style="width: 40px;" readonly>
-                    <button type="button" class="btn btn-sm btn-light px-2" onclick="changeQty('${maSP}', 1)">+</button>
+                <div class="quantity-input-group d-flex align-items-center">
+                    <button type="button" class="btn btn-qty-minus" onclick="changeQty('${maSP}', -1)" aria-label="Giảm số lượng">-</button>
+                    <input type="text" value="${soLuong}" class="text-center border-0 fw-bold" readonly aria-label="Số lượng">
+                    <button type="button" class="btn btn-qty-plus" onclick="changeQty('${maSP}', 1)" aria-label="Tăng số lượng">+</button>
                 </div>
             </div>
         </td>
         <td class="text-end fw-bold text-dark vertical-align-middle">${itemTotal.toLocaleString("vi-VN")} đ</td>
         <td class="text-center">
-            <button class="btn btn-sm text-danger" onclick="removeCartItem('${maSP}')">
+            <button class="btn btn-delete text-danger" onclick="removeCartItem('${maSP}')" title="Xóa sản phẩm" aria-label="Xóa sản phẩm">
                 <i class="fa-regular fa-trash-can fs-5"></i>
             </button>
         </td>

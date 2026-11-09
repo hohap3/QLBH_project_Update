@@ -8,6 +8,10 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+        <!-- Google Fonts: Inter (Typography chuẩn từ Style Foundations) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -75,8 +79,12 @@
                   style="font-size: 0.8rem"
                   >Danh mục</span
                 >
-                <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-bold" id="product-detail-status">
-                  <i class="fa-solid fa-circle-check me-1"></i>Còn hàng
+                <span class="status-indicator-badge in-stock" id="product-detail-status">
+                  <span class="pulse-dot-wrapper">
+                    <span class="pulse-ring"></span>
+                    <span class="pulse-dot"></span>
+                  </span>
+                  <span id="product-status-label">Còn hàng</span>
                 </span>
               </div>
 
@@ -127,13 +135,26 @@
                   <p><i class="fa-solid fa-truck-fast text-danger me-1"></i> <b>Giao hàng siêu tốc 2h</b> miễn phí tại TP. HCM & Hà Nội.</p>
                 </div>
               </div>
+
+              <!-- Khối Tình trạng kho chi nhánh (Visual Status Indicators chuẩn Apple HIG / CellphoneS) -->
+              <div class="branch-stock-card mb-3 p-3 bg-white border rounded-3 shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                  <span class="fw-bold text-dark small d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-store text-danger"></i> Tình trạng kho tại các Chi nhánh
+                  </span>
+                  <span class="text-muted small" style="font-size: 11px;">Cập nhật theo thời gian thực</span>
+                </div>
+                <div class="branch-stock-list d-flex flex-column gap-2" id="branchStockList">
+                  <!-- Dynamic branch indicators inserted via JS -->
+                </div>
+              </div>
             </div>
 
             <!-- Khối Chọn số lượng & Hành động Mua hàng -->
             <div class="p-3 bg-light rounded-3 border">
               <div class="d-flex align-items-center gap-3 mb-3">
                 <span class="fw-bold text-secondary small">Số lượng:</span>
-                <div class="input-group" style="width: 120px">
+                <div class="input-group" style="width: 152px">
                   <button class="btn btn-outline-secondary btn-sm" type="button" id="btn-decrease">-</button>
                   <input type="number" id="quantity-input" class="form-control form-control-sm quantity-input" value="1" min="1" />
                   <button class="btn btn-outline-secondary btn-sm" type="button" id="btn-increase">+</button>
@@ -239,6 +260,24 @@
         ></div>
       </section>
     </main>
+
+    <!-- Sticky Mobile Action Bar (Dính đáy chuẩn CellphoneS khi cuộn trang) -->
+    <div class="sticky-mobile-action-bar d-md-none" id="stickyMobileBar">
+      <div class="sticky-bar-content">
+        <div class="sticky-bar-info">
+          <div class="sticky-bar-price" id="stickyMobilePrice">0đ</div>
+          <div class="sticky-bar-name" id="stickyMobileName">Tên sản phẩm</div>
+        </div>
+        <div class="sticky-bar-actions">
+          <button type="button" class="btn btn-sticky-cart" id="btnStickyCart" aria-label="Thêm vào giỏ hàng">
+            <i class="fa-solid fa-cart-plus"></i>
+          </button>
+          <button type="button" class="btn btn-sticky-buy" id="btnStickyBuy">
+            MUA NGAY
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div id="footer-shared"></div>
 

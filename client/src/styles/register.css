@@ -1,3 +1,10 @@
+body, input, button, select, textarea {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 /* register.css - Đồng bộ giao diện HP STORE / CellphoneS */
 
 :root {
@@ -6,7 +13,7 @@
   --hp-primary-light: #ef233c;
   --hp-bg-page: #f1f5f9;
   --hp-text-dark: #0f172a;
-  --hp-text-muted: #64748b;
+  --hp-text-muted: #475569;
   --hp-border: #e2e8f0;
 }
 
@@ -69,7 +76,7 @@
   left: 15px;
   top: 50%;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: #475569;
   font-size: 16px;
 }
 
@@ -93,15 +100,22 @@
 
 .eye-btn {
   position: absolute;
-  right: 14px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
-  color: #94a3b8;
+  color: #334155;
   font-size: 16px;
-  padding: 4px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  transition: color 0.15s ease;
 }
 
 .eye-btn:hover {
@@ -113,12 +127,16 @@
   background: linear-gradient(135deg, #d70018 0%, #b8001f 100%) !important;
   color: #ffffff !important;
   border: none !important;
-  border-radius: 10px !important;
+  border-radius: 12px !important;
   font-weight: 700 !important;
-  font-size: 15.5px !important;
-  height: 46px;
+  font-size: 16px !important;
+  min-height: 48px !important;
+  height: 48px;
   box-shadow: 0 4px 14px rgba(215, 0, 24, 0.28) !important;
   transition: all 0.25s ease !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .submit-btn:hover {

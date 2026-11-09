@@ -1,3 +1,22 @@
+// ─── HÀM RENDER SKELETON LOADERS CHỐNG GIẬT TRANG CLS ───
+export function renderSkeletonProductCards(count = 10) {
+  return Array(count)
+    .fill(0)
+    .map(
+      () => `
+    <div class="hp-product-card hp-skeleton-card">
+      <div class="skeleton-media-box skeleton-shimmer"></div>
+      <div class="skeleton-line title skeleton-shimmer mt-3"></div>
+      <div class="skeleton-line title-sub skeleton-shimmer mt-2"></div>
+      <div class="skeleton-line price skeleton-shimmer mt-3"></div>
+      <div class="skeleton-line perk skeleton-shimmer mt-2"></div>
+      <div class="skeleton-line footer skeleton-shimmer mt-3"></div>
+    </div>
+  `
+    )
+    .join("");
+}
+
 // src/JS/homepage.js
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -141,7 +160,7 @@ export async function loadProducts(maDM = "all", page = 1, options = {}) {
   currentProductPage = page;
   currentFilters = { ...currentFilters, ...options };
 
-  productContainer.innerHTML = '<div class="text-center w-100 py-5"><div class="spinner-border text-danger"></div><div class="small text-muted mt-2">Đang tải sản phẩm HP STORE...</div></div>';
+  productContainer.innerHTML = renderSkeletonProductCards(LIMIT || 10);
 
   try {
     const params = new URLSearchParams();
@@ -239,7 +258,7 @@ export async function loadBestSellers(category = "all") {
   const container = document.getElementById("best-sellers-container");
   if (!container) return;
 
-  container.innerHTML = '<div class="text-center w-100 py-4"><div class="spinner-border text-danger spinner-border-sm"></div></div>';
+  container.innerHTML = renderSkeletonProductCards(5);
 
   try {
     const res = await fetch(`${BASE_URL}/productsClient/best-sellers?page=1&limit=5&category=${category}`);
