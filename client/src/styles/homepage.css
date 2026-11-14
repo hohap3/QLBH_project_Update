@@ -814,3 +814,130 @@ body {
   width: 70%;
   height: 14px;
 }
+
+
+/* ─── MOBILE QUICK CATEGORIES ICONS ROW (CellphoneS Style) ─── */
+.mobile-quick-cats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px 8px;
+  padding: 14px 10px;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid var(--hp-border-card);
+  margin-bottom: 16px;
+  box-shadow: var(--hp-shadow-card);
+}
+
+@media (min-width: 992px) {
+  .mobile-quick-cats {
+    display: none !important;
+  }
+}
+
+.mobile-cat-chip-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #334155;
+  transition: transform 0.2s ease;
+  text-align: center;
+}
+
+.mobile-cat-chip-item:hover,
+.mobile-cat-chip-item:active {
+  transform: translateY(-2px);
+  color: var(--hp-red);
+}
+
+.mobile-cat-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #fef2f2;
+  color: var(--hp-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 6px;
+  border: 1px solid #fee2e2;
+  box-shadow: 0 2px 6px rgba(217, 4, 41, 0.08);
+}
+
+.mobile-cat-label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+/* ─── MOBILE HORIZONTAL SCROLL CATEGORY CHIPS ─── */
+@media (max-width: 767.98px) {
+  #category-filter {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: 8px !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 8px !important;
+    width: 100%;
+  }
+
+  #category-filter::-webkit-scrollbar {
+    display: none;
+  }
+
+  #category-filter .btn,
+  #category-filter .category-filter-btn {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    padding: 7px 14px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    border-radius: 20px !important;
+    min-height: 38px !important;
+  }
+
+  /* Hotline floating không đè lên Mobile Bottom Nav */
+  .hp-floating-hotline {
+    bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 14px !important;
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+    border-radius: 30px !important;
+  }
+
+  /* Tối ưu Card sản phẩm 2 cột trên điện thoại */
+  .hp-product-card {
+    padding: 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .hp-card-img-wrap {
+    height: 135px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .hp-card-title {
+    font-size: 12.5px !important;
+    line-height: 1.35 !important;
+    height: 34px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .hp-price-sale {
+    font-size: 14px !important;
+  }
+
+  .hp-price-original {
+    font-size: 11px !important;
+  }
+
+  .hp-card-perks {
+    font-size: 10.5px !important;
+    padding: 4px 6px !important;
+    margin-bottom: 6px !important;
+  }
+}

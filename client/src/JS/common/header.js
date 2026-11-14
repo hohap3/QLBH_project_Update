@@ -21,6 +21,8 @@ function injectHeaderCSS() {
 // Khởi tạo Header
 export function initHeader() {
   renderHeader();
+  renderMobileBottomNav();
+  renderMobileCategoryDrawer();
   injectHeaderCSS();
   checkLoginStatus();
   updateCartBadge();
@@ -53,6 +55,10 @@ export function updateCartBadge() {
   if (badgeEl) {
     badgeEl.innerText = totalItems;
   }
+  const mobileBadgeEl = document.getElementById("mobile-cart-count");
+  if (mobileBadgeEl) {
+    mobileBadgeEl.innerText = totalItems;
+  }
 }
 
 // Sinh giao diện Header chuẩn HP STORE (Độc quyền, không sợ trùng lặp thương hiệu)
@@ -84,6 +90,13 @@ export function renderHeader() {
       <div class="container">
         <div class="row align-items-center g-2 g-md-3">
           
+          <!-- Nút Hamburger Mở Danh Mục cho Mobile (< 768px) -->
+          <div class="col-auto d-md-none">
+            <button class="btn btn-link text-white p-1 text-decoration-none" id="btn-mobile-hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileCategoryDrawer" aria-controls="mobileCategoryDrawer" aria-label="Mở danh mục">
+              <i class="fa-solid fa-bars fs-4"></i>
+            </button>
+          </div>
+
           <!-- Logo HP STORE độc quyền -->
           <div class="col-auto">
             <a class="hp-brand-logo" href="/" title="HP STORE - Hệ thống Bán lẻ Công nghệ Chính hãng">
@@ -180,6 +193,19 @@ export function checkLoginStatus() {
     const displayName = userData.name || userData.fullname || userData.username || "Hội viên";
     const userRole = String(userData.role || "").toUpperCase();
 
+
+    const drawerUserBox = document.getElementById("drawer-user-box");
+    if (drawerUserBox) {
+      drawerUserBox.innerHTML = `
+        <div class="drawer-user-avatar">
+          ${displayName.substring(0, 1).toUpperCase()}
+        </div>
+        <div>
+          <div class="text-white fw-bold small">${displayName}</div>
+          <small class="badge bg-warning text-dark fw-bold" style="font-size: 10px;">👑 HP VIP Member</small>
+        </div>
+      `;
+    }
     // Thay thế nút đăng nhập bằng menu Dropdown HP Member cao cấp
     const loginBtn = document.getElementById("btn-login-nav");
     if (loginBtn) {
@@ -256,4 +282,144 @@ export function checkLoginStatus() {
       }
     }
   }
+}
+
+
+// ─── RENDER THANH ĐIỀU HƯỚNG DÍNH ĐÁY CHO MOBILE (BOTTOM DOCK) ───
+export function renderMobileBottomNav() {
+  if (document.getElementById("mobile-bottom-nav")) return;
+  
+  const pathname = window.location.pathname.toLowerCase();
+  // Trên trang chi tiết sản phẩm, ưu tiên Sticky Purchase Bar để mua nhanh
+  const isProductDetail = pathname.includes("product-detail");
+  if (isProductDetail) return;
+
+  const isHome = pathname === "/" || pathname.endsWith("index.html");
+  const isCart = pathname.endsWith("cart.html");
+  const isOrder = pathname.endsWith("order-history.html");
+  const isUser = pathname.endsWith("login.html") || pathname.endsWith("register.html") || pathname.endsWith("hoso.html");
+
+  let userData = null;
+  try {
+    const raw = localStorage.getItem("hpstore_user") || localStorage.getItem("user");
+    if (raw) userData = JSON.parse(raw);
+  } catch (e) {}
+  const userProfileLink = (userData && (userData.token || userData.id)) ? "/src/pages/hoso.html" : "/src/pages/login.html";
+
+  const navEl = document.createElement("nav");
+  navEl.className = "mobile-bottom-nav d-md-none";
+  navEl.id = "mobile-bottom-nav";
+  navEl.setAttribute("aria-label", "Thanh điều hướng di động");
+  navEl.innerHTML = `
+    <a href="/index.html" class="mobile-nav-item ${isHome ? "active" : ""}">
+      <i class="fa-solid fa-house"></i>
+      <span>Trang chủ</span>
+    </a>
+    <button type="button" class="mobile-nav-item" id="btn-bottom-category" data-bs-toggle="offcanvas" data-bs-target="#mobileCategoryDrawer" aria-controls="mobileCategoryDrawer">
+      <i class="fa-solid fa-layer-group"></i>
+      <span>Danh mục</span>
+    </button>
+    <a href="/src/pages/order-history.html" class="mobile-nav-item ${isOrder ? "active" : ""}">
+      <i class="fa-solid fa-receipt"></i>
+      <span>Đơn hàng</span>
+    </a>
+    <a href="/src/pages/cart.html" class="mobile-nav-item ${isCart ? "active" : ""}">
+      <i class="fa-solid fa-cart-shopping"></i>
+      <span>Giỏ hàng</span>
+      <span class="mobile-nav-badge" id="mobile-cart-count">0</span>
+    </a>
+    <a href="${userProfileLink}" class="mobile-nav-item ${isUser ? "active" : ""}">
+      <i class="fa-solid fa-circle-user"></i>
+      <span>Tài khoản</span>
+    </a>
+  `;
+
+  document.body.appendChild(navEl);
+}
+
+// ─── RENDER MENU DANH MỤC TRƯỢT TỪ BÊN TRÁI (OFFCANVAS DRAWER) ───
+export function renderMobileCategoryDrawer() {
+  if (document.getElementById("mobileCategoryDrawer")) return;
+
+  const drawerEl = document.createElement("div");
+  drawerEl.className = "offcanvas offcanvas-start mobile-category-drawer";
+  drawerEl.tabIndex = -1;
+  drawerEl.id = "mobileCategoryDrawer";
+  drawerEl.setAttribute("aria-labelledby", "mobileCategoryDrawerLabel");
+  drawerEl.innerHTML = `
+    <div class="drawer-header offcanvas-header border-bottom">
+      <div class="d-flex flex-column w-100">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <a href="/index.html" class="d-flex align-items-center gap-2 text-white text-decoration-none">
+            <span style="font-weight: 900; font-size: 20px; letter-spacing: -0.5px;">⚡ HP STORE</span>
+          </a>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
+        </div>
+        <div class="drawer-user-info" id="drawer-user-box">
+          <div class="drawer-user-avatar">
+            <i class="fa-regular fa-user"></i>
+          </div>
+          <div>
+            <div class="text-white fw-bold small">Chào mừng bạn đến với HP STORE!</div>
+            <a href="/src/pages/login.html" class="text-white-50 small text-decoration-underline">Đăng nhập / Đăng ký</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="offcanvas-body p-0">
+      <div class="p-3 border-bottom bg-light">
+        <div class="small fw-bold text-uppercase text-secondary mb-2" style="font-size: 11px; letter-spacing: 0.5px;">
+          Danh mục sản phẩm
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <a href="/index.html?cat=1" class="drawer-category-item" data-bs-dismiss="offcanvas">
+            <span><i class="fa-solid fa-mobile-screen category-icon"></i> Điện thoại thông minh</span>
+            <i class="fa-solid fa-angle-right text-muted small"></i>
+          </a>
+          <a href="/index.html?cat=2" class="drawer-category-item" data-bs-dismiss="offcanvas">
+            <span><i class="fa-solid fa-laptop category-icon"></i> Laptop & MacBook</span>
+            <i class="fa-solid fa-angle-right text-muted small"></i>
+          </a>
+          <a href="/index.html?cat=3" class="drawer-category-item" data-bs-dismiss="offcanvas">
+            <span><i class="fa-solid fa-tablet-screen-button category-icon"></i> Tablet / Máy tính bảng</span>
+            <i class="fa-solid fa-angle-right text-muted small"></i>
+          </a>
+          <a href="/index.html?cat=4" class="drawer-category-item" data-bs-dismiss="offcanvas">
+            <span><i class="fa-solid fa-headphones category-icon"></i> Âm thanh & Tai nghe</span>
+            <i class="fa-solid fa-angle-right text-muted small"></i>
+          </a>
+          <a href="/index.html?cat=5" class="drawer-category-item" data-bs-dismiss="offcanvas">
+            <span><i class="fa-solid fa-clock category-icon"></i> Đồng hồ thông minh</span>
+            <i class="fa-solid fa-angle-right text-muted small"></i>
+          </a>
+          <a href="/index.html?cat=6" class="drawer-category-item" data-bs-dismiss="offcanvas">
+            <span><i class="fa-solid fa-plug category-icon"></i> Phụ kiện công nghệ</span>
+            <i class="fa-solid fa-angle-right text-muted small"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Tiện ích & Hỗ trợ -->
+      <div class="p-3">
+        <div class="small fw-bold text-uppercase text-secondary mb-2" style="font-size: 11px; letter-spacing: 0.5px;">
+          Tiện ích & Dịch vụ
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <a href="/src/pages/order-history.html" class="drawer-category-item">
+            <span><i class="fa-solid fa-receipt text-danger me-2"></i> Tra cứu đơn hàng</span>
+            <i class="fa-solid fa-angle-right text-muted small"></i>
+          </a>
+          <a href="/index.html#branch-section" class="drawer-category-item" data-bs-dismiss="offcanvas">
+            <span><i class="fa-solid fa-location-dot text-danger me-2"></i> Hệ thống 120 cửa hàng</span>
+            <i class="fa-solid fa-angle-right text-muted small"></i>
+          </a>
+          <a href="tel:18006868" class="drawer-category-item text-danger fw-bold">
+            <span><i class="fa-solid fa-phone text-danger me-2"></i> Hotline: 1800.6868 (Miễn phí)</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(drawerEl);
 }
