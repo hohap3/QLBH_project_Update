@@ -104,3 +104,60 @@ body {
   filter: drop-shadow(0 2px 3px rgba(245, 158, 11, 0.4));
   line-height: 1;
 }
+
+
+/* ─── MOBILE RESPONSIVE CHECKOUT (Chống zoom iOS Safari & Chạm tối ưu) ─── */
+@media (max-width: 767.98px) {
+  body {
+    padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .checkout-card {
+    padding: 16px !important;
+    border-radius: 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Ép font-size 16px cho input/select trên mobile để ngăn Safari iOS tự động phóng to */
+  .form-control,
+  .form-select,
+  .form-control-sm,
+  .form-select-sm,
+  .form-control-lg {
+    font-size: 16px !important;
+    min-height: 48px !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+  }
+
+  /* Khối chọn phương thức thanh toán dạng Radio Card lớn */
+  .selection-box {
+    padding: 14px 12px !important;
+    border-radius: 12px !important;
+    min-height: 52px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .selection-box .check-icon {
+    font-size: 1.1rem !important;
+  }
+
+  /* Tóm tắt đơn hàng */
+  .style-scroll {
+    max-height: 200px !important;
+  }
+
+  /* Nút xác nhận đặt hàng */
+  button[type="submit"] {
+    min-height: 50px !important;
+    font-size: 15px !important;
+    border-radius: 12px !important;
+  }
+}

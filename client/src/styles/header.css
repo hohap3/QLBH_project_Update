@@ -349,3 +349,155 @@ body, input, button, select, textarea {
     justify-content: center;
   }
 }
+
+
+/* ─── MOBILE BOTTOM NAVIGATION BAR (App Dock dính đáy chuẩn CellphoneS) ─── */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1040;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -3px 18px rgba(0, 0, 0, 0.08);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)) 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  position: relative;
+  min-width: 60px;
+  min-height: 44px;
+  padding: 3px 4px;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-item i {
+  font-size: 18px;
+  margin-bottom: 2px;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.mobile-nav-item.active,
+.mobile-nav-item:hover,
+.mobile-nav-item:active {
+  color: #d70018 !important;
+}
+
+.mobile-nav-item.active i {
+  transform: scale(1.12);
+  color: #d70018 !important;
+}
+
+.mobile-nav-badge {
+  position: absolute;
+  top: 1px;
+  right: 12px;
+  background: #d70018;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 2px 5px rgba(215, 0, 24, 0.35);
+}
+
+/* Đảm bảo nội dung các trang không bị che khuất bởi Mobile Bottom Nav */
+@media (max-width: 767.98px) {
+  body:not(.product-detail-page) {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* ─── MOBILE CATEGORY DRAWER (OFFCANVAS) ─── */
+.mobile-category-drawer {
+  max-width: 320px !important;
+  border-right: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.drawer-header {
+  background: linear-gradient(135deg, #d70018 0%, #b8001f 100%);
+  color: #ffffff;
+  padding: 16px;
+}
+
+.drawer-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.drawer-user-avatar {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+}
+
+.drawer-category-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 12px;
+  border-radius: 10px;
+  color: #334155;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13.5px;
+  transition: all 0.2s ease;
+  margin-bottom: 3px;
+}
+
+.drawer-category-item:hover,
+.drawer-category-item:active {
+  background: #fef2f2;
+  color: #d70018;
+}
+
+.drawer-category-item i.category-icon {
+  width: 24px;
+  font-size: 15px;
+  color: #d70018;
+  margin-right: 8px;
+  text-align: center;
+}

@@ -230,6 +230,10 @@ function updateSelectAllCheckbox(status) {
   if (selectAllBtn) {
     selectAllBtn.checked = status;
   }
+  const mobileSelectAll = document.getElementById("mobile-select-all-cart");
+  if (mobileSelectAll) {
+    mobileSelectAll.checked = status;
+  }
 }
 
 function renderDiscountSection() {
