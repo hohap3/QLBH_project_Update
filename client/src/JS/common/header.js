@@ -17,7 +17,6 @@ export function initHeader() {
   renderHeader();
   renderMobileBottomNav();
   renderMobileCategoryDrawer();
-  injectHeaderCSS();
   checkLoginStatus();
   updateCartBadge();
 }
