@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const transporter = require("../config/mailer");
 
-// 1. Xử lý Đăng ký thành viên & Tự động gửi Email xác nhận kích hoạt
+// 1. Bước 1 Đăng ký: Validate, kiểm tra trùng, gửi OTP — CHƯA lưu vào Database cho đến khi xác thực OTP thành công
 exports.register = async (req, res) => {
   try {
     const { fullname, username, email, phone, password, address } = req.body;
@@ -14,9 +14,14 @@ exports.register = async (req, res) => {
         .json({ message: "Vui lòng cung cấp đầy đủ thông tin!" });
     }
 
-    const duplicates = await AuthModel.checkDuplicate(username, email);
+    const cleanUsername = username.trim();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanFullname = fullname.trim();
+    const cleanPhone = phone.trim();
+
+    const duplicates = await AuthModel.checkDuplicate(cleanUsername, cleanEmail);
     if (duplicates && duplicates.length > 0) {
-      const isUserTaken = duplicates.some((u) => u.tendangnhap === username);
+      const isUserTaken = duplicates.some((u) => u.tendangnhap === cleanUsername);
       if (isUserTaken) {
         return res.status(400).json({ message: "Tên đăng nhập đã tồn tại!" });
       }
@@ -26,72 +31,69 @@ exports.register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const shortID = Date.now().toString().slice(-7);
-    const randomID = Math.floor(Math.random() * 100);
-
-    // TẠO MÃ OTP ĐỂ XÁC THỰC EMAIL ĐĂNG KÝ
+    // TẠO MÃ OTP 6 SỐ ĐỂ XÁC THỰC EMAIL ĐĂNG KÝ
     const activationOtp = Math.floor(
       100000 + Math.random() * 900000,
     ).toString();
-    const expiredAt = new Date(Date.now() + 5 * 60 * 1000); // 5 phút hiệu lực
+    const otpHash = await bcrypt.hash(activationOtp, 8);
 
-    const newUser = {
-      maND: `ND${shortID}${randomID}`,
-      maKH: `KH${shortID}${randomID}`,
-      username: username,
-      passwordHash: hashedPassword,
-      fullname: fullname,
-      email: email,
-      phone: phone,
-      diaChi: address || null,
-      maVaiTro: "Client",
-      otpCode: activationOtp,
-      otpExpired: expiredAt,
-    };
-
-    // Tạo tài khoản ở trạng thái chờ kích hoạt (trangthai = false)
-    await AuthModel.createND(newUser);
-
-    // TIẾN HÀNH GỬI MAIL KÍCH HOẠT NGAY SAU KHI INSERT THÀNH CÔNG
+    // GỬI MAIL XÁC THỰC TRƯỚC — Nếu lỗi gửi mail, không tạo dữ liệu rác trong DB
     const mailOptions = {
-      to: email,
+      to: cleanEmail,
       subject: "[HP STORE] - Xác nhận kích hoạt tài khoản mới",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-          <h2 style="color: #6138ff; text-align: center;">HP STORE</h2>
-          <p>Chào <b>${fullname}</b>,</p>
-          <p>Cảm ơn bạn đã đăng ký thành viên tại HP STORE. Để trải nghiệm dịch vụ, vui lòng nhập mã OTP dưới đây để hoàn tất kích hoạt tài khoản:</p>
-          <div style="background: #f4f4ff; padding: 15px; text-align: center; font-size: 26px; font-weight: bold; letter-spacing: 5px; color: #6138ff; border-radius: 5px; margin: 20px 0;">
+          <h2 style="color: #d70018; text-align: center;">HP STORE</h2>
+          <p>Chào <b>${cleanFullname}</b>,</p>
+          <p>Cảm ơn bạn đã đăng ký thành viên tại HP STORE. Vui lòng nhập mã OTP dưới đây để hoàn tất đăng ký tài khoản:</p>
+          <div style="background: #fff1f2; padding: 15px; text-align: center; font-size: 26px; font-weight: bold; letter-spacing: 5px; color: #d70018; border-radius: 5px; margin: 20px 0;">
             ${activationOtp}
           </div>
-          <p style="color: #ff3838; font-size: 13px;">* Mã xác thực kích hoạt này có hiệu lực trong vòng 5 phút. Vui lòng không cung cấp mã này cho người khác.</p>
+          <p style="color: #64748b; font-size: 13px;">* Mã xác thực có hiệu lực trong vòng 5 phút. Tài khoản chỉ được tạo sau khi bạn nhập đúng mã này.</p>
         </div>
       `,
     };
 
     await transporter.sendMail(mailOptions);
 
-    return res.status(201).json({
+    // Đóng gói thông tin chờ xác thực vào JWT có hạn 5 phút (stateless, không lưu rác vào DB)
+    const jwtSecret = process.env.JWT_SECRET || "hpstore_register_fallback_secret";
+    const pendingToken = jwt.sign(
+      {
+        purpose: "register_otp",
+        fullname: cleanFullname,
+        username: cleanUsername,
+        email: cleanEmail,
+        phone: cleanPhone,
+        address: address || null,
+        passwordHash: hashedPassword,
+        otpHash,
+      },
+      jwtSecret,
+      { expiresIn: "5m" },
+    );
+
+    return res.status(200).json({
       message:
-        "Đăng ký thành công! Vui lòng kiểm tra hộp thư Email để lấy mã xác thực kích hoạt tài khoản.",
-      email: email,
+        "Mã OTP đã được gửi đến Email của bạn! Vui lòng nhập mã OTP để hoàn tất đăng ký.",
+      email: cleanEmail,
+      pendingToken,
     });
   } catch (error) {
     console.error("REGISTER ERROR:", error);
     return res.status(500).json({
-      message: "Lỗi hệ thống khi đăng ký thành viên!",
+      message: error.message || "Lỗi hệ thống khi đăng ký thành viên!",
       error: error.message,
     });
   }
 };
 
-// 2. API Xác nhận kích thực tài khoản (Verify Email OTP)
+// 2. Bước 2 Đăng ký: Xác thực OTP — CHỈ LÚC NÀY MỚI LƯU TÀI KHOẢN VÀO DATABASE
 exports.verifyActivation = async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const { email, otp, pendingToken } = req.body;
 
-    // Loại bỏ khoảng trắng thừa nếu có
-    const cleanEmail = email ? email.trim() : "";
+    const cleanEmail = email ? email.trim().toLowerCase() : "";
     const cleanOtp = otp ? otp.trim() : "";
 
     if (!cleanEmail || !cleanOtp) {
@@ -100,6 +102,62 @@ exports.verifyActivation = async (req, res) => {
         .json({ message: "Thiếu dữ liệu Email hoặc mã OTP xác thực!" });
     }
 
+    // Luồng mới: Xác thực qua pendingToken rồi mới INSERT vào DB với trangthai = true
+    if (pendingToken) {
+      const jwtSecret = process.env.JWT_SECRET || "hpstore_register_fallback_secret";
+      let payload;
+      try {
+        payload = jwt.verify(pendingToken, jwtSecret);
+      } catch (err) {
+        return res.status(400).json({
+          message: "Mã OTP đã hết hạn (quá 5 phút) hoặc không hợp lệ. Vui lòng gửi lại mã mới!",
+        });
+      }
+
+      if (payload.purpose !== "register_otp" || payload.email !== cleanEmail) {
+        return res.status(400).json({
+          message: "Thông tin xác thực không khớp với email đăng ký!",
+        });
+      }
+
+      const isOtpValid = await bcrypt.compare(cleanOtp, payload.otpHash);
+      if (!isOtpValid) {
+        return res.status(400).json({
+          message: "Mã xác thực OTP không chính xác!",
+        });
+      }
+
+      // Kiểm tra trùng lặp lần cuối trước khi ghi vào DB (chống bấm đúp / race condition)
+      const duplicates = await AuthModel.checkDuplicate(payload.username, payload.email);
+      if (duplicates && duplicates.length > 0) {
+        return res.status(400).json({
+          message: "Tài khoản hoặc Email này đã được đăng ký trước đó!",
+        });
+      }
+
+      const shortID = Date.now().toString().slice(-7);
+      const randomID = Math.floor(Math.random() * 100);
+
+      await AuthModel.createND({
+        maND: `ND${shortID}${randomID}`,
+        maKH: `KH${shortID}${randomID}`,
+        username: payload.username,
+        passwordHash: payload.passwordHash,
+        fullname: payload.fullname,
+        email: payload.email,
+        phone: payload.phone,
+        diaChi: payload.address || null,
+        maVaiTro: "Client",
+        isActive: true,
+      });
+
+      return res.status(201).json({
+        message:
+          "Đăng ký và kích hoạt tài khoản thành công! Hiện tại bạn đã có thể đăng nhập.",
+      });
+    }
+
+    // Fallback cho các tài khoản cũ đã lỡ nằm trong DB ở trạng thái chờ kích hoạt
     const result = await AuthModel.activateAccount(cleanEmail, cleanOtp);
 
     if (!result.success) {

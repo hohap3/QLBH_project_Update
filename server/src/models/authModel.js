@@ -51,17 +51,18 @@ class AuthModel {
     }
   }
 
-  // 4. Tạo tài khoản mới ứng dụng Transaction của PostgreSQL (Chờ kích hoạt)
+  // 4. Tạo tài khoản mới ứng dụng Transaction của PostgreSQL
+  // isActive = true khi đã xác thực OTP xong (không lưu rác vào DB trước khi nhập OTP)
   static async createND(data) {
     const client = await pool.connect();
+    const isActive = data.isActive === true;
 
     try {
       await client.query("BEGIN");
 
-      // 🟢 CẬP NHẬT: Lưu thêm cột otp_code, otp_expired và đặt trangthai = false (Chờ kích hoạt)
       const insertUserSql = `
         INSERT INTO nguoidung (mand, tendangnhap, matkhauhash, hoten, email, sdt, mavaitro, trangthai, ngaytao, otp_code, otp_expired)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, false, NOW(), $8, $9)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9, $10)
       `;
       const userParams = [
         data.maND,
@@ -70,9 +71,10 @@ class AuthModel {
         data.fullname,
         data.email,
         data.phone,
-        "Client",
-        data.otpCode,
-        data.otpExpired,
+        data.maVaiTro || "Client",
+        isActive,
+        isActive ? null : data.otpCode || null,
+        isActive ? null : data.otpExpired || null,
       ];
       await client.query(insertUserSql, userParams);
 

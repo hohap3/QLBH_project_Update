@@ -247,27 +247,32 @@ function handleRegisterPage() {
     // Tìm nút submit của form để kiểm tra trạng thái
     const submitBtn = registerForm.querySelector('button[type="submit"]');
 
+    // Lưu pendingToken tạm trong bộ nhớ trang để gửi kèm khi xác thực OTP
+    if (!window.__hpPendingReg) window.__hpPendingReg = { token: null, email: null };
+
     // 🟢 HÀM XỬ LÝ HIỂN THỊ MODAL NHẬP OTP (Tách ra để có thể tái sử dụng)
     const openOtpModal = () => {
       Swal.fire({
         icon: "info",
         title: "Xác thực Email!",
-        text: `Mã OTP kích hoạt gồm 6 số đã được gửi đến Email: ${email}.`,
+        text: `Mã OTP gồm 6 số đã được gửi đến Email: ${email}. Tài khoản sẽ được tạo sau khi xác thực thành công.`,
         input: "text",
         inputPlaceholder: "Nhập mã OTP 6 chữ số tại đây...",
-        confirmButtonColor: "#6138ff",
-        confirmButtonText: "Kích hoạt tài khoản",
-        allowOutsideClick: false, // Chống bấm ra ngoài tắt modal
-        allowEscapeKey: false, // Chống bấm nút ESC tắt modal
+        confirmButtonColor: "#d70018",
+        confirmButtonText: "Xác nhận & Tạo tài khoản",
+        showCancelButton: true,
+        cancelButtonText: "Đóng",
+        allowOutsideClick: false,
         showLoaderOnConfirm: true,
         inputAttributes: {
           maxlength: "6",
+          inputmode: "numeric",
           autocapitalize: "off",
           autocorrect: "off",
         },
         inputValidator: (value) => {
-          if (!value) return "Vui lòng nhập mã OTP để kích hoạt tài khoản!";
-          if (!/^[0-9]{6}$/.test(value)) return "Mã OTP phải bao gồm 6 chữ số!";
+          if (!value) return "Vui lòng nhập mã OTP để hoàn tất đăng ký!";
+          if (!/^[0-9]{6}$/.test(value.trim())) return "Mã OTP phải bao gồm 6 chữ số!";
         },
         preConfirm: async (otpValue) => {
           try {
@@ -275,28 +280,33 @@ function handleRegisterPage() {
               `${BASE_URL}/auth/verify-activation`,
               {
                 email: email,
-                otp: otpValue,
+                otp: otpValue.trim(),
+                pendingToken: window.__hpPendingReg.token,
               },
+              { timeout: 20000 },
             );
             return verifyResponse.data;
           } catch (verifyError) {
             console.error("Lỗi xác thực kích hoạt:", verifyError);
             const serverMsg =
               verifyError.response?.data?.message ||
-              "Mã OTP sai hoặc đã hết hạn!";
+              (verifyError.code === "ECONNABORTED"
+                ? "Hết thời gian kết nối máy chủ. Vui lòng thử lại!"
+                : "Mã OTP sai hoặc đã hết hạn!");
             Swal.showValidationMessage(`Lỗi: ${serverMsg}`);
-            return false; // Giữ nguyên giao diện không đóng
+            return false;
           }
         },
       }).then((result) => {
         if (result.isConfirmed && result.value) {
+          window.__hpPendingReg = { token: null, email: null };
           Swal.fire({
             icon: "success",
-            title: "Kích hoạt thành công!",
+            title: "Đăng ký thành công!",
             text:
               result.value.message ||
-              "Tài khoản của bạn đã sẵn sàng hoạt động.",
-            confirmButtonColor: "#6138ff",
+              "Tài khoản của bạn đã được tạo và kích hoạt thành công.",
+            confirmButtonColor: "#d70018",
           }).then(() => {
             window.location.href = "login.html";
           });
@@ -304,34 +314,48 @@ function handleRegisterPage() {
       });
     };
 
-    // 🟢 KIỂM TRA: Nếu nút đang ở trạng thái chờ kích hoạt, bấm vào mở lại thẳng hộp thoại OTP
-    if (submitBtn && submitBtn.getAttribute("data-state") === "pending-otp") {
+    // 🟢 KIỂM TRA: Nếu đang chờ nhập OTP cho đúng email này, mở lại hộp thoại OTP ngay
+    if (
+      submitBtn &&
+      submitBtn.getAttribute("data-state") === "pending-otp" &&
+      window.__hpPendingReg.token &&
+      window.__hpPendingReg.email === email
+    ) {
       openOtpModal();
       return;
     }
 
-    // --- LUỒNG ĐĂNG KÝ BƯỚC 1: GỬI DỮ LIỆU LÊN SERVER ---
+    // --- LUỒNG ĐĂNG KÝ BƯỚC 1: GỬI YÊU CẦU TẠO MÃ OTP LÊN SERVER (CHƯA LƯU DB) ---
     try {
       Swal.fire({
-        title: "Đang xử lý...",
-        text: "Hệ thống đang khởi tạo tài khoản và gửi mail xác thực.",
+        title: "Đang gửi mã OTP...",
+        text: "Hệ thống đang kiểm tra thông tin và gửi mã xác thực đến Email của bạn.",
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
 
-      await axios.post(`${BASE_URL}/auth/register`, {
-        fullname,
-        username,
+      const regRes = await axios.post(
+        `${BASE_URL}/auth/register`,
+        {
+          fullname,
+          username,
+          email,
+          phone,
+          password,
+        },
+        { timeout: 25000 },
+      );
+
+      window.__hpPendingReg = {
+        token: regRes.data?.pendingToken || null,
         email,
-        phone,
-        password,
-      });
+      };
 
       // 🟢 Thay đổi trạng thái nút Submit trên giao diện Form
       if (submitBtn) {
         submitBtn.setAttribute("data-state", "pending-otp");
-        submitBtn.innerHTML = `<i class="fa-solid fa-key me-2"></i> Nhập lại mã OTP xác thực`;
-        submitBtn.classList.remove("btn-primary"); // Thay đổi màu sắc tùy giao diện bạn dùng
+        submitBtn.innerHTML = `<i class="fa-solid fa-key me-2"></i> Nhập mã OTP xác thực`;
+        submitBtn.classList.remove("btn-primary");
         submitBtn.classList.add("btn-warning", "text-dark");
       }
 
@@ -341,7 +365,10 @@ function handleRegisterPage() {
       console.error("Lỗi đăng ký:", error);
       Swal.close();
 
-      let errorMessage = "Không thể kết nối đến máy chủ!";
+      let errorMessage =
+        error.code === "ECONNABORTED"
+          ? "Máy chủ phản hồi quá lâu khi gửi Email OTP. Vui lòng kiểm tra lại cấu hình gửi mail trên Render!"
+          : "Không thể kết nối đến máy chủ!";
       if (error.response) {
         errorMessage = error.response.data.message || "Đăng ký thất bại";
         const lowerMsg = errorMessage.toLowerCase();
