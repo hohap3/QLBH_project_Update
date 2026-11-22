@@ -35,6 +35,7 @@ body {
   background-color: var(--hp-bg);
   color: var(--hp-text-main);
   line-height: 1.5;
+  overflow-x: clip;
 }
 
 /* ─── TỐI ƯU CONTAINER RỘNG KHÔNG BỊ TRỐNG 2 BÊN ─── */
@@ -61,27 +62,35 @@ body {
 /* ─── 1. HERO SECTION 3 CỘT (Layout rộng cân đối) ─── */
 .hp-hero-grid {
   display: grid;
-  grid-template-columns: 230px 1fr 275px;
+  grid-template-columns: 230px minmax(0, 1fr) 275px;
   gap: 14px;
   margin-top: 14px;
   position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+
+.hp-hero-grid > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 @media (max-width: 1250px) {
   .hp-hero-grid {
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 220px minmax(0, 1fr);
   }
   .hp-hero-right {
-    display: none;
+    display: none !important;
   }
 }
 
 @media (max-width: 991.98px) {
   .hp-hero-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .hp-category-sidebar,
-  .hp-mega-flyout {
+  .hp-mega-flyout,
+  .hp-hero-right {
     display: none !important;
   }
 }
@@ -266,6 +275,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .hp-carousel-card {
@@ -274,6 +285,8 @@ body {
   box-shadow: var(--hp-shadow-card);
   background: #ffffff;
   border: 1px solid var(--hp-border-card);
+  width: 100%;
+  max-width: 100%;
 }
 
 .hp-carousel-card .carousel-item img {
@@ -357,6 +370,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .hp-widget-box {
@@ -365,6 +380,9 @@ body {
   padding: 14px 16px;
   box-shadow: var(--hp-shadow-card);
   border: 1px solid var(--hp-border-card);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .hp-widget-header {
