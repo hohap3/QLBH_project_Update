@@ -303,21 +303,28 @@ body {
 }
 
 .hp-carousel-tab {
-  flex: 1;
+  flex: 1 0 auto;
   min-width: 130px;
   min-height: 44px;
-  padding: 11px 14px;
+  padding: 10px 12px;
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
   text-align: center;
   font-size: 11.5px;
   font-weight: 700;
+  line-height: 1.25;
   color: #475569;
   border-bottom: 3px solid transparent;
   cursor: pointer;
   white-space: nowrap;
   transition: var(--hp-transition);
+}
+
+.hp-carousel-tab br {
+  display: none;
 }
 
 .hp-carousel-tab.active,
@@ -922,9 +929,10 @@ body {
   }
 
   .hp-carousel-tab {
-    min-width: 118px;
-    min-height: 40px;
-    padding: 8px 10px;
+    flex: 0 0 auto;
+    min-width: 148px;
+    min-height: 44px;
+    padding: 8px 12px;
     font-size: 11px;
   }
 
