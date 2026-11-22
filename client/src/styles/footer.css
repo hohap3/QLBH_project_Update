@@ -61,3 +61,22 @@ footer.cp-footer {
   padding: 2px 4px;
   background: #fff;
 }
+
+@media (max-width: 767.98px) {
+  footer.hp-footer,
+  footer.cp-footer {
+    margin-top: 24px;
+    padding-bottom: 24px !important;
+  }
+
+  .hp-footer-link,
+  .cp-footer-link {
+    padding: 6px 0;
+    font-size: 13px;
+  }
+
+  .hp-footer-title,
+  .cp-footer-title {
+    margin-bottom: 8px;
+  }
+}

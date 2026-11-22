@@ -122,7 +122,7 @@
                 Tên sản phẩm công nghệ
               </h1>
 
-              <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+              <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-3 pb-2 border-bottom">
                 <div class="text-warning small">
                   <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
                   <span class="text-dark fw-bold ms-1">4.9</span>
@@ -136,7 +136,7 @@
               </div>
 
               <!-- Giá tiền & Giảm giá -->
-              <div class="d-flex align-items-baseline gap-3 mb-3">
+              <div class="d-flex flex-wrap align-items-baseline gap-2 gap-md-3 mb-3">
                 <div class="price-detail" id="product-detail-price">0đ</div>
                 <div class="price-original" id="product-original-price"></div>
                 <div class="badge-discount" id="product-discount-percent">-15%</div>
@@ -182,7 +182,7 @@
 
             <!-- Khối Chọn số lượng & Hành động Mua hàng -->
             <div class="p-3 bg-light rounded-3 border">
-              <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-3">
                 <span class="fw-bold text-secondary small">Số lượng:</span>
                 <div class="input-group" style="width: 152px">
                   <button class="btn btn-outline-secondary btn-sm" type="button" id="btn-decrease">-</button>
@@ -195,16 +195,16 @@
               </div>
 
               <div class="row g-2">
-                <div class="col-8">
+                <div class="col-7 col-sm-8">
                   <button class="btn btn-buy-now w-100 d-flex flex-column align-items-center justify-content-center" id="btn-buy-now">
                     <span class="fw-bold fs-6">MUA NGAY</span>
-                    <small style="font-size: 11px; font-weight: normal; text-transform: none;">(Giao tận nơi hoặc nhận tại cửa hàng)</small>
+                    <small class="d-none d-sm-inline" style="font-size: 11px; font-weight: normal; text-transform: none;">(Giao tận nơi hoặc nhận tại cửa hàng)</small>
                   </button>
                 </div>
-                <div class="col-4">
+                <div class="col-5 col-sm-4">
                   <button class="btn btn-add-cart w-100 h-100 d-flex flex-column align-items-center justify-content-center" id="btn-add-to-cart">
                     <i class="fa-solid fa-cart-plus mb-1"></i>
-                    <span style="font-size: 12.5px;">Thêm vào giỏ</span>
+                    <span style="font-size: 12px;">Thêm vào giỏ</span>
                   </button>
                 </div>
               </div>
@@ -285,7 +285,7 @@
           </div>
         </div>
         <div
-          class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3"
+          class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2 g-md-3"
           id="related-products-container"
         ></div>
       </section>

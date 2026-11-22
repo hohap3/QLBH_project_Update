@@ -368,6 +368,8 @@ function updateSummary(subTotal) {
 
   const finalTotal = Math.max(0, subTotal - currentDiscountAmount);
   if (totalEl) totalEl.innerText = `${finalTotal.toLocaleString("vi-VN")} đ`;
+  const mobileTotalEl = document.getElementById("mobile-cart-total");
+  if (mobileTotalEl) mobileTotalEl.innerText = `${finalTotal.toLocaleString("vi-VN")} đ`;
 
   updateCartBadgeCount();
 }

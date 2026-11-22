@@ -323,7 +323,8 @@ async function initCategoryFilters() {
 
   try {
     const res = await fetch(`${BASE_URL}/categories`);
-    const categories = await res.json();
+    const payload = await res.json();
+    const categories = Array.isArray(payload) ? payload : payload?.data || [];
 
     filterContainer.innerHTML = "";
     
@@ -338,7 +339,7 @@ async function initCategoryFilters() {
     };
     filterContainer.appendChild(btnAll);
 
-    if (categories && Array.isArray(categories)) {
+    if (categories.length > 0) {
       categories.forEach((dm) => {
         const btn = document.createElement("button");
         btn.className = "btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold";
@@ -351,6 +352,16 @@ async function initCategoryFilters() {
         };
         filterContainer.appendChild(btn);
       });
+    }
+
+    // Tự động lọc nếu URL có ?cat=... (từ Mobile Category Drawer)
+    const urlCat = new URLSearchParams(window.location.search).get("cat");
+    if (urlCat) {
+      const targetBtn = filterContainer.querySelector(`button[data-id="${CSS.escape(urlCat)}"]`);
+      if (targetBtn) {
+        targetBtn.click();
+        targetBtn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      }
     }
   } catch (err) {
     console.error("Lỗi tải danh mục:", err);

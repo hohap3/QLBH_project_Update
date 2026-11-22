@@ -153,3 +153,24 @@ body, input, button, select, textarea {
 .login-link:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 575.98px) {
+  .bg-register-page {
+    padding: 16px 12px !important;
+    align-items: flex-start !important;
+  }
+
+  .register-card {
+    padding: 24px 18px !important;
+    border-radius: 16px !important;
+  }
+
+  .brand-name {
+    font-size: 21px;
+  }
+
+  .input-wrapper .form-control {
+    height: 46px;
+    font-size: 16px; /* Ngăn iOS Safari tự zoom khi nhập liệu */
+  }
+}

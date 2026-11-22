@@ -130,22 +130,27 @@ body {
     padding: 10px !important;
   }
 
-  .filter-sidebar .nav {
+  .filter-sidebar .nav,
+  .filter-sidebar #status-filter-group {
     display: flex !important;
     flex-direction: row !important;
     overflow-x: auto !important;
     flex-wrap: nowrap !important;
     gap: 8px !important;
+    padding-bottom: 4px;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
 
-  .filter-sidebar .nav::-webkit-scrollbar {
+  .filter-sidebar .nav::-webkit-scrollbar,
+  .filter-sidebar #status-filter-group::-webkit-scrollbar {
     display: none;
   }
 
   .filter-link-item {
     white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    gap: 6px;
     padding: 8px 14px !important;
     font-size: 13px !important;
     border-radius: 20px !important;

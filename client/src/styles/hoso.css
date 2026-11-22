@@ -58,3 +58,50 @@ footer {
 .footer-link:hover {
   color: var(--primary-color);
 }
+
+/* ─── MOBILE RESPONSIVE HỒ SƠ CÁ NHÂN ─── */
+@media (max-width: 767.98px) {
+  main.container {
+    margin-top: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .profile-sidebar,
+  .profile-content {
+    padding: 16px !important;
+    border-radius: 14px;
+  }
+
+  #v-pills-tab {
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px !important;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #v-pills-tab::-webkit-scrollbar {
+    display: none;
+  }
+
+  #v-pills-tab .nav-link {
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
+    min-height: 44px;
+    font-size: 13.5px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .profile-content .form-control,
+  .profile-content .form-select {
+    font-size: 16px !important; /* Ngăn iOS Safari tự zoom */
+    min-height: 46px;
+  }
+
+  .profile-content button[type="submit"] {
+    width: 100%;
+    min-height: 48px;
+  }
+}

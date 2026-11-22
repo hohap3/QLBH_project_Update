@@ -872,13 +872,128 @@ body {
   line-height: 1.25;
 }
 
-/* ─── MOBILE HORIZONTAL SCROLL CATEGORY CHIPS ─── */
+/* ─── MOBILE HORIZONTAL SCROLL CATEGORY CHIPS & LAYOUT POLISH ─── */
 @media (max-width: 767.98px) {
+  .container,
+  .container-lg,
+  .container-md,
+  .container-sm,
+  .container-xl,
+  .container-xxl {
+    width: 100% !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .hp-hero-grid {
+    margin-top: 4px;
+    gap: 10px;
+  }
+
+  .hp-carousel-card .carousel-item img {
+    height: 190px;
+  }
+
+  .hp-carousel-tabs {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hp-carousel-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hp-carousel-tab {
+    min-width: 118px;
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .mobile-quick-cats {
+    margin-top: 12px;
+    margin-bottom: 12px;
+    padding: 12px 8px;
+    gap: 10px 6px;
+  }
+
+  .mobile-cat-icon-circle {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  .hp-strip-banner {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .hp-strip-banner .d-flex {
+    gap: 10px !important;
+    align-items: flex-start !important;
+  }
+
+  .hp-strip-banner .fs-6 {
+    font-size: 12.5px !important;
+    line-height: 1.4;
+  }
+
+  .hp-strip-banner .bg-white {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+  }
+
+  .hp-flashsale-section {
+    margin-top: 16px;
+    border-radius: 14px;
+  }
+
+  .hp-flashsale-header {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .hp-flashsale-title {
+    font-size: 15px;
+    letter-spacing: 0.2px;
+  }
+
+  .hp-countdown-box {
+    font-size: 11.5px;
+    gap: 4px;
+  }
+
+  .hp-countdown-digit {
+    font-size: 12.5px;
+    padding: 3px 7px;
+    min-width: 26px;
+  }
+
+  .hp-pills-filter {
+    padding: 10px 12px;
+    gap: 6px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hp-pills-filter::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hp-pill-btn {
+    min-height: 36px;
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+
   #category-filter {
     display: flex !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
-    padding-bottom: 8px !important;
+    padding-bottom: 6px !important;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 8px !important;
@@ -902,9 +1017,10 @@ body {
 
   /* Hotline floating không đè lên Mobile Bottom Nav */
   .hp-floating-hotline {
-    bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
-    right: 14px !important;
+    bottom: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 12px !important;
     padding: 8px 14px !important;
+    min-height: 42px !important;
     font-size: 12px !important;
     border-radius: 30px !important;
   }
@@ -915,9 +1031,35 @@ body {
     border-radius: 12px !important;
   }
 
+  .hp-card-badges {
+    top: 8px;
+    left: 8px;
+    gap: 3px;
+  }
+
+  .hp-badge-discount {
+    font-size: 10px;
+    padding: 2px 5px;
+  }
+
+  .hp-badge-installment {
+    font-size: 9.5px;
+    padding: 1px 5px;
+  }
+
+  .hp-btn-wishlist {
+    top: 6px;
+    right: 6px;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .hp-card-img-wrap {
-    height: 135px !important;
-    margin-bottom: 8px !important;
+    height: 130px !important;
+    margin: 6px 0 8px 0 !important;
   }
 
   .hp-card-title {
@@ -927,17 +1069,27 @@ body {
     margin-bottom: 4px !important;
   }
 
+  .hp-card-price-row {
+    flex-wrap: wrap;
+    gap: 2px 6px;
+    margin-bottom: 6px;
+  }
+
   .hp-price-sale {
-    font-size: 14px !important;
+    font-size: 13.5px !important;
   }
 
   .hp-price-original {
-    font-size: 11px !important;
+    font-size: 10.5px !important;
   }
 
   .hp-card-perks {
     font-size: 10.5px !important;
     padding: 4px 6px !important;
     margin-bottom: 6px !important;
+  }
+
+  .hp-card-footer {
+    font-size: 10.5px;
   }
 }

@@ -93,25 +93,25 @@ export function renderHeader() {
         <div class="row align-items-center g-2 g-md-3">
           
           <!-- Nút Hamburger Mở Danh Mục cho Mobile (< 768px) -->
-          <div class="col-auto d-md-none">
-            <button class="btn btn-link text-white p-1 text-decoration-none" id="btn-mobile-hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileCategoryDrawer" aria-controls="mobileCategoryDrawer" aria-label="Mở danh mục">
+          <div class="col-auto d-md-none order-1">
+            <button class="btn btn-link text-white p-1 text-decoration-none d-inline-flex align-items-center justify-content-center" style="min-width: 40px; min-height: 40px;" id="btn-mobile-hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileCategoryDrawer" aria-controls="mobileCategoryDrawer" aria-label="Mở danh mục">
               <i class="fa-solid fa-bars fs-4"></i>
             </button>
           </div>
 
           <!-- Logo HP STORE độc quyền -->
-          <div class="col-auto">
+          <div class="col-auto order-1 me-auto me-md-0">
             <a class="hp-brand-logo" href="/" title="HP STORE - Hệ thống Bán lẻ Công nghệ Chính hãng">
               <span class="hp-logo-badge"><i class="fa-solid fa-bolt me-1"></i>HP</span>
-              <div class="hp-logo-text d-none d-sm-flex">
+              <div class="hp-logo-text d-flex">
                 <span class="title">HP <span>STORE</span></span>
-                <span class="slogan">Công nghệ chính hãng</span>
+                <span class="slogan d-none d-sm-block">Công nghệ chính hãng</span>
               </div>
             </a>
           </div>
 
           <!-- Nút Danh mục -->
-          <div class="col-auto d-none d-xl-block">
+          <div class="col-auto d-none d-xl-block order-md-2">
             <button class="hp-header-btn" type="button" id="btnHeaderCategory" onclick="document.getElementById('category-filter')?.scrollIntoView({behavior: 'smooth'})">
               <i class="fa-solid fa-grid-2 me-1"></i>
               <i class="fa-solid fa-bars"></i>
@@ -120,7 +120,7 @@ export function renderHeader() {
           </div>
 
           <!-- Nút Chọn vị trí xem giá -->
-          <div class="col-auto d-none d-lg-block">
+          <div class="col-auto d-none d-lg-block order-md-2">
             <div class="dropdown">
               <button class="hp-header-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fa-solid fa-location-dot"></i>
@@ -137,8 +137,8 @@ export function renderHeader() {
             </div>
           </div>
 
-          <!-- Thanh tìm kiếm thông minh -->
-          <div class="col flex-grow-1 position-relative">
+          <!-- Thanh tìm kiếm thông minh (Full-width hàng 2 trên Mobile < 768px) -->
+          <div class="col-12 col-md flex-grow-1 position-relative order-3 order-md-2">
             <div class="hp-search-container">
               <input type="text" id="search-input" class="hp-search-input" placeholder="Bạn cần tìm sản phẩm gì? (iPhone, Laptop Gaming, Smartwatch...)" autocomplete="off">
               <button class="hp-search-btn" id="btnSearchSubmit" type="button" aria-label="Tìm kiếm"><i class="fa-solid fa-magnifying-glass"></i></button>
@@ -147,7 +147,7 @@ export function renderHeader() {
           </div>
 
           <!-- Nhóm Action: Đơn hàng, Giỏ hàng, Đăng nhập / HP Member -->
-          <div class="col-auto d-flex align-items-center gap-2" id="auth-section">
+          <div class="col-auto d-flex align-items-center gap-2 order-2 order-md-3" id="auth-section">
             <a href="/src/pages/order-history.html" class="hp-header-btn d-none d-md-flex" title="Tra cứu tiến độ giao hàng">
               <i class="fa-solid fa-truck-ramp-box fs-6"></i>
               <span class="d-none d-xxl-inline">Đơn hàng</span>
@@ -381,27 +381,27 @@ export function renderMobileCategoryDrawer() {
           Danh mục sản phẩm
         </div>
         <div class="d-flex flex-column gap-1">
-          <a href="/index.html?cat=1" class="drawer-category-item" data-bs-dismiss="offcanvas">
+          <a href="/index.html?cat=SmartPhone#category-filter" class="drawer-category-item">
             <span><i class="fa-solid fa-mobile-screen category-icon"></i> Điện thoại thông minh</span>
             <i class="fa-solid fa-angle-right text-muted small"></i>
           </a>
-          <a href="/index.html?cat=2" class="drawer-category-item" data-bs-dismiss="offcanvas">
+          <a href="/index.html?cat=Laptop#category-filter" class="drawer-category-item">
             <span><i class="fa-solid fa-laptop category-icon"></i> Laptop & MacBook</span>
             <i class="fa-solid fa-angle-right text-muted small"></i>
           </a>
-          <a href="/index.html?cat=3" class="drawer-category-item" data-bs-dismiss="offcanvas">
+          <a href="/index.html?cat=Tablet#category-filter" class="drawer-category-item">
             <span><i class="fa-solid fa-tablet-screen-button category-icon"></i> Tablet / Máy tính bảng</span>
             <i class="fa-solid fa-angle-right text-muted small"></i>
           </a>
-          <a href="/index.html?cat=4" class="drawer-category-item" data-bs-dismiss="offcanvas">
+          <a href="/index.html?cat=HeadPhone#category-filter" class="drawer-category-item">
             <span><i class="fa-solid fa-headphones category-icon"></i> Âm thanh & Tai nghe</span>
             <i class="fa-solid fa-angle-right text-muted small"></i>
           </a>
-          <a href="/index.html?cat=5" class="drawer-category-item" data-bs-dismiss="offcanvas">
+          <a href="/index.html?cat=SmartWatch#category-filter" class="drawer-category-item">
             <span><i class="fa-solid fa-clock category-icon"></i> Đồng hồ thông minh</span>
             <i class="fa-solid fa-angle-right text-muted small"></i>
           </a>
-          <a href="/index.html?cat=6" class="drawer-category-item" data-bs-dismiss="offcanvas">
+          <a href="/index.html?cat=Accessories#category-filter" class="drawer-category-item">
             <span><i class="fa-solid fa-plug category-icon"></i> Phụ kiện công nghệ</span>
             <i class="fa-solid fa-angle-right text-muted small"></i>
           </a>
