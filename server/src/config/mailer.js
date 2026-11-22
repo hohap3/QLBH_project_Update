@@ -12,27 +12,39 @@ const createSmtpTransporter = () => {
   };
 
   if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    return nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USER.trim(),
-        pass: process.env.EMAIL_PASS.replace(/\s+/g, ""), // Tự động bỏ dấu cách trong App Password 16 ký tự
-      },
-      ...smtpTimeouts,
-    });
+    return {
+      provider: "gmail_smtp",
+      transporter: nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.EMAIL_USER.trim(),
+          pass: process.env.EMAIL_PASS.replace(/\s+/g, ""),
+        },
+        ...smtpTimeouts,
+      }),
+    };
   }
 
-  return nodemailer.createTransport({
-    host: "sandbox.smtp.mailtrap.io",
-    port: 2525,
-    auth: {
-      user: "2e6383f826ee5d",
-      pass: "ec230fa76ba898",
-    },
-    ...smtpTimeouts,
-  });
+  // Chỉ dùng Mailtrap Sandbox khi chạy dev local hoặc bật rõ USE_MAILTRAP=true
+  // (Tránh việc trên Render âm thầm gửi vào Mailtrap ảo mà báo "thành công")
+  if (process.env.USE_MAILTRAP === "true") {
+    return {
+      provider: "mailtrap",
+      transporter: nodemailer.createTransport({
+        host: "sandbox.smtp.mailtrap.io",
+        port: 2525,
+        auth: {
+          user: "2e6383f826ee5d",
+          pass: "ec230fa76ba898",
+        },
+        ...smtpTimeouts,
+      }),
+    };
+  }
+
+  return null;
 };
 
 const mailer = {
@@ -44,7 +56,6 @@ const mailer = {
 
     try {
       // 🟢 CÁCH 1 (KHUYÊN DÙNG TRÊN RENDER FREE): Gửi Gmail thật qua Google Apps Script (HTTPS 443)
-      // Render Free chặn cổng SMTP (25, 465, 587), nhưng gọi HTTPS 443 qua Apps Script chạy mượt 100%
       if (process.env.GOOGLE_SCRIPT_URL) {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 15000);
@@ -63,11 +74,18 @@ const mailer = {
           });
 
           const resultText = await response.text();
+          // Nếu Google trả về trang HTML (thường do chưa bật quyền "Anyone" hoặc sai URL /exec)
+          if (/^\s*</.test(resultText)) {
+            throw new Error(
+              "Google Apps Script trả về trang HTML thay vì JSON. Hãy kiểm tra lại URL (phải kết thúc bằng /exec) và quyền Deploy ('Who has access: Anyone').",
+            );
+          }
+
           let result;
           try {
             result = JSON.parse(resultText);
           } catch {
-            result = { success: response.ok };
+            result = { success: response.ok, raw: resultText };
           }
 
           if (!response.ok || result.success === false) {
@@ -80,7 +98,7 @@ const mailer = {
           console.log(
             `👉 [Google Apps Script] Đã gửi OTP thành công tới Gmail: ${mailOptions.to}`,
           );
-          return result;
+          return { provider: "google_script", ...result };
         } finally {
           clearTimeout(timer);
         }
@@ -113,7 +131,7 @@ const mailer = {
         console.log(
           `👉 [Brevo HTTP API] Đã gửi OTP thành công tới email: ${mailOptions.to}`,
         );
-        return data;
+        return { provider: "brevo", ...data };
       }
 
       // 🟢 CÁCH 3 (RENDER FREE): Gửi qua Resend HTTP API (HTTPS 443)
@@ -134,21 +152,27 @@ const mailer = {
         console.log(
           `👉 [Resend] Đã gửi OTP thành công tới: ${mailOptions.to}`,
         );
-        return data;
+        return { provider: "resend", ...data };
       }
 
-      // 🟢 CÁCH 4 (LOCALHOST / RENDER PAID): Gmail SMTP (465) hoặc Mailtrap Sandbox
-      const smtpTransporter = createSmtpTransporter();
-      const info = await smtpTransporter.sendMail({
-        from: `"${fromName}" <${fromEmail}>`,
-        to: mailOptions.to,
-        subject: mailOptions.subject,
-        html: mailOptions.html,
-      });
-      console.log(
-        `👉 [SMTP] Đã gửi OTP thành công tới email: ${mailOptions.to}`,
+      // 🟢 CÁCH 4 (LOCALHOST / RENDER PAID): Gmail SMTP (465) hoặc Mailtrap (khi bật USE_MAILTRAP=true)
+      const smtp = createSmtpTransporter();
+      if (smtp) {
+        const info = await smtp.transporter.sendMail({
+          from: `"${fromName}" <${fromEmail}>`,
+          to: mailOptions.to,
+          subject: mailOptions.subject,
+          html: mailOptions.html,
+        });
+        console.log(
+          `👉 [${smtp.provider}] Đã gửi OTP thành công tới email: ${mailOptions.to}`,
+        );
+        return { provider: smtp.provider, ...info };
+      }
+
+      throw new Error(
+        "Chưa cấu hình biến môi trường gửi Email trên Render! Vui lòng thêm GOOGLE_SCRIPT_URL (hoặc BREVO_API_KEY / RESEND_API_KEY) trong Render Dashboard → Environment.",
       );
-      return info;
     } catch (error) {
       console.error("❌ Lỗi gửi mail:", error.message);
       throw error;
