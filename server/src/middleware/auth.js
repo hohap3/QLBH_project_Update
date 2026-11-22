@@ -43,11 +43,11 @@ const verifyToken = (req, res, next) => {
 // 2. Middleware kiểm tra quyền Manager/Admin
 const isAdmin = (req, res, next) => {
   // Lấy quyền linh hoạt từ 'role' hoặc 'mavaitro' phòng trừ lệch chuẩn chữ hoa/thường
-  const userRole = req.user ? req.user.role || req.user.mavaitro : null;
+  const userRole = String(req.user ? req.user.role || req.user.mavaitro : "").toUpperCase();
 
-  if (!req.user || userRole !== "Manager") {
+  if (!req.user || !["ADMIN", "MANAGER"].includes(userRole)) {
     return res.status(403).json({
-      message: "Truy cập bị từ chối. Yêu cầu quyền Quản trị viên (Manager)!",
+      message: "Truy cập bị từ chối. Yêu cầu quyền Quản trị viên (Admin/Manager)!",
     });
   }
   next();
@@ -160,19 +160,14 @@ const scopeBranchAccess = (req, res, next) => {
   const role = req.user.role;
   const userBranch = req.user.machinhanh;
 
-  // Quản lý Tổng (ADMIN): Toàn quyền xem mọi chi nhánh và toàn hệ thống
-  if (role === "ADMIN") {
+  // Quản lý Tổng (ADMIN) hoặc Manager cấp tổng (chưa gán chi nhánh cụ thể): Xem toàn hệ thống
+  if (role === "ADMIN" || (role === "MANAGER" && !userBranch)) {
     if (!req.query.branch) req.query.branch = "ALL";
     return next();
   }
 
-  // Quản lý Chi nhánh (MANAGER): Chỉ xem chi nhánh của mình
+  // Quản lý Chi nhánh (MANAGER có machinhanh): Chỉ xem chi nhánh của mình
   if (role === "MANAGER") {
-    if (!userBranch) {
-      return res.status(403).json({
-        message: "Tài khoản Quản lý chưa được gán chi nhánh hoạt động!",
-      });
-    }
 
     const requestedBranch = (req.query.branch || "").toUpperCase();
     const branchMapping = {
