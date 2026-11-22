@@ -96,7 +96,7 @@ const mailer = {
           }
 
           console.log(
-            `👉 [Google Apps Script] Đã gửi OTP thành công tới Gmail: ${mailOptions.to}`,
+            `👉 [Google Apps Script] Đã gửi OTP thành công tới Gmail: ${mailOptions.to} | Response: ${resultText.slice(0, 150)}`,
           );
           return { provider: "google_script", ...result };
         } finally {
