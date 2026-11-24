@@ -135,7 +135,9 @@ const orderController = {
       }
 
       // Check trạng thái hợp lệ
-      if (order.trangthai !== "Chờ xác nhận") {
+      if (
+        !["Chờ xác nhận", "Chờ Xác Nhận", "Chờ xử lý"].includes(order.trangthai)
+      ) {
         return res.status(400).json({
           success: false,
           message: `Không thể hủy! Đơn hàng hiện đang ở trạng thái [${order.trangthai}].`,

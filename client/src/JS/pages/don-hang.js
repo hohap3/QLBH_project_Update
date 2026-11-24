@@ -150,7 +150,9 @@ export async function initOrderManager() {
         let statusBadge = "";
         switch (order.trangthai) {
           case "Chờ xác nhận":
-            statusBadge = `<span class="badge-status badge-status-pending"><i class="fa-regular fa-clock me-1"></i>Chờ xác nhận</span>`;
+          case "Chờ Xác Nhận":
+          case "Chờ xử lý":
+            statusBadge = `<span class="badge-status badge-status-pending"><i class="fa-regular fa-clock me-1"></i>${order.trangthai}</span>`;
             break;
           case "Đang xử lý":
             statusBadge = `<span class="badge-status badge-status-processing"><i class="fa-solid fa-arrows-rotate me-1"></i>Đang xử lý</span>`;
@@ -180,6 +182,8 @@ export async function initOrderManager() {
         // Chỉ cho phép chọn hàng loạt các đơn chưa hoàn thành/hủy
         const isActionable = [
           "Chờ xác nhận",
+          "Chờ Xác Nhận",
+          "Chờ xử lý",
           "Đang xử lý",
           "Đang giao",
           "Đã giao",
@@ -452,8 +456,10 @@ export async function initOrderManager() {
     });
 
     try {
-      const userData = JSON.parse(localStorage.getItem("hpstore_user"));
-      const token = userData?.token;
+      const rawUser =
+        localStorage.getItem("hpstore_user") || localStorage.getItem("user");
+      const userData = rawUser ? JSON.parse(rawUser) : null;
+      const token = userData?.token || localStorage.getItem("token") || "";
       await axios.put(
         `${BASE_URL}/orders/status/${maDonHang}`,
         { TrangThai: trangThaiMoi },
@@ -500,8 +506,10 @@ export async function initOrderManager() {
     });
 
     try {
-      const userData = JSON.parse(localStorage.getItem("hpstore_user"));
-      const token = userData?.token;
+      const rawUser =
+        localStorage.getItem("hpstore_user") || localStorage.getItem("user");
+      const userData = rawUser ? JSON.parse(rawUser) : null;
+      const token = userData?.token || localStorage.getItem("token") || "";
       const response = await axios.get(`${BASE_URL}/orders/${maDonHang}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -566,6 +574,8 @@ export async function initOrderManager() {
       const modalActionButtons = document.getElementById("modalActionButtons");
       switch (order.TrangThai) {
         case "Chờ xác nhận":
+        case "Chờ Xác Nhận":
+        case "Chờ xử lý":
           modalActionButtons.innerHTML = `
             <button class="btn btn-warning text-dark me-2 px-3 fw-bold fs-5" onclick="handleUpdateStatus('${order.MaDonHang}', 'Đang xử lý')">
               <i class="fa-solid fa-bell-concierge me-1"></i> Xác nhận đơn hàng
