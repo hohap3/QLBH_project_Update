@@ -3,47 +3,38 @@ const router = express.Router();
 const productController = require("../controllers/productManagerController");
 const multer = require("multer");
 
-// 🔥 Import cấu hình Cloudinary mới thay thế cho upload local cũ
+// 🔥 Cấu hình Cloudinary hỗ trợ 1 ảnh đại diện chính + tối đa 5 ảnh góc chụp phụ
 const uploadCloud = require("../middleware/cloudinaryConfig");
 const excelUpload = multer({ storage: multer.memoryStorage() });
 
+const productUploadFields = uploadCloud.fields([
+  { name: "HinhAnh", maxCount: 1 },
+  { name: "HinhAnhPhu", maxCount: 5 },
+]);
+
+const handleProductUpload = (req, res, next) => {
+  productUploadFields(req, res, function (err) {
+    if (err) {
+      console.error("⚠️ Lỗi phát sinh tại Middleware Cloudinary Route:", err.message);
+      const message =
+        err.code === "LIMIT_UNEXPECTED_FILE"
+          ? "Tối đa chỉ được tải lên 5 ảnh góc chụp phụ cho mỗi sản phẩm!"
+          : "Lỗi xử lý file hình ảnh tải lên!";
+      return res.status(400).json({
+        success: false,
+        message,
+        error: err.message,
+      });
+    }
+    next();
+  });
+};
+
 router.get("/", productController.getProducts);
-
-// 🔥 Đổi thành uploadCloud
-router.post(
-  "/add",
-  uploadCloud.single("HinhAnh"),
-  productController.addProduct,
-);
-
+router.post("/add", handleProductUpload, productController.addProduct);
 router.get("/:id", productController.getProductById);
-
-router.put(
-  "/update/:id",
-  (req, res, next) => {
-    // Thực thi middleware uploadCloud theo cách thủ công để chủ động bắt lỗi luồng
-    uploadCloud.single("HinhAnh")(req, res, function (err) {
-      if (err) {
-        console.error(
-          "⚠️ Lỗi phát sinh tại Middleware Cloudinary Route:",
-          err.message,
-        );
-
-        // Nếu lỗi do người dùng truyền sai kiểu file hoặc lỗi logic multer,
-        // ta chặn lại trả lỗi rõ ràng thay vì để crash 500 sập toàn server Render
-        return res.status(400).json({
-          success: false,
-          message: "Lỗi xử lý file hình ảnh tải lên!",
-          error: err.message,
-        });
-      }
-      // Nếu không có lỗi (kể cả khi không có file ảnh nào được chọn), tiếp tục đi vào Controller
-      next();
-    });
-  },
-  productController.editProduct,
-);
-
+router.put("/update/:id", handleProductUpload, productController.editProduct);
+router.delete("/:id/images/:imageId", productController.removeProductImage);
 router.delete("/delete/:id", productController.removeProduct);
 router.post(
   "/import-excel",

@@ -117,7 +117,7 @@ class ProductModel {
     }
   }
 
-  // 4. CHI TIẾT SẢN PHẨM
+  // 4. CHI TIẾT SẢN PHẨM (kèm bộ ảnh đa góc chụp từ hinhanh_sanpham)
   static async getProductById(maSP) {
     try {
       const result = await pool.query(
@@ -132,7 +132,23 @@ class ProductModel {
       `,
         [maSP],
       );
-      return result.rows[0];
+      const product = result.rows[0];
+      if (!product) return null;
+
+      try {
+        const imgResult = await pool.query(
+          `SELECT maanh, duongdan, nhan, loaigoc, thutu, la_anh_chinh
+           FROM hinhanh_sanpham
+           WHERE masp = $1
+           ORDER BY la_anh_chinh DESC, thutu ASC, maanh ASC`,
+          [maSP],
+        );
+        product.images = imgResult.rows;
+      } catch (imgErr) {
+        product.images = [];
+      }
+
+      return product;
     } catch (error) {
       throw error;
     }

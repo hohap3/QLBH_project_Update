@@ -1,6 +1,37 @@
 const productModel = require("../models/productManagerModel");
 const XLSX = require("xlsx");
 
+const DEFAULT_ANGLE_LABELS = [
+  "Mặt sau",
+  "Cạnh viền",
+  "Cụm Camera",
+  "Hộp & PK",
+  "Góc khác",
+];
+
+function parseJsonArray(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function buildExtraImagesPayload(files, rawLabels) {
+  const labels = parseJsonArray(rawLabels);
+  return (files || []).slice(0, 5).map((file, idx) => ({
+    url: file.path,
+    nhan:
+      (labels[idx] && String(labels[idx]).trim()) ||
+      DEFAULT_ANGLE_LABELS[idx] ||
+      `Góc chụp ${idx + 1}`,
+    loaigoc: `angle_${idx + 1}`,
+  }));
+}
+
 const productManagerController = {
   // Lấy danh sách sản phẩm có Phân trang 10 và tìm kiếm
   // Trong productManagerController.js:
@@ -57,9 +88,14 @@ const productManagerController = {
     }
   },
 
-  // Thêm mới sản phẩm thủ công
+  // Thêm mới sản phẩm thủ công (hỗ trợ 1 ảnh chính + tối đa 5 ảnh góc chụp phụ)
   addProduct: async (req, res) => {
     try {
+      const mainFile =
+        req.file || (req.files && req.files.HinhAnh && req.files.HinhAnh[0]);
+      const extraFiles =
+        (req.files && req.files.HinhAnhPhu) || [];
+
       const productData = {
         MaSP: req.body.MaSP,
         TenSP: req.body.TenSP,
@@ -70,7 +106,11 @@ const productManagerController = {
         DonViTinh: req.body.DonViTinh || null,
         MaDanhMuc: req.body.MaDanhMuc,
         MaNCC: req.body.MaNCC,
-        HinhAnh: req.file ? req.file.path : req.body.HinhAnh || null,
+        HinhAnh: mainFile ? mainFile.path : req.body.HinhAnh || null,
+        HinhAnhPhu: buildExtraImagesPayload(
+          extraFiles,
+          req.body.HinhAnhPhuLabels,
+        ),
       };
 
       if (productData.GiaBan < 0 || productData.SoLuongTon < 0) {
@@ -89,11 +129,14 @@ const productManagerController = {
     }
   },
 
-  // Cập nhật thông tin sản phẩm
-  // Cập nhật thông tin sản phẩm (productManagerController.js)
+  // Cập nhật thông tin sản phẩm (hỗ trợ cập nhật ảnh chính, thêm/xóa ảnh phụ tối đa 5 ảnh)
   editProduct: async (req, res) => {
     try {
       const { id } = req.params;
+      const mainFile =
+        req.file || (req.files && req.files.HinhAnh && req.files.HinhAnh[0]);
+      const extraFiles =
+        (req.files && req.files.HinhAnhPhu) || [];
 
       const updateData = {
         TenSP: req.body.TenSP,
@@ -104,10 +147,14 @@ const productManagerController = {
         DonViTinh: req.body.DonViTinh || null,
         MaDanhMuc: req.body.MaDanhMuc,
         MaNCC: req.body.MaNCC,
-
-        HinhAnh: req.file
-          ? req.file.path
+        HinhAnh: mainFile
+          ? mainFile.path
           : req.body.HinhAnhCu || req.body.HinhAnh || null,
+        HinhAnhPhu: buildExtraImagesPayload(
+          extraFiles,
+          req.body.HinhAnhPhuLabels,
+        ),
+        DeletedImageIds: parseJsonArray(req.body.DeletedImageIds),
       };
 
       await productModel.updateProduct(id, updateData);
@@ -115,13 +162,34 @@ const productManagerController = {
     } catch (error) {
       console.error("🔥 Lỗi chi tiết tại editProduct Controller:", error);
 
-      // Trả thông tin debug chi tiết về giao diện Client/Postman thay vì chữ Internal Server Error chung chung
       return res.status(500).json({
         success: false,
         message: "Lỗi hệ thống khi thực hiện cập nhật sản phẩm.",
         error: error.message || String(error),
-        dbCode: error.code || null, // Mã lỗi PostgreSQL (Ví dụ: 22P02, 23505...)
-        dbDetail: error.detail || null, // Chi tiết trường lỗi từ Database ném lên
+        dbCode: error.code || null,
+        dbDetail: error.detail || null,
+      });
+    }
+  },
+
+  // Xóa 1 ảnh phụ riêng lẻ của sản phẩm
+  removeProductImage: async (req, res) => {
+    try {
+      const { id, imageId } = req.params;
+      const deleted = await productModel.deleteProductImage(id, imageId);
+      if (!deleted) {
+        return res.status(404).json({
+          success: false,
+          message: "Không tìm thấy ảnh phụ hoặc không thể xóa ảnh đại diện chính.",
+        });
+      }
+      res.status(200).json({ success: true, message: "Đã xóa ảnh phụ thành công" });
+    } catch (error) {
+      console.error("Lỗi xóa ảnh phụ:", error.message);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi hệ thống khi xóa ảnh phụ",
+        error: error.message,
       });
     }
   },

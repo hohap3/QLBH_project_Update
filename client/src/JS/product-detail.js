@@ -146,7 +146,23 @@ function renderAngleThumbnails(mainImgUrl, sp) {
   const container = document.getElementById("angleThumbnailsContainer");
   if (!container) return;
 
-  const angles = getProductAngleSet(mainImgUrl, sp);
+  // Ưu tiên dùng bộ ảnh thật từ bảng hinhanh_sanpham (nếu có)
+  let angles = [];
+  if (Array.isArray(sp?.images) && sp.images.length > 0) {
+    angles = sp.images.map((img, idx) => ({
+      label: img.nhan || (idx === 0 ? "Mặt trước" : `Góc chụp ${idx}`),
+      type: img.loaigoc || `angle_${idx}`,
+      imgUrl: getProductImageUrl(img.duongdan),
+    }));
+  } else {
+    angles = [
+      {
+        label: "Mặt trước",
+        type: "front",
+        imgUrl: mainImgUrl,
+      },
+    ];
+  }
 
   container.innerHTML = angles
     .map(

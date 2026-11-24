@@ -47,14 +47,11 @@ const productManagerModel = {
     }
   },
 
-  // Lấy chi tiết một sản phẩm theo ID
+  // Lấy chi tiết một sản phẩm theo ID (kèm bộ ảnh từ hinhanh_sanpham)
   getProductById: async (maSP) => {
     try {
       const pool = await poolPromise;
-
-      // Nếu cột masp trong DB là INT, hãy chuyển đổi nó sang số.
-      // Nếu masp của bạn bản chất là chuỗi (VARCHAR), hãy giữ nguyên maSP.
-      const parsedId = isNaN(maSP) ? maSP : parseInt(maSP, 10);
+      const productId = String(maSP);
 
       const query = `
         SELECT sp.*, dm.tendanhmuc AS "tendanhmuc", ncc.tenncc AS "tenncc",
@@ -64,14 +61,30 @@ const productManagerModel = {
         LEFT JOIN nhacungcap ncc ON sp.mancc = ncc.mancc
         WHERE sp.masp = $1
       `;
-      const result = await pool.query(query, [parsedId]);
-      return result.rows[0];
+      const result = await pool.query(query, [productId]);
+      const product = result.rows[0];
+      if (!product) return null;
+
+      try {
+        const imgResult = await pool.query(
+          `SELECT maanh, masp, duongdan, nhan, loaigoc, thutu, la_anh_chinh
+           FROM hinhanh_sanpham
+           WHERE masp = $1
+           ORDER BY la_anh_chinh DESC, thutu ASC, maanh ASC`,
+          [productId],
+        );
+        product.images = imgResult.rows;
+      } catch (imgErr) {
+        product.images = [];
+      }
+
+      return product;
     } catch (error) {
       throw error;
     }
   },
 
-  // Thêm sản phẩm mới (Tích hợp phân kho Phase 4)
+  // Thêm sản phẩm mới (Tích hợp phân kho Phase 4 + Đa hình ảnh)
   createProduct: async (data) => {
     const pool = await poolPromise;
     const client = await pool.connect();
@@ -100,8 +113,36 @@ const productManagerModel = {
         `INSERT INTO tonkho (makho, masp, soluongton, soluongtamgiu)
          VALUES ('KHO_TONG', $1, $2, 0)
          ON CONFLICT (makho, masp) DO UPDATE SET soluongton = EXCLUDED.soluongton`,
-        [data.MaSP, initStock]
+        [data.MaSP, initStock],
       );
+
+      // Lưu ảnh đại diện chính vào hinhanh_sanpham
+      if (data.HinhAnh) {
+        await client.query(
+          `INSERT INTO hinhanh_sanpham (masp, duongdan, nhan, loaigoc, thutu, la_anh_chinh)
+           VALUES ($1, $2, 'Mặt trước', 'front', 0, true)`,
+          [data.MaSP, data.HinhAnh],
+        );
+      }
+
+      // Lưu tối đa 5 ảnh góc chụp phụ vào hinhanh_sanpham
+      const extraImages = Array.isArray(data.HinhAnhPhu)
+        ? data.HinhAnhPhu.slice(0, 5)
+        : [];
+      for (let i = 0; i < extraImages.length; i++) {
+        const img = extraImages[i];
+        await client.query(
+          `INSERT INTO hinhanh_sanpham (masp, duongdan, nhan, loaigoc, thutu, la_anh_chinh)
+           VALUES ($1, $2, $3, $4, $5, false)`,
+          [
+            data.MaSP,
+            img.url,
+            img.nhan || `Góc chụp ${i + 1}`,
+            img.loaigoc || "gallery",
+            i + 1,
+          ],
+        );
+      }
 
       await client.query("COMMIT");
       return true;
@@ -113,13 +154,13 @@ const productManagerModel = {
     }
   },
 
-  // Cập nhật thông tin sản phẩm (Tích hợp phân kho Phase 4)
+  // Cập nhật thông tin sản phẩm (Tích hợp phân kho Phase 4 + Đa hình ảnh)
   updateProduct: async (maSP, data) => {
     const pool = await poolPromise;
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      const parsedId = isNaN(maSP) ? maSP : parseInt(maSP, 10);
+      const productId = String(maSP);
 
       const query = `
         UPDATE sanpham 
@@ -137,7 +178,7 @@ const productManagerModel = {
         data.MaDanhMuc,
         data.MaNCC,
         data.HinhAnh || null,
-        parsedId,
+        productId,
       ];
       await client.query(query, values);
 
@@ -147,8 +188,71 @@ const productManagerModel = {
           `INSERT INTO tonkho (makho, masp, soluongton, soluongtamgiu)
            VALUES ('KHO_TONG', $1, $2, 0)
            ON CONFLICT (makho, masp) DO UPDATE SET soluongton = EXCLUDED.soluongton`,
-          [parsedId, updateStock]
+          [productId, updateStock],
         );
+      }
+
+      // Đồng bộ ảnh đại diện chính trong hinhanh_sanpham
+      if (data.HinhAnh) {
+        const mainUpdate = await client.query(
+          `UPDATE hinhanh_sanpham
+           SET duongdan = $1
+           WHERE masp = $2 AND la_anh_chinh = true`,
+          [data.HinhAnh, productId],
+        );
+        if (mainUpdate.rowCount === 0) {
+          await client.query(
+            `INSERT INTO hinhanh_sanpham (masp, duongdan, nhan, loaigoc, thutu, la_anh_chinh)
+             VALUES ($1, $2, 'Mặt trước', 'front', 0, true)`,
+            [productId, data.HinhAnh],
+          );
+        }
+      }
+
+      // Xóa các ảnh phụ Admin đã chọn gỡ bỏ
+      const deletedIds = Array.isArray(data.DeletedImageIds)
+        ? data.DeletedImageIds.map((x) => parseInt(x, 10)).filter(
+            (n) => !isNaN(n),
+          )
+        : [];
+      if (deletedIds.length > 0) {
+        await client.query(
+          `DELETE FROM hinhanh_sanpham
+           WHERE masp = $1 AND maanh = ANY($2::int[]) AND la_anh_chinh = false`,
+          [productId, deletedIds],
+        );
+      }
+
+      // Thêm ảnh góc chụp phụ mới (giới hạn tổng tối đa 5 ảnh phụ / sản phẩm)
+      const newExtraImages = Array.isArray(data.HinhAnhPhu)
+        ? data.HinhAnhPhu
+        : [];
+      if (newExtraImages.length > 0) {
+        const countRes = await client.query(
+          `SELECT COUNT(*)::int AS cnt, COALESCE(MAX(thutu), 0)::int AS max_order
+           FROM hinhanh_sanpham
+           WHERE masp = $1 AND la_anh_chinh = false`,
+          [productId],
+        );
+        const currentExtraCount = countRes.rows[0].cnt || 0;
+        let nextOrder = (countRes.rows[0].max_order || 0) + 1;
+        const remainingSlots = Math.max(0, 5 - currentExtraCount);
+
+        const toInsert = newExtraImages.slice(0, remainingSlots);
+        for (const img of toInsert) {
+          await client.query(
+            `INSERT INTO hinhanh_sanpham (masp, duongdan, nhan, loaigoc, thutu, la_anh_chinh)
+             VALUES ($1, $2, $3, $4, $5, false)`,
+            [
+              productId,
+              img.url,
+              img.nhan || `Góc chụp ${nextOrder}`,
+              img.loaigoc || "gallery",
+              nextOrder,
+            ],
+          );
+          nextOrder++;
+        }
       }
 
       await client.query("COMMIT");
@@ -159,6 +263,18 @@ const productManagerModel = {
     } finally {
       client.release();
     }
+  },
+
+  // Xóa 1 ảnh phụ riêng lẻ của sản phẩm
+  deleteProductImage: async (maSP, imageId) => {
+    const pool = await poolPromise;
+    const result = await pool.query(
+      `DELETE FROM hinhanh_sanpham
+       WHERE masp = $1 AND maanh = $2 AND la_anh_chinh = false
+       RETURNING maanh`,
+      [String(maSP), parseInt(imageId, 10)],
+    );
+    return result.rowCount > 0;
   },
 
   // 🔥 Xóa sản phẩm có kiểm tra ràng buộc dữ liệu đơn hàng

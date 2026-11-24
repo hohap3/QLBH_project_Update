@@ -409,10 +409,183 @@ export async function initProductManager() {
     };
   }
 
+  // --- QUẢN LÝ ẢNH GÓC CHỤP PHỤ (TỐI ĐA 5 ẢNH / SẢN PHẨM) ---
+  const MAX_EXTRA_IMAGES = 5;
+  const DEFAULT_ANGLE_LABELS = [
+    "Mặt sau",
+    "Cạnh viền",
+    "Cụm Camera",
+    "Hộp & PK",
+    "Góc khác",
+  ];
+
+  let addExtraItems = []; // [{ file, label, previewUrl }]
+  let editExistingImages = []; // [{ maanh, duongdan, nhan }]
+  let editDeletedIds = []; // [maanh, ...]
+  let editNewExtraItems = []; // [{ file, label, previewUrl }]
+
+  const updateExtraBadges = () => {
+    const addBadge = document.getElementById("addExtraCountBadge");
+    if (addBadge) {
+      addBadge.innerText = `${addExtraItems.length}/${MAX_EXTRA_IMAGES} ảnh phụ`;
+    }
+    const editBadge = document.getElementById("editExtraCountBadge");
+    if (editBadge) {
+      const totalEdit = editExistingImages.length + editNewExtraItems.length;
+      editBadge.innerText = `${totalEdit}/${MAX_EXTRA_IMAGES} ảnh phụ`;
+    }
+  };
+
+  const renderAddExtraGallery = () => {
+    const container = document.getElementById("addExtraGalleryPreview");
+    if (!container) return;
+    container.innerHTML = addExtraItems
+      .map(
+        (item, idx) => `
+        <div class="border rounded-3 p-1 bg-light position-relative" style="width: 108px;">
+          <button type="button" class="btn btn-danger btn-sm p-0 position-absolute top-0 end-0 rounded-circle btn-remove-add-extra" data-idx="${idx}" style="width: 20px; height: 20px; line-height: 1; font-size: 11px;">&times;</button>
+          <img src="${item.previewUrl}" class="rounded mb-1" style="width: 100%; height: 64px; object-fit: cover;" />
+          <input type="text" class="form-control form-control-sm py-0 px-1 add-extra-label" data-idx="${idx}" value="${item.label.replace(/"/g, "&quot;")}" style="font-size: 11px; height: 24px;" placeholder="Nhãn góc..." />
+        </div>`,
+      )
+      .join("");
+
+    container.querySelectorAll(".btn-remove-add-extra").forEach((btn) => {
+      btn.onclick = () => {
+        const i = parseInt(btn.getAttribute("data-idx"), 10);
+        if (addExtraItems[i]?.previewUrl) URL.revokeObjectURL(addExtraItems[i].previewUrl);
+        addExtraItems.splice(i, 1);
+        renderAddExtraGallery();
+      };
+    });
+
+    container.querySelectorAll(".add-extra-label").forEach((input) => {
+      input.oninput = () => {
+        const i = parseInt(input.getAttribute("data-idx"), 10);
+        if (addExtraItems[i]) addExtraItems[i].label = input.value;
+      };
+    });
+
+    updateExtraBadges();
+  };
+
+  const renderEditGalleries = () => {
+    const existingEl = document.getElementById("editExistingGallery");
+    if (existingEl) {
+      existingEl.innerHTML = editExistingImages
+        .map(
+          (img) => `
+          <div class="border rounded-3 p-1 bg-white position-relative shadow-sm" style="width: 108px;">
+            <button type="button" class="btn btn-danger btn-sm p-0 position-absolute top-0 end-0 rounded-circle btn-remove-existing-img" data-id="${img.maanh}" title="Xóa ảnh này" style="width: 20px; height: 20px; line-height: 1; font-size: 11px;">&times;</button>
+            <img src="${img.duongdan}" class="rounded mb-1" style="width: 100%; height: 64px; object-fit: cover;" />
+            <div class="text-truncate text-center text-muted fw-semibold" style="font-size: 11px;" title="${img.nhan || ""}">${img.nhan || "Ảnh phụ"}</div>
+          </div>`,
+        )
+        .join("");
+
+      existingEl.querySelectorAll(".btn-remove-existing-img").forEach((btn) => {
+        btn.onclick = () => {
+          const imgId = parseInt(btn.getAttribute("data-id"), 10);
+          editExistingImages = editExistingImages.filter((x) => x.maanh !== imgId);
+          if (!editDeletedIds.includes(imgId)) editDeletedIds.push(imgId);
+          renderEditGalleries();
+        };
+      });
+    }
+
+    const newEl = document.getElementById("editNewGalleryPreview");
+    if (newEl) {
+      newEl.innerHTML = editNewExtraItems
+        .map(
+          (item, idx) => `
+          <div class="border border-primary-subtle rounded-3 p-1 bg-light position-relative" style="width: 108px;">
+            <button type="button" class="btn btn-danger btn-sm p-0 position-absolute top-0 end-0 rounded-circle btn-remove-edit-new" data-idx="${idx}" style="width: 20px; height: 20px; line-height: 1; font-size: 11px;">&times;</button>
+            <img src="${item.previewUrl}" class="rounded mb-1" style="width: 100%; height: 64px; object-fit: cover;" />
+            <input type="text" class="form-control form-control-sm py-0 px-1 edit-new-label" data-idx="${idx}" value="${item.label.replace(/"/g, "&quot;")}" style="font-size: 11px; height: 24px;" placeholder="Nhãn góc..." />
+          </div>`,
+        )
+        .join("");
+
+      newEl.querySelectorAll(".btn-remove-edit-new").forEach((btn) => {
+        btn.onclick = () => {
+          const i = parseInt(btn.getAttribute("data-idx"), 10);
+          if (editNewExtraItems[i]?.previewUrl) URL.revokeObjectURL(editNewExtraItems[i].previewUrl);
+          editNewExtraItems.splice(i, 1);
+          renderEditGalleries();
+        };
+      });
+
+      newEl.querySelectorAll(".edit-new-label").forEach((input) => {
+        input.oninput = () => {
+          const i = parseInt(input.getAttribute("data-idx"), 10);
+          if (editNewExtraItems[i]) editNewExtraItems[i].label = input.value;
+        };
+      });
+    }
+
+    updateExtraBadges();
+  };
+
+  const addExtraInput = document.getElementById("addExtraFilesInput");
+  if (addExtraInput) {
+    addExtraInput.onchange = () => {
+      const files = Array.from(addExtraInput.files || []);
+      const remaining = MAX_EXTRA_IMAGES - addExtraItems.length;
+      if (files.length > remaining) {
+        Swal.fire(
+          "Giới hạn 5 ảnh phụ",
+          `Bạn chỉ có thể thêm tối đa ${remaining} ảnh góc chụp phụ nữa.`,
+          "info",
+        );
+      }
+      files.slice(0, Math.max(0, remaining)).forEach((file) => {
+        const idx = addExtraItems.length;
+        addExtraItems.push({
+          file,
+          label: DEFAULT_ANGLE_LABELS[idx] || `Góc chụp ${idx + 1}`,
+          previewUrl: URL.createObjectURL(file),
+        });
+      });
+      addExtraInput.value = "";
+      renderAddExtraGallery();
+    };
+  }
+
+  const editExtraInput = document.getElementById("editExtraFilesInput");
+  if (editExtraInput) {
+    editExtraInput.onchange = () => {
+      const files = Array.from(editExtraInput.files || []);
+      const currentTotal = editExistingImages.length + editNewExtraItems.length;
+      const remaining = MAX_EXTRA_IMAGES - currentTotal;
+      if (files.length > remaining) {
+        Swal.fire(
+          "Giới hạn 5 ảnh phụ",
+          remaining <= 0
+            ? "Sản phẩm đã đủ 5 ảnh phụ. Hãy xóa bớt ảnh cũ trước khi thêm ảnh mới."
+            : `Bạn chỉ có thể thêm tối đa ${remaining} ảnh góc chụp phụ nữa.`,
+          "info",
+        );
+      }
+      files.slice(0, Math.max(0, remaining)).forEach((file) => {
+        const idx = editExistingImages.length + editNewExtraItems.length;
+        editNewExtraItems.push({
+          file,
+          label: DEFAULT_ANGLE_LABELS[idx] || `Góc chụp ${idx + 1}`,
+          previewUrl: URL.createObjectURL(file),
+        });
+      });
+      editExtraInput.value = "";
+      renderEditGalleries();
+    };
+  }
+
   // Mở modal thêm sản phẩm
   if (btnAddProduct) {
     btnAddProduct.onclick = () => {
       if (addForm) addForm.reset();
+      addExtraItems.forEach((it) => it.previewUrl && URL.revokeObjectURL(it.previewUrl));
+      addExtraItems = [];
+      renderAddExtraGallery();
       const defaultImg = document.getElementById("addImgPreview");
       if (defaultImg) defaultImg.src = "/assets/images/default-product.png";
       if (addModal) addModal.show();
@@ -431,10 +604,21 @@ export async function initProductManager() {
       if (!validateProductData(tenSP, giaNhap, giaBan)) return;
 
       const formData = new FormData(addForm);
+      if (addExtraItems.length > 0) {
+        const labels = [];
+        addExtraItems.forEach((item) => {
+          formData.append("HinhAnhPhu", item.file);
+          labels.push(item.label.trim());
+        });
+        formData.append("HinhAnhPhuLabels", JSON.stringify(labels));
+      }
 
       try {
         await axios.post(`${BASE_URL}/products/add`, formData);
         if (addModal) addModal.hide();
+        addExtraItems.forEach((it) => it.previewUrl && URL.revokeObjectURL(it.previewUrl));
+        addExtraItems = [];
+        renderAddExtraGallery();
         Swal.fire("Thành công", "Đã thêm sản phẩm mới", "success");
         loadData();
       } catch (err) {
@@ -479,6 +663,19 @@ export async function initProductManager() {
             document.getElementById("viewImagePreview").src = sp.hinhanh
               ? sp.hinhanh
               : "/assets/images/default-product.png";
+
+            const viewThumbs = document.getElementById("viewGalleryThumbs");
+            if (viewThumbs) {
+              const imgs = Array.isArray(sp.images) ? sp.images : [];
+              viewThumbs.innerHTML = imgs
+                .map(
+                  (img, idx) => `
+                  <button type="button" class="btn p-0 border ${idx === 0 ? "border-primary" : ""} rounded-2 overflow-hidden bg-light" style="width: 52px; height: 52px;" title="${img.nhan || ""}" onclick="document.getElementById('viewImagePreview').src='${img.duongdan}'">
+                    <img src="${img.duongdan}" style="width: 100%; height: 100%; object-fit: cover;" />
+                  </button>`,
+                )
+                .join("");
+            }
 
             if (viewModal) viewModal.show();
           }
@@ -544,6 +741,16 @@ export async function initProductManager() {
               ? sp.hinhanh
               : "/assets/images/default-product.png";
 
+            const editFileMain = document.getElementById("editFileHinhAnh");
+            if (editFileMain) editFileMain.value = "";
+            editNewExtraItems.forEach((it) => it.previewUrl && URL.revokeObjectURL(it.previewUrl));
+            editNewExtraItems = [];
+            editDeletedIds = [];
+            editExistingImages = Array.isArray(sp.images)
+              ? sp.images.filter((img) => !img.la_anh_chinh)
+              : [];
+            renderEditGalleries();
+
             if (editModal) editModal.show();
           }
         } catch (err) {
@@ -588,12 +795,28 @@ export async function initProductManager() {
         );
       }
 
+      if (editDeletedIds.length > 0) {
+        formData.append("DeletedImageIds", JSON.stringify(editDeletedIds));
+      }
+
+      if (editNewExtraItems.length > 0) {
+        const labels = [];
+        editNewExtraItems.forEach((item) => {
+          formData.append("HinhAnhPhu", item.file);
+          labels.push(item.label.trim());
+        });
+        formData.append("HinhAnhPhuLabels", JSON.stringify(labels));
+      }
+
       try {
         await axios.put(`${BASE_URL}/products/update/${maSP}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
         if (editModal) editModal.hide();
+        editNewExtraItems.forEach((it) => it.previewUrl && URL.revokeObjectURL(it.previewUrl));
+        editNewExtraItems = [];
+        editDeletedIds = [];
         Swal.fire("Thành công", "Đã cập nhật sản phẩm thành công!", "success");
         loadData();
       } catch (err) {

@@ -248,6 +248,27 @@
                 </div>
               </div>
             </div>
+
+            <div class="col-12">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <label class="form-label small text-muted fw-bold mb-0">
+                  <i class="fa-regular fa-images me-1 text-primary"></i>Ảnh góc chụp phụ (Tối đa 5 ảnh)
+                </label>
+                <span class="badge bg-light text-secondary border" id="editExtraCountBadge">0/5 ảnh phụ</span>
+              </div>
+              <div id="editExistingGallery" class="d-flex flex-wrap gap-2 mb-2"></div>
+              <input
+                type="file"
+                class="form-control form-control-sm mb-2"
+                id="editExtraFilesInput"
+                accept="image/*"
+                multiple
+              />
+              <div id="editNewGalleryPreview" class="d-flex flex-wrap gap-2"></div>
+              <p class="text-muted mb-0 mt-1" style="font-size: 11px">
+                <i class="fa-solid fa-circle-info me-1"></i> Gợi ý góc chụp: Mặt sau, Cạnh viền, Cụm Camera, Hộp &amp; PK. Bấm dấu × để gỡ ảnh.
+              </p>
+            </div>
           </div>
         </form>
       </div>
@@ -449,6 +470,26 @@
                 </div>
               </div>
             </div>
+
+            <div class="col-12">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <label class="form-label small text-muted fw-bold mb-0">
+                  <i class="fa-regular fa-images me-1 text-primary"></i>Ảnh góc chụp phụ (Tối đa 5 ảnh)
+                </label>
+                <span class="badge bg-light text-secondary border" id="addExtraCountBadge">0/5 ảnh phụ</span>
+              </div>
+              <input
+                type="file"
+                class="form-control form-control-sm mb-2"
+                id="addExtraFilesInput"
+                accept="image/*"
+                multiple
+              />
+              <div id="addExtraGalleryPreview" class="d-flex flex-wrap gap-2"></div>
+              <p class="text-muted mb-0 mt-1" style="font-size: 11px">
+                <i class="fa-solid fa-circle-info me-1"></i> Có thể chọn nhiều ảnh cùng lúc (Mặt sau, Cạnh viền, Cụm Camera, Hộp &amp; PK...).
+              </p>
+            </div>
           </div>
         </form>
       </div>
@@ -507,6 +548,7 @@
                 style="max-height: 100%; object-fit: cover; width: 100%"
               />
             </div>
+            <div id="viewGalleryThumbs" class="d-flex flex-wrap justify-content-center gap-2 mt-2"></div>
           </div>
           <div class="col-md-8">
             <table class="table table-sm table-borderless align-middle mb-0">
