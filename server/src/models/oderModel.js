@@ -11,14 +11,18 @@ const Order = {
       let whereClause = "";
       const dataParams = [limit, offset];
 
-      // Nếu có chọn trạng thái cụ thể (khác "Tất cả")
+      // Nếu có chọn trạng thái cụ thể (khác "Tất cả" / "Tất cả trạng thái")
+      const cleanStatus =
+        trangThaiFilter !== null && trangThaiFilter !== undefined
+          ? String(trangThaiFilter).trim()
+          : "";
       if (
-        trangThaiFilter !== null &&
-        trangThaiFilter !== undefined &&
-        trangThaiFilter !== ""
+        cleanStatus !== "" &&
+        cleanStatus !== "Tất cả" &&
+        cleanStatus !== "Tất cả trạng thái"
       ) {
         whereClause = "WHERE dh.trangthai = $3";
-        dataParams.push(trangThaiFilter);
+        dataParams.push(cleanStatus);
       }
 
       const dataQuery = `

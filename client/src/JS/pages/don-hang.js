@@ -37,12 +37,18 @@ export async function initOrderManager() {
       // Mỗi lần fetch lại dữ liệu, reset bộ chọn hàng loạt
       resetBulkSelection();
 
-      const userData = JSON.parse(localStorage.getItem("hpstore_user"));
-      const token = userData?.token;
-      const selectedStatus = filterSelect?.value || "Tất cả";
+      const rawUser =
+        localStorage.getItem("hpstore_user") || localStorage.getItem("user");
+      const userData = rawUser ? JSON.parse(rawUser) : null;
+      const token = userData?.token || localStorage.getItem("token") || "";
+      const selectedStatus = (filterSelect?.value || "Tất cả").trim();
 
       let url = `${BASE_URL}/orders?page=${page}`;
-      if (selectedStatus !== "Tất cả") {
+      if (
+        selectedStatus &&
+        selectedStatus !== "Tất cả" &&
+        selectedStatus !== "Tất cả trạng thái"
+      ) {
         url += `&trangThai=${encodeURIComponent(selectedStatus)}`;
       }
 
