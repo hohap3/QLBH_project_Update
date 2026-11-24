@@ -28,8 +28,8 @@ const Order = {
       const dataQuery = `
         SELECT 
           dh.madonhang,
-          kh.hoten AS tenkhachhang,
-          kh.email AS emailkhachhang,
+          COALESCE(kh.hoten, pgh.nguoinhan, nd.hoten) AS tenkhachhang,
+          COALESCE(kh.email, nd.email) AS emailkhachhang,
           dh.ngaydat,
           dh.tongtien,
           dh.trangthai,
@@ -38,6 +38,13 @@ const Order = {
           (SELECT COUNT(*)::INT FROM chitiet_donhang ct WHERE ct.madonhang = dh.madonhang) AS soluongsanpham
         FROM donhang dh
         LEFT JOIN khachhang kh ON dh.makh = kh.makh
+        LEFT JOIN nguoidung nd ON nd.mand = COALESCE(dh.manguoidung, kh.mand)
+        LEFT JOIN LATERAL (
+          SELECT nguoinhan, sdtnguoinhan, diachi
+          FROM phieugiaohang
+          WHERE madonhang = dh.madonhang
+          LIMIT 1
+        ) pgh ON true
         ${whereClause}
         ORDER BY dh.ngaydat DESC
         LIMIT $1 OFFSET $2
@@ -77,15 +84,15 @@ const Order = {
           dh.makh,
           dh.makho,
           dh.machinhanh,
-          kh.mand,
+          COALESCE(dh.manguoidung, kh.mand) AS mand,
           dh.ngaydat,
           dh.trangthai,
           dh.tongtien,
           dh.ghichu,
-          kh.hoten AS hotenkhachhang, 
-          kh.sdt AS sdtkhachhang, 
-          kh.email AS emailkhachhang, 
-          kh.diachi AS diachikhachhang,
+          COALESCE(pgh.nguoinhan, kh.hoten, nd.hoten) AS hotenkhachhang,
+          COALESCE(pgh.sdtnguoinhan, kh.sdt, nd.sdt) AS sdtkhachhang,
+          COALESCE(kh.email, nd.email) AS emailkhachhang,
+          COALESCE(pgh.diachi, kh.diachi) AS diachikhachhang,
           nd.tendangnhap AS tendangnhap,
           ct.masp, 
           sp.tensp,
@@ -95,7 +102,13 @@ const Order = {
           ct.giamgia
         FROM donhang dh
         LEFT JOIN khachhang kh ON dh.makh = kh.makh
-        LEFT JOIN nguoidung nd ON kh.mand = nd.mand 
+        LEFT JOIN nguoidung nd ON nd.mand = COALESCE(dh.manguoidung, kh.mand)
+        LEFT JOIN LATERAL (
+          SELECT nguoinhan, sdtnguoinhan, diachi
+          FROM phieugiaohang
+          WHERE madonhang = dh.madonhang
+          LIMIT 1
+        ) pgh ON true
         LEFT JOIN chitiet_donhang ct ON dh.madonhang = ct.madonhang
         LEFT JOIN sanpham sp ON ct.masp = sp.masp
         WHERE dh.madonhang = $1
