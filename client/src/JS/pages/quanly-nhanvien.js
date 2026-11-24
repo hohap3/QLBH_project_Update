@@ -105,7 +105,15 @@ export async function initEmployeeManager() {
     }
   };
 
-  // 2. Render bảng danh sách nhân sự
+  const escapeHtml = (val) =>
+    String(val ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+  // 2. Render bảng danh sách nhân sự (Có chống XSS cho toàn bộ dữ liệu)
   const renderTable = (data) => {
     if (!data || data.length === 0) {
       tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Chưa có nhân viên nào trong hệ thống</td></tr>`;
@@ -122,18 +130,27 @@ export async function initEmployeeManager() {
           roleBadge = `<span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1"><i class="fa-solid fa-user-tie me-1"></i> Quản lý CN</span>`;
         }
 
-        const branchText = nv.tenchinhanh || "Toàn hệ thống (Hội sở)";
+        const safeMaND = escapeHtml(nv.mand);
+        const safeShortId = escapeHtml(String(nv.mand || "").slice(0, 8));
+        const safeUsername = escapeHtml(nv.tendangnhap);
+        const safeHoten = nv.hoten ? escapeHtml(nv.hoten) : "<i>Chưa cập nhật</i>";
+        const safeDataName = escapeHtml(nv.hoten || nv.tendangnhap);
+        const safeBranchText = escapeHtml(nv.tenchinhanh || "Toàn hệ thống (Hội sở)");
+        const safeSDT = escapeHtml(nv.sdt || "N/A");
+        const safeEmail = escapeHtml(nv.email || "N/A");
+        const safeRole = escapeHtml(nv.mavaitro);
+        const safeBranchCode = escapeHtml(nv.machinhanh || "CN_CHINH");
 
         return `
           <tr>
-            <td class="ps-4"><strong>${nv.mand.slice(0, 8)}...</strong></td>
-            <td><span class="badge bg-light text-dark border">${nv.tendangnhap}</span></td>
-            <td><div class="fw-bold text-dark">${nv.hoten || "<i>Chưa cập nhật</i>"}</div></td>
+            <td class="ps-4"><strong>${safeShortId}...</strong></td>
+            <td><span class="badge bg-light text-dark border">${safeUsername}</span></td>
+            <td><div class="fw-bold text-dark">${safeHoten}</div></td>
             <td>${roleBadge}</td>
-            <td><span class="badge bg-light text-secondary border">${branchText}</span></td>
+            <td><span class="badge bg-light text-secondary border">${safeBranchText}</span></td>
             <td>
-              <div class="small"><i class="fa-solid fa-phone me-1 text-muted"></i> ${nv.sdt || "N/A"}</div>
-              <div class="small text-muted"><i class="fa-solid fa-envelope me-1"></i> ${nv.email || "N/A"}</div>
+              <div class="small"><i class="fa-solid fa-phone me-1 text-muted"></i> ${safeSDT}</div>
+              <div class="small text-muted"><i class="fa-solid fa-envelope me-1"></i> ${safeEmail}</div>
             </td>
             <td>
               ${
@@ -151,23 +168,23 @@ export async function initEmployeeManager() {
                 ${
                   isSuperAdmin
                     ? `<button class="btn btn-sm btn-outline-info btn-role" 
-                        data-id="${nv.mand}" 
-                        data-name="${nv.hoten || nv.tendangnhap}" 
-                        data-role="${nv.mavaitro}" 
-                        data-branch="${nv.machinhanh || 'CN_CHINH'}"
+                        data-id="${safeMaND}" 
+                        data-name="${safeDataName}" 
+                        data-role="${safeRole}" 
+                        data-branch="${safeBranchCode}"
                         title="Ủy quyền Admin / Phân bổ Chi nhánh">
                         <i class="fa-solid fa-shield-halved"></i> Phân quyền
                       </button>`
                     : ""
                 }
-                <button class="btn btn-sm btn-outline-primary btn-edit" data-id="${nv.mand}" title="Sửa thông tin">
+                <button class="btn btn-sm btn-outline-primary btn-edit" data-id="${safeMaND}" title="Sửa thông tin">
                   <i class="fa-regular fa-pen-to-square"></i> Sửa
                 </button>
                 <button class="btn btn-sm ${
                   nv.trangthai === "HOAT_DONG" || nv.trangthai === true
                     ? "btn-outline-warning"
                     : "btn-outline-success"
-                } btn-toggle-status" data-id="${nv.mand}" data-status="${nv.trangthai}">
+                } btn-toggle-status" data-id="${safeMaND}" data-status="${escapeHtml(nv.trangthai)}">
                   <i class="fa-solid ${
                     nv.trangthai === "HOAT_DONG" || nv.trangthai === true
                       ? "fa-user-lock"
