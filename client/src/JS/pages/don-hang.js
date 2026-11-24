@@ -132,7 +132,31 @@ export async function initOrderManager() {
 
   searchInput.addEventListener("input", applyClientFilter);
 
+  const orderStatusTabs = document.getElementById("orderStatusTabs");
+
+  const syncStatusTabUI = (statusVal) => {
+    if (!orderStatusTabs) return;
+    orderStatusTabs.querySelectorAll(".order-status-tab").forEach((tab) => {
+      const isMatch = tab.getAttribute("data-status") === statusVal;
+      tab.classList.toggle("active", isMatch);
+      tab.classList.toggle("btn-danger", isMatch);
+      tab.classList.toggle("btn-outline-secondary", !isMatch);
+    });
+  };
+
+  if (orderStatusTabs) {
+    orderStatusTabs.addEventListener("click", (e) => {
+      const tab = e.target.closest(".order-status-tab");
+      if (!tab) return;
+      const targetStatus = tab.getAttribute("data-status") || "Tất cả";
+      if (filterSelect) filterSelect.value = targetStatus;
+      syncStatusTabUI(targetStatus);
+      fetchOrders(1);
+    });
+  }
+
   filterSelect.addEventListener("change", () => {
+    syncStatusTabUI(filterSelect.value || "Tất cả");
     fetchOrders(1);
   });
 
@@ -192,6 +216,25 @@ export async function initOrderManager() {
           ? `<input type="checkbox" class="form-check-input order-checkbox" data-id="${order.madonhang}">`
           : `<input type="checkbox" class="form-check-input" disabled title="Đơn hàng đã đóng">`;
 
+        // Nút duyệt nhanh 1-click ngay trên từng dòng (vẫn giữ nút mắt xem chi tiết)
+        let quickApproveBtn = "";
+        switch (order.trangthai) {
+          case "Chờ xử lý":
+          case "Chờ xác nhận":
+          case "Chờ Xác Nhận":
+            quickApproveBtn = `<button type="button" class="btn btn-sm btn-warning text-dark fw-semibold px-2 py-1 text-nowrap" onclick="handleUpdateStatus('${order.madonhang}', 'Đang xử lý')" title="Xác nhận đơn hàng ngay"><i class="fa-solid fa-check me-1"></i>Xác nhận</button>`;
+            break;
+          case "Đang xử lý":
+            quickApproveBtn = `<button type="button" class="btn btn-sm btn-primary fw-semibold px-2 py-1 text-nowrap" onclick="handleUpdateStatus('${order.madonhang}', 'Đang giao')" title="Chuyển sang Đang giao"><i class="fa-solid fa-truck-fast me-1"></i>Giao hàng</button>`;
+            break;
+          case "Đang giao":
+            quickApproveBtn = `<button type="button" class="btn btn-sm btn-info text-white fw-semibold px-2 py-1 text-nowrap" onclick="handleUpdateStatus('${order.madonhang}', 'Đã giao')" title="Xác nhận Đã giao hàng"><i class="fa-solid fa-box-open me-1"></i>Đã giao</button>`;
+            break;
+          case "Đã giao":
+            quickApproveBtn = `<button type="button" class="btn btn-sm btn-success fw-semibold px-2 py-1 text-nowrap" onclick="handleUpdateStatus('${order.madonhang}', 'Thành công')" title="Hoàn thành đơn & cộng điểm tích lũy"><i class="fa-solid fa-circle-check me-1"></i>Hoàn thành</button>`;
+            break;
+        }
+
         return `
           <tr>
             <td class="text-center">${checkboxHtml}</td>
@@ -205,9 +248,12 @@ export async function initOrderManager() {
             <td class="fw-bold text-dark">${formattedTotal}</td>
             <td class="align-middle">${statusBadge}</td>
             <td class="text-center">
-              <button class="btn-view" onclick="viewOrderDetails('${order.madonhang}')">
-                <i class="fa-regular fa-eye"></i>
-              </button>
+              <div class="d-inline-flex align-items-center justify-content-center gap-1">
+                ${quickApproveBtn}
+                <button type="button" class="btn-view" onclick="viewOrderDetails('${order.madonhang}')" title="Xem chi tiết & Hủy đơn">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+              </div>
             </td>
           </tr>
         `;
@@ -309,8 +355,10 @@ export async function initOrderManager() {
     });
 
     try {
-      const userData = JSON.parse(localStorage.getItem("hpstore_user"));
-      const token = userData?.token;
+      const rawUser =
+        localStorage.getItem("hpstore_user") || localStorage.getItem("user");
+      const userData = rawUser ? JSON.parse(rawUser) : null;
+      const token = userData?.token || localStorage.getItem("token") || "";
 
       // Gọi API PATCH / PUT xử lý theo danh sách ID mảng
       await axios.put(

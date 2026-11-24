@@ -27,12 +27,44 @@
       <option value="Tất cả" selected>Tất cả trạng thái</option>
       <option value="Chờ xử lý">Chờ xử lý</option>
       <option value="Chờ xác nhận">Chờ xác nhận</option>
-      <option>Đang xử lý</option>
-      <option>Đang giao</option>
-      <option>Đã giao</option>
-      <option>Thành công</option>
-      <option>Đã hủy</option>
+      <option value="Đang xử lý">Đang xử lý</option>
+      <option value="Đang giao">Đang giao</option>
+      <option value="Đã giao">Đã giao</option>
+      <option value="Thành công">Thành công</option>
+      <option value="Đã hủy">Đã hủy</option>
     </select>
+  </div>
+
+  <!-- Thanh Tab lọc trạng thái nhanh (đồng bộ 2 chiều với dropdown) -->
+  <div
+    id="orderStatusTabs"
+    class="d-flex flex-nowrap overflow-auto gap-2 mb-3 pb-1"
+    style="scrollbar-width: none;"
+  >
+    <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 fw-semibold flex-shrink-0 order-status-tab active" data-status="Tất cả">
+      Tất cả
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold flex-shrink-0 order-status-tab" data-status="Chờ xử lý">
+      <i class="fa-regular fa-clock me-1"></i>Chờ xử lý
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold flex-shrink-0 order-status-tab" data-status="Chờ xác nhận">
+      Chờ xác nhận
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold flex-shrink-0 order-status-tab" data-status="Đang xử lý">
+      <i class="fa-solid fa-arrows-rotate me-1"></i>Đang xử lý
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold flex-shrink-0 order-status-tab" data-status="Đang giao">
+      <i class="fa-solid fa-truck-fast me-1"></i>Đang giao
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold flex-shrink-0 order-status-tab" data-status="Đã giao">
+      <i class="fa-solid fa-box-open me-1"></i>Đã giao
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold flex-shrink-0 order-status-tab" data-status="Thành công">
+      <i class="fa-solid fa-circle-check me-1"></i>Thành công
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold flex-shrink-0 order-status-tab" data-status="Đã hủy">
+      <i class="fa-solid fa-ban me-1"></i>Đã hủy
+    </button>
   </div>
 
   <div
@@ -77,7 +109,7 @@
             <th class="py-3 text-center">Số lượng</th>
             <th class="py-3 text-end">Tổng tiền</th>
             <th class="py-3 text-center">Trạng thái</th>
-            <th class="py-3 text-center" width="80">Xem</th>
+            <th class="py-3 text-center" width="185">Hành động</th>
           </tr>
         </thead>
         <tbody id="orderTableBody"></tbody>
