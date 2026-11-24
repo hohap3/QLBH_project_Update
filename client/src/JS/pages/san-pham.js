@@ -193,7 +193,7 @@ export async function initProductManager() {
                     <div class="d-flex align-items-center">
                         <div class="rounded-3 me-3 d-flex align-items-center justify-content-center bg-light" 
                              style="width: 45px; height: 45px; overflow: hidden; border: 1px solid #eee;">
-                            <img src="${sp.hinhanh ? sp.hinhanh : "/assets/images/default-product.png"}" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="${sp.hinhanh ? sp.hinhanh : "/img/default.jpg"}" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div>
                             <div class="fw-bold mb-0">${sp.tensp}</div>
@@ -585,7 +585,7 @@ export async function initProductManager() {
       addSlots = createEmptySlotState();
       renderAngleSlots("add");
       const defaultImg = document.getElementById("addImgPreview");
-      if (defaultImg) defaultImg.src = "/assets/images/default-product.png";
+      if (defaultImg) defaultImg.src = "/img/default.jpg";
       if (addModal) addModal.show();
     };
   }
@@ -653,7 +653,7 @@ export async function initProductManager() {
               sp.mota || "(Không có mô tả sản phẩm)";
             document.getElementById("viewImagePreview").src = sp.hinhanh
               ? sp.hinhanh
-              : "/assets/images/default-product.png";
+              : "/img/default.jpg";
 
             const viewThumbs = document.getElementById("viewGalleryThumbs");
             if (viewThumbs) {
@@ -730,7 +730,7 @@ export async function initProductManager() {
             document.getElementById("editHinhAnhCu").value = sp.hinhanh || "";
             document.getElementById("editImagePreview").src = sp.hinhanh
               ? sp.hinhanh
-              : "/assets/images/default-product.png";
+              : "/img/default.jpg";
 
             const editFileMain = document.getElementById("editFileHinhAnh");
             if (editFileMain) editFileMain.value = "";
