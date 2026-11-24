@@ -82,29 +82,77 @@
         <!-- Cột 2: Hero Slider trung tâm (Mở rộng tỷ lệ lớn, sắc nét) -->
         <div class="hp-hero-center">
           <div class="hp-carousel-card">
-            <div id="hpStoreCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div
+              id="hpStoreCarousel"
+              class="carousel slide"
+              data-bs-ride="carousel"
+              data-bs-touch="true"
+              data-bs-pause="hover"
+            >
               <div class="carousel-inner">
-                <div class="carousel-item active" data-bs-interval="3500">
+                <div class="carousel-item active hp-carousel-slide" data-bs-interval="4000" data-cat="SmartPhone">
                   <img src="/img/slider_iphone16.jpg" alt="iPhone 16 Pro Max Siêu Sale" />
+                  <div class="hp-carousel-overlay">
+                    <span class="hp-slide-badge">HOT DEAL • TRẢ GÓP 0%</span>
+                    <h3 class="hp-slide-heading">iPhone 16 Series Chính Hãng</h3>
+                    <p class="hp-slide-sub d-none d-sm-block">Thu cũ lên đời trợ giá đến 5 triệu • Giao nhanh 2h</p>
+                    <span class="hp-slide-cta">Xem ngay <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                  </div>
                 </div>
-                <div class="carousel-item" data-bs-interval="3500">
+                <div class="carousel-item hp-carousel-slide" data-bs-interval="4000" data-cat="Laptop">
                   <img src="/img/slider_laptop.jpg" alt="MacBook M3 Series Siêu Ưu Đãi" />
+                  <div class="hp-carousel-overlay">
+                    <span class="hp-slide-badge">H-EDU • GIẢM THÊM 2 TRIỆU</span>
+                    <h3 class="hp-slide-heading">MacBook &amp; Laptop Gaming 2026</h3>
+                    <p class="hp-slide-sub d-none d-sm-block">Hiệu năng vượt trội cho học tập, đồ họa và chiến game</p>
+                    <span class="hp-slide-cta">Khám phá <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                  </div>
                 </div>
-                <div class="carousel-item" data-bs-interval="3500">
+                <div class="carousel-item hp-carousel-slide" data-bs-interval="4000" data-cat="SmartPhone">
                   <img src="/img/slider_samsung.jpg" alt="Galaxy S24 Ultra Đẳng Cấp" />
+                  <div class="hp-carousel-overlay">
+                    <span class="hp-slide-badge">GALAXY AI • ƯU ĐÃI ĐỘC QUYỀN</span>
+                    <h3 class="hp-slide-heading">Galaxy S24 Ultra Đẳng Cấp</h3>
+                    <p class="hp-slide-sub d-none d-sm-block">Camera 200MP • Trả góp 0% duyệt hồ sơ 5 phút</p>
+                    <span class="hp-slide-cta">Mua ngay <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                  </div>
+                </div>
+                <div class="carousel-item hp-carousel-slide" data-bs-interval="4000" data-cat="Accessories">
+                  <img src="/img/slider_accessories.jpg" alt="Phụ kiện Công nghệ Chính hãng" />
+                  <div class="hp-carousel-overlay">
+                    <span class="hp-slide-badge">GIẢM SỐC ĐẾN 40%</span>
+                    <h3 class="hp-slide-heading">Phụ Kiện &amp; Âm Thanh Chính Hãng</h3>
+                    <p class="hp-slide-sub d-none d-sm-block">AirPods, sạc nhanh, cáp, ốp lưng bảo hành 1 đổi 1</p>
+                    <span class="hp-slide-cta">Săn deal <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                  </div>
                 </div>
               </div>
 
-              <!-- Thanh Tab lướt nhanh sự kiện dưới slider -->
-              <div class="hp-carousel-tabs">
+              <!-- Nút điều hướng Trái / Phải -->
+              <button class="carousel-control-prev hp-carousel-ctrl" type="button" data-bs-target="#hpStoreCarousel" data-bs-slide="prev" aria-label="Slide trước">
+                <span class="hp-ctrl-circle"><i class="fa-solid fa-chevron-left"></i></span>
+              </button>
+              <button class="carousel-control-next hp-carousel-ctrl" type="button" data-bs-target="#hpStoreCarousel" data-bs-slide="next" aria-label="Slide tiếp theo">
+                <span class="hp-ctrl-circle"><i class="fa-solid fa-chevron-right"></i></span>
+              </button>
+
+              <!-- Thanh Tab lướt nhanh sự kiện dưới slider (đồng bộ 2 chiều với slide) -->
+              <div class="hp-carousel-tabs" id="hpCarouselTabs">
                 <div class="hp-carousel-tab active" data-bs-target="#hpStoreCarousel" data-bs-slide-to="0">
-                  IPHONE 15 PRO MAX<br><small style="font-size: 10px; font-weight: normal;">Mua ngay giá hời</small>
+                  <span>IPHONE 16 SERIES</span>
+                  <small>Mua ngay giá hời</small>
                 </div>
                 <div class="hp-carousel-tab" data-bs-target="#hpStoreCarousel" data-bs-slide-to="1">
-                  MACBOOK PRO M3<br><small style="font-size: 10px; font-weight: normal;">Trợ giá 2 triệu</small>
+                  <span>MACBOOK &amp; LAPTOP</span>
+                  <small>Trợ giá 2 triệu</small>
                 </div>
                 <div class="hp-carousel-tab" data-bs-target="#hpStoreCarousel" data-bs-slide-to="2">
-                  GALAXY S24 ULTRA<br><small style="font-size: 10px; font-weight: normal;">Trả góp 0%</small>
+                  <span>GALAXY S24 ULTRA</span>
+                  <small>Trả góp 0%</small>
+                </div>
+                <div class="hp-carousel-tab" data-bs-target="#hpStoreCarousel" data-bs-slide-to="3">
+                  <span>PHỤ KIỆN CHÍNH HÃNG</span>
+                  <small>Giảm sốc đến 40%</small>
                 </div>
               </div>
             </div>

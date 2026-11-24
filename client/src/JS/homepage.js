@@ -872,8 +872,66 @@ function initInteractionEvents() {
   }
 }
 
+// ─── 9. ĐỒNG BỘ CAROUSEL BANNER CHÍNH (#hpStoreCarousel) ───
+function initHeroCarousel() {
+  const carouselEl = document.getElementById("hpStoreCarousel");
+  const tabsContainer = document.getElementById("hpCarouselTabs");
+  if (!carouselEl || !tabsContainer) return;
+
+  const tabs = Array.from(tabsContainer.querySelectorAll(".hp-carousel-tab"));
+
+  const setActiveTab = (index) => {
+    tabs.forEach((t, i) => t.classList.toggle("active", i === index));
+    const activeTab = tabs[index];
+    if (activeTab) {
+      // Căn giữa tab đang chọn trong thanh cuộn ngang mà không làm giật cuộn dọc của trang
+      const targetLeft =
+        activeTab.offsetLeft -
+        tabsContainer.clientWidth / 2 +
+        activeTab.clientWidth / 2;
+      tabsContainer.scrollTo({
+        left: Math.max(0, targetLeft),
+        behavior: "smooth",
+      });
+    }
+  };
+
+  // Đồng bộ khi Bootstrap Carousel chuyển slide (tự chạy, bấm nút prev/next, vuốt mobile)
+  carouselEl.addEventListener("slide.bs.carousel", (event) => {
+    if (typeof event.to === "number") {
+      setActiveTab(event.to);
+    }
+  });
+
+  // Cập nhật ngay lập tức khi người dùng bấm trực tiếp vào tab
+  tabs.forEach((tab, idx) => {
+    tab.addEventListener("click", () => setActiveTab(idx));
+  });
+
+  // Bấm vào ảnh banner → tự động lọc đúng danh mục & cuộn xuống danh sách sản phẩm
+  carouselEl.querySelectorAll(".hp-carousel-slide").forEach((slide) => {
+    slide.addEventListener("click", () => {
+      const cat = slide.getAttribute("data-cat");
+      if (!cat) return;
+      const targetBtn = document.querySelector(
+        `#category-filter button[data-id="${CSS.escape(cat)}"]`,
+      );
+      if (targetBtn) {
+        targetBtn.click();
+      } else {
+        currentFilters = { search: null, minPrice: null, maxPrice: null, label: null };
+        loadProducts(cat, 1, currentFilters);
+      }
+      document
+        .getElementById("product-list")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
+
 // Khởi chạy khi DOM tải xong
 document.addEventListener("DOMContentLoaded", () => {
+  initHeroCarousel();
   initSearchSuggestions();
   initCategoryFilters();
   initMegaMenu();
