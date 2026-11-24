@@ -250,23 +250,15 @@
             </div>
 
             <div class="col-12">
-              <div class="d-flex align-items-center justify-content-between mb-1">
+              <div class="d-flex align-items-center justify-content-between mb-2">
                 <label class="form-label small text-muted fw-bold mb-0">
-                  <i class="fa-regular fa-images me-1 text-primary"></i>Ảnh góc chụp phụ (Tối đa 5 ảnh)
+                  <i class="fa-regular fa-images me-1 text-primary"></i>Ảnh góc chụp phụ theo từng mục (Tối đa 5 góc)
                 </label>
-                <span class="badge bg-light text-secondary border" id="editExtraCountBadge">0/5 ảnh phụ</span>
+                <span class="badge bg-light text-secondary border" id="editExtraCountBadge">0/5 góc chụp</span>
               </div>
-              <div id="editExistingGallery" class="d-flex flex-wrap gap-2 mb-2"></div>
-              <input
-                type="file"
-                class="form-control form-control-sm mb-2"
-                id="editExtraFilesInput"
-                accept="image/*"
-                multiple
-              />
-              <div id="editNewGalleryPreview" class="d-flex flex-wrap gap-2"></div>
-              <p class="text-muted mb-0 mt-1" style="font-size: 11px">
-                <i class="fa-solid fa-circle-info me-1"></i> Gợi ý góc chụp: Mặt sau, Cạnh viền, Cụm Camera, Hộp &amp; PK. Bấm dấu × để gỡ ảnh.
+              <div id="editAngleSlotsGrid" class="row row-cols-2 row-cols-md-5 g-2"></div>
+              <p class="text-muted mb-0 mt-2" style="font-size: 11px">
+                <i class="fa-solid fa-circle-info me-1"></i> Bấm vào từng ô (Mặt sau, Cạnh viền, Cụm Camera, Hộp &amp; PK, Góc khác) để chọn hoặc thay ảnh đúng góc chụp.
               </p>
             </div>
           </div>
@@ -472,22 +464,15 @@
             </div>
 
             <div class="col-12">
-              <div class="d-flex align-items-center justify-content-between mb-1">
+              <div class="d-flex align-items-center justify-content-between mb-2">
                 <label class="form-label small text-muted fw-bold mb-0">
-                  <i class="fa-regular fa-images me-1 text-primary"></i>Ảnh góc chụp phụ (Tối đa 5 ảnh)
+                  <i class="fa-regular fa-images me-1 text-primary"></i>Ảnh góc chụp phụ theo từng mục (Tối đa 5 góc)
                 </label>
-                <span class="badge bg-light text-secondary border" id="addExtraCountBadge">0/5 ảnh phụ</span>
+                <span class="badge bg-light text-secondary border" id="addExtraCountBadge">0/5 góc chụp</span>
               </div>
-              <input
-                type="file"
-                class="form-control form-control-sm mb-2"
-                id="addExtraFilesInput"
-                accept="image/*"
-                multiple
-              />
-              <div id="addExtraGalleryPreview" class="d-flex flex-wrap gap-2"></div>
-              <p class="text-muted mb-0 mt-1" style="font-size: 11px">
-                <i class="fa-solid fa-circle-info me-1"></i> Có thể chọn nhiều ảnh cùng lúc (Mặt sau, Cạnh viền, Cụm Camera, Hộp &amp; PK...).
+              <div id="addAngleSlotsGrid" class="row row-cols-2 row-cols-md-5 g-2"></div>
+              <p class="text-muted mb-0 mt-2" style="font-size: 11px">
+                <i class="fa-solid fa-circle-info me-1"></i> Chọn ảnh vào đúng từng ô góc chụp (không bắt buộc điền đủ cả 5 ô).
               </p>
             </div>
           </div>

@@ -20,16 +20,24 @@ function parseJsonArray(raw) {
   }
 }
 
-function buildExtraImagesPayload(files, rawLabels) {
+function buildExtraImagesPayload(files, rawLabels, rawMeta) {
   const labels = parseJsonArray(rawLabels);
-  return (files || []).slice(0, 5).map((file, idx) => ({
-    url: file.path,
-    nhan:
-      (labels[idx] && String(labels[idx]).trim()) ||
-      DEFAULT_ANGLE_LABELS[idx] ||
-      `Góc chụp ${idx + 1}`,
-    loaigoc: `angle_${idx + 1}`,
-  }));
+  const metaList = parseJsonArray(rawMeta);
+  return (files || []).slice(0, 5).map((file, idx) => {
+    const meta = metaList[idx] || {};
+    const parsedOrder = parseInt(meta.thutu, 10);
+    return {
+      url: file.path,
+      nhan:
+        (meta.nhan && String(meta.nhan).trim()) ||
+        (labels[idx] && String(labels[idx]).trim()) ||
+        DEFAULT_ANGLE_LABELS[idx] ||
+        `Góc chụp ${idx + 1}`,
+      loaigoc:
+        (meta.loaigoc && String(meta.loaigoc).trim()) || `angle_${idx + 1}`,
+      thutu: !isNaN(parsedOrder) && parsedOrder > 0 ? parsedOrder : idx + 1,
+    };
+  });
 }
 
 const productManagerController = {
@@ -110,6 +118,7 @@ const productManagerController = {
         HinhAnhPhu: buildExtraImagesPayload(
           extraFiles,
           req.body.HinhAnhPhuLabels,
+          req.body.HinhAnhPhuMeta,
         ),
       };
 
@@ -153,6 +162,7 @@ const productManagerController = {
         HinhAnhPhu: buildExtraImagesPayload(
           extraFiles,
           req.body.HinhAnhPhuLabels,
+          req.body.HinhAnhPhuMeta,
         ),
         DeletedImageIds: parseJsonArray(req.body.DeletedImageIds),
       };

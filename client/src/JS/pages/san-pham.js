@@ -409,183 +409,181 @@ export async function initProductManager() {
     };
   }
 
-  // --- QUẢN LÝ ẢNH GÓC CHỤP PHỤ (TỐI ĐA 5 ẢNH / SẢN PHẨM) ---
-  const MAX_EXTRA_IMAGES = 5;
-  const DEFAULT_ANGLE_LABELS = [
-    "Mặt sau",
-    "Cạnh viền",
-    "Cụm Camera",
-    "Hộp & PK",
-    "Góc khác",
+  // --- QUẢN LÝ 5 Ô ẢNH GÓC CHỤP PHỤ CỐ ĐỊNH (Mặt sau, Cạnh viền, Cụm Camera, Hộp & PK, Góc khác) ---
+  const ANGLE_SLOTS = [
+    { key: "back", label: "Mặt sau", thutu: 1, icon: "fa-mobile-screen-button" },
+    { key: "side", label: "Cạnh viền", thutu: 2, icon: "fa-sliders" },
+    { key: "camera", label: "Cụm Camera", thutu: 3, icon: "fa-camera" },
+    { key: "box", label: "Hộp & PK", thutu: 4, icon: "fa-box-open" },
+    { key: "other", label: "Góc khác", thutu: 5, icon: "fa-image" },
   ];
 
-  let addExtraItems = []; // [{ file, label, previewUrl }]
-  let editExistingImages = []; // [{ maanh, duongdan, nhan }]
-  let editDeletedIds = []; // [maanh, ...]
-  let editNewExtraItems = []; // [{ file, label, previewUrl }]
+  // State cho mỗi ô: { existing: { maanh, duongdan } | null, file: File | null, previewUrl: string | null }
+  const createEmptySlotState = () =>
+    ANGLE_SLOTS.reduce((acc, s) => {
+      acc[s.key] = { existing: null, file: null, previewUrl: null };
+      return acc;
+    }, {});
 
-  const updateExtraBadges = () => {
-    const addBadge = document.getElementById("addExtraCountBadge");
-    if (addBadge) {
-      addBadge.innerText = `${addExtraItems.length}/${MAX_EXTRA_IMAGES} ảnh phụ`;
-    }
-    const editBadge = document.getElementById("editExtraCountBadge");
-    if (editBadge) {
-      const totalEdit = editExistingImages.length + editNewExtraItems.length;
-      editBadge.innerText = `${totalEdit}/${MAX_EXTRA_IMAGES} ảnh phụ`;
-    }
+  let addSlots = createEmptySlotState();
+  let editSlots = createEmptySlotState();
+  let editDeletedIds = [];
+
+  const revokeSlotUrls = (slotsObj) => {
+    Object.values(slotsObj).forEach((st) => {
+      if (st?.previewUrl) URL.revokeObjectURL(st.previewUrl);
+    });
   };
 
-  const renderAddExtraGallery = () => {
-    const container = document.getElementById("addExtraGalleryPreview");
+  const countFilledSlots = (slotsObj) =>
+    ANGLE_SLOTS.filter((s) => slotsObj[s.key]?.file || slotsObj[s.key]?.existing).length;
+
+  const renderAngleSlots = (mode) => {
+    const isEdit = mode === "edit";
+    const slotsObj = isEdit ? editSlots : addSlots;
+    const container = document.getElementById(
+      isEdit ? "editAngleSlotsGrid" : "addAngleSlotsGrid",
+    );
+    const badge = document.getElementById(
+      isEdit ? "editExtraCountBadge" : "addExtraCountBadge",
+    );
+    if (badge) {
+      badge.innerText = `${countFilledSlots(slotsObj)}/${ANGLE_SLOTS.length} góc chụp`;
+    }
     if (!container) return;
-    container.innerHTML = addExtraItems
-      .map(
-        (item, idx) => `
-        <div class="border rounded-3 p-1 bg-light position-relative" style="width: 108px;">
-          <button type="button" class="btn btn-danger btn-sm p-0 position-absolute top-0 end-0 rounded-circle btn-remove-add-extra" data-idx="${idx}" style="width: 20px; height: 20px; line-height: 1; font-size: 11px;">&times;</button>
-          <img src="${item.previewUrl}" class="rounded mb-1" style="width: 100%; height: 64px; object-fit: cover;" />
-          <input type="text" class="form-control form-control-sm py-0 px-1 add-extra-label" data-idx="${idx}" value="${item.label.replace(/"/g, "&quot;")}" style="font-size: 11px; height: 24px;" placeholder="Nhãn góc..." />
-        </div>`,
-      )
-      .join("");
 
-    container.querySelectorAll(".btn-remove-add-extra").forEach((btn) => {
+    container.innerHTML = ANGLE_SLOTS.map((slot) => {
+      const st = slotsObj[slot.key];
+      const imgSrc = st.previewUrl || st.existing?.duongdan || "";
+      const hasImg = Boolean(imgSrc);
+      const inputId = `${mode}SlotFile_${slot.key}`;
+
+      return `
+        <div class="col">
+          <div class="border rounded-3 p-2 bg-white h-100 d-flex flex-column align-items-center text-center position-relative shadow-sm">
+            ${
+              hasImg
+                ? `<button type="button" class="btn btn-danger btn-sm p-0 position-absolute top-0 end-0 m-1 rounded-circle btn-clear-slot" data-mode="${mode}" data-key="${slot.key}" title="Gỡ ảnh ${slot.label}" style="width: 20px; height: 20px; line-height: 1; font-size: 11px; z-index: 2;">&times;</button>`
+                : ""
+            }
+            <div class="fw-bold text-dark mb-1" style="font-size: 11.5px;">${slot.label}</div>
+            <label for="${inputId}" class="w-100 rounded-2 border d-flex flex-column align-items-center justify-content-center bg-light overflow-hidden mb-1" style="height: 82px; cursor: pointer; border-style: ${hasImg ? "solid" : "dashed"} !important;">
+              ${
+                hasImg
+                  ? `<img src="${imgSrc}" alt="${slot.label}" style="width: 100%; height: 100%; object-fit: cover;" />`
+                  : `<i class="fa-solid ${slot.icon} text-secondary mb-1" style="font-size: 18px; opacity: 0.6;"></i><span class="text-muted" style="font-size: 10.5px;">+ Chọn ảnh</span>`
+              }
+            </label>
+            <input type="file" id="${inputId}" class="d-none slot-file-input" data-mode="${mode}" data-key="${slot.key}" accept="image/*" />
+            <label for="${inputId}" class="btn btn-outline-secondary btn-sm py-0 px-2 w-100" style="font-size: 10.5px; cursor: pointer;">
+              ${hasImg ? "Đổi ảnh" : "Tải lên"}
+            </label>
+          </div>
+        </div>`;
+    }).join("");
+
+    container.querySelectorAll(".slot-file-input").forEach((input) => {
+      input.onchange = () => {
+        const file = input.files?.[0];
+        if (!file) return;
+        const key = input.getAttribute("data-key");
+        const st = slotsObj[key];
+        if (st.previewUrl) URL.revokeObjectURL(st.previewUrl);
+        // Nếu đang ở chế độ Sửa và ô này đã có ảnh cũ trong DB → đánh dấu xóa ảnh cũ để thay bằng ảnh mới
+        if (isEdit && st.existing?.maanh) {
+          if (!editDeletedIds.includes(st.existing.maanh)) {
+            editDeletedIds.push(st.existing.maanh);
+          }
+          st.existing = null;
+        }
+        st.file = file;
+        st.previewUrl = URL.createObjectURL(file);
+        renderAngleSlots(mode);
+      };
+    });
+
+    container.querySelectorAll(".btn-clear-slot").forEach((btn) => {
       btn.onclick = () => {
-        const i = parseInt(btn.getAttribute("data-idx"), 10);
-        if (addExtraItems[i]?.previewUrl) URL.revokeObjectURL(addExtraItems[i].previewUrl);
-        addExtraItems.splice(i, 1);
-        renderAddExtraGallery();
+        const key = btn.getAttribute("data-key");
+        const st = slotsObj[key];
+        if (st.previewUrl) URL.revokeObjectURL(st.previewUrl);
+        if (isEdit && st.existing?.maanh) {
+          if (!editDeletedIds.includes(st.existing.maanh)) {
+            editDeletedIds.push(st.existing.maanh);
+          }
+        }
+        slotsObj[key] = { existing: null, file: null, previewUrl: null };
+        renderAngleSlots(mode);
       };
     });
+  };
 
-    container.querySelectorAll(".add-extra-label").forEach((input) => {
-      input.oninput = () => {
-        const i = parseInt(input.getAttribute("data-idx"), 10);
-        if (addExtraItems[i]) addExtraItems[i].label = input.value;
-      };
+  // Ánh xạ danh sách ảnh phụ từ DB vào đúng 5 ô góc chụp
+  const populateEditSlotsFromImages = (images) => {
+    revokeSlotUrls(editSlots);
+    editSlots = createEmptySlotState();
+    editDeletedIds = [];
+
+    const extraImgs = Array.isArray(images)
+      ? images.filter((img) => !img.la_anh_chinh)
+      : [];
+
+    const unmatched = [];
+    extraImgs.forEach((img) => {
+      const code = String(img.loaigoc || "").toLowerCase();
+      const labelLower = String(img.nhan || "").toLowerCase();
+      let matchedSlot = ANGLE_SLOTS.find(
+        (s) =>
+          s.key === code ||
+          s.label.toLowerCase() === labelLower ||
+          (s.key === "back" && labelLower.includes("sau")) ||
+          (s.key === "side" && (labelLower.includes("cạnh") || labelLower.includes("viền"))) ||
+          (s.key === "camera" && labelLower.includes("camera")) ||
+          (s.key === "box" && (labelLower.includes("hộp") || labelLower.includes("phụ kiện") || labelLower.includes("pk"))),
+      );
+      if (matchedSlot && !editSlots[matchedSlot.key].existing) {
+        editSlots[matchedSlot.key].existing = img;
+      } else {
+        unmatched.push(img);
+      }
     });
 
-    updateExtraBadges();
+    // Ảnh phụ cũ không khớp tên sẽ tự điền vào các ô còn trống
+    unmatched.forEach((img) => {
+      const emptySlot = ANGLE_SLOTS.find((s) => !editSlots[s.key].existing);
+      if (emptySlot) {
+        editSlots[emptySlot.key].existing = img;
+      }
+    });
+
+    renderAngleSlots("edit");
   };
 
-  const renderEditGalleries = () => {
-    const existingEl = document.getElementById("editExistingGallery");
-    if (existingEl) {
-      existingEl.innerHTML = editExistingImages
-        .map(
-          (img) => `
-          <div class="border rounded-3 p-1 bg-white position-relative shadow-sm" style="width: 108px;">
-            <button type="button" class="btn btn-danger btn-sm p-0 position-absolute top-0 end-0 rounded-circle btn-remove-existing-img" data-id="${img.maanh}" title="Xóa ảnh này" style="width: 20px; height: 20px; line-height: 1; font-size: 11px;">&times;</button>
-            <img src="${img.duongdan}" class="rounded mb-1" style="width: 100%; height: 64px; object-fit: cover;" />
-            <div class="text-truncate text-center text-muted fw-semibold" style="font-size: 11px;" title="${img.nhan || ""}">${img.nhan || "Ảnh phụ"}</div>
-          </div>`,
-        )
-        .join("");
-
-      existingEl.querySelectorAll(".btn-remove-existing-img").forEach((btn) => {
-        btn.onclick = () => {
-          const imgId = parseInt(btn.getAttribute("data-id"), 10);
-          editExistingImages = editExistingImages.filter((x) => x.maanh !== imgId);
-          if (!editDeletedIds.includes(imgId)) editDeletedIds.push(imgId);
-          renderEditGalleries();
-        };
-      });
+  const appendSlotsToFormData = (formData, slotsObj) => {
+    const metaList = [];
+    ANGLE_SLOTS.forEach((slot) => {
+      const st = slotsObj[slot.key];
+      if (st?.file) {
+        formData.append("HinhAnhPhu", st.file);
+        metaList.push({
+          nhan: slot.label,
+          loaigoc: slot.key,
+          thutu: slot.thutu,
+        });
+      }
+    });
+    if (metaList.length > 0) {
+      formData.append("HinhAnhPhuMeta", JSON.stringify(metaList));
     }
-
-    const newEl = document.getElementById("editNewGalleryPreview");
-    if (newEl) {
-      newEl.innerHTML = editNewExtraItems
-        .map(
-          (item, idx) => `
-          <div class="border border-primary-subtle rounded-3 p-1 bg-light position-relative" style="width: 108px;">
-            <button type="button" class="btn btn-danger btn-sm p-0 position-absolute top-0 end-0 rounded-circle btn-remove-edit-new" data-idx="${idx}" style="width: 20px; height: 20px; line-height: 1; font-size: 11px;">&times;</button>
-            <img src="${item.previewUrl}" class="rounded mb-1" style="width: 100%; height: 64px; object-fit: cover;" />
-            <input type="text" class="form-control form-control-sm py-0 px-1 edit-new-label" data-idx="${idx}" value="${item.label.replace(/"/g, "&quot;")}" style="font-size: 11px; height: 24px;" placeholder="Nhãn góc..." />
-          </div>`,
-        )
-        .join("");
-
-      newEl.querySelectorAll(".btn-remove-edit-new").forEach((btn) => {
-        btn.onclick = () => {
-          const i = parseInt(btn.getAttribute("data-idx"), 10);
-          if (editNewExtraItems[i]?.previewUrl) URL.revokeObjectURL(editNewExtraItems[i].previewUrl);
-          editNewExtraItems.splice(i, 1);
-          renderEditGalleries();
-        };
-      });
-
-      newEl.querySelectorAll(".edit-new-label").forEach((input) => {
-        input.oninput = () => {
-          const i = parseInt(input.getAttribute("data-idx"), 10);
-          if (editNewExtraItems[i]) editNewExtraItems[i].label = input.value;
-        };
-      });
-    }
-
-    updateExtraBadges();
   };
-
-  const addExtraInput = document.getElementById("addExtraFilesInput");
-  if (addExtraInput) {
-    addExtraInput.onchange = () => {
-      const files = Array.from(addExtraInput.files || []);
-      const remaining = MAX_EXTRA_IMAGES - addExtraItems.length;
-      if (files.length > remaining) {
-        Swal.fire(
-          "Giới hạn 5 ảnh phụ",
-          `Bạn chỉ có thể thêm tối đa ${remaining} ảnh góc chụp phụ nữa.`,
-          "info",
-        );
-      }
-      files.slice(0, Math.max(0, remaining)).forEach((file) => {
-        const idx = addExtraItems.length;
-        addExtraItems.push({
-          file,
-          label: DEFAULT_ANGLE_LABELS[idx] || `Góc chụp ${idx + 1}`,
-          previewUrl: URL.createObjectURL(file),
-        });
-      });
-      addExtraInput.value = "";
-      renderAddExtraGallery();
-    };
-  }
-
-  const editExtraInput = document.getElementById("editExtraFilesInput");
-  if (editExtraInput) {
-    editExtraInput.onchange = () => {
-      const files = Array.from(editExtraInput.files || []);
-      const currentTotal = editExistingImages.length + editNewExtraItems.length;
-      const remaining = MAX_EXTRA_IMAGES - currentTotal;
-      if (files.length > remaining) {
-        Swal.fire(
-          "Giới hạn 5 ảnh phụ",
-          remaining <= 0
-            ? "Sản phẩm đã đủ 5 ảnh phụ. Hãy xóa bớt ảnh cũ trước khi thêm ảnh mới."
-            : `Bạn chỉ có thể thêm tối đa ${remaining} ảnh góc chụp phụ nữa.`,
-          "info",
-        );
-      }
-      files.slice(0, Math.max(0, remaining)).forEach((file) => {
-        const idx = editExistingImages.length + editNewExtraItems.length;
-        editNewExtraItems.push({
-          file,
-          label: DEFAULT_ANGLE_LABELS[idx] || `Góc chụp ${idx + 1}`,
-          previewUrl: URL.createObjectURL(file),
-        });
-      });
-      editExtraInput.value = "";
-      renderEditGalleries();
-    };
-  }
 
   // Mở modal thêm sản phẩm
   if (btnAddProduct) {
     btnAddProduct.onclick = () => {
       if (addForm) addForm.reset();
-      addExtraItems.forEach((it) => it.previewUrl && URL.revokeObjectURL(it.previewUrl));
-      addExtraItems = [];
-      renderAddExtraGallery();
+      revokeSlotUrls(addSlots);
+      addSlots = createEmptySlotState();
+      renderAngleSlots("add");
       const defaultImg = document.getElementById("addImgPreview");
       if (defaultImg) defaultImg.src = "/assets/images/default-product.png";
       if (addModal) addModal.show();
@@ -604,21 +602,14 @@ export async function initProductManager() {
       if (!validateProductData(tenSP, giaNhap, giaBan)) return;
 
       const formData = new FormData(addForm);
-      if (addExtraItems.length > 0) {
-        const labels = [];
-        addExtraItems.forEach((item) => {
-          formData.append("HinhAnhPhu", item.file);
-          labels.push(item.label.trim());
-        });
-        formData.append("HinhAnhPhuLabels", JSON.stringify(labels));
-      }
+      appendSlotsToFormData(formData, addSlots);
 
       try {
         await axios.post(`${BASE_URL}/products/add`, formData);
         if (addModal) addModal.hide();
-        addExtraItems.forEach((it) => it.previewUrl && URL.revokeObjectURL(it.previewUrl));
-        addExtraItems = [];
-        renderAddExtraGallery();
+        revokeSlotUrls(addSlots);
+        addSlots = createEmptySlotState();
+        renderAngleSlots("add");
         Swal.fire("Thành công", "Đã thêm sản phẩm mới", "success");
         loadData();
       } catch (err) {
@@ -743,13 +734,7 @@ export async function initProductManager() {
 
             const editFileMain = document.getElementById("editFileHinhAnh");
             if (editFileMain) editFileMain.value = "";
-            editNewExtraItems.forEach((it) => it.previewUrl && URL.revokeObjectURL(it.previewUrl));
-            editNewExtraItems = [];
-            editDeletedIds = [];
-            editExistingImages = Array.isArray(sp.images)
-              ? sp.images.filter((img) => !img.la_anh_chinh)
-              : [];
-            renderEditGalleries();
+            populateEditSlotsFromImages(sp.images);
 
             if (editModal) editModal.show();
           }
@@ -799,14 +784,7 @@ export async function initProductManager() {
         formData.append("DeletedImageIds", JSON.stringify(editDeletedIds));
       }
 
-      if (editNewExtraItems.length > 0) {
-        const labels = [];
-        editNewExtraItems.forEach((item) => {
-          formData.append("HinhAnhPhu", item.file);
-          labels.push(item.label.trim());
-        });
-        formData.append("HinhAnhPhuLabels", JSON.stringify(labels));
-      }
+      appendSlotsToFormData(formData, editSlots);
 
       try {
         await axios.put(`${BASE_URL}/products/update/${maSP}`, formData, {
@@ -814,8 +792,8 @@ export async function initProductManager() {
         });
 
         if (editModal) editModal.hide();
-        editNewExtraItems.forEach((it) => it.previewUrl && URL.revokeObjectURL(it.previewUrl));
-        editNewExtraItems = [];
+        revokeSlotUrls(editSlots);
+        editSlots = createEmptySlotState();
         editDeletedIds = [];
         Swal.fire("Thành công", "Đã cập nhật sản phẩm thành công!", "success");
         loadData();

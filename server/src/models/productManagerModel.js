@@ -125,7 +125,7 @@ const productManagerModel = {
         );
       }
 
-      // Lưu tối đa 5 ảnh góc chụp phụ vào hinhanh_sanpham
+      // Lưu tối đa 5 ảnh góc chụp phụ vào hinhanh_sanpham (giữ đúng loaigoc & thutu của từng ô)
       const extraImages = Array.isArray(data.HinhAnhPhu)
         ? data.HinhAnhPhu.slice(0, 5)
         : [];
@@ -139,7 +139,7 @@ const productManagerModel = {
             img.url,
             img.nhan || `Góc chụp ${i + 1}`,
             img.loaigoc || "gallery",
-            i + 1,
+            img.thutu || i + 1,
           ],
         );
       }
@@ -240,15 +240,16 @@ const productManagerModel = {
 
         const toInsert = newExtraImages.slice(0, remainingSlots);
         for (const img of toInsert) {
+          const orderVal = img.thutu || nextOrder;
           await client.query(
             `INSERT INTO hinhanh_sanpham (masp, duongdan, nhan, loaigoc, thutu, la_anh_chinh)
              VALUES ($1, $2, $3, $4, $5, false)`,
             [
               productId,
               img.url,
-              img.nhan || `Góc chụp ${nextOrder}`,
+              img.nhan || `Góc chụp ${orderVal}`,
               img.loaigoc || "gallery",
-              nextOrder,
+              orderVal,
             ],
           );
           nextOrder++;
