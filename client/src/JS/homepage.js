@@ -354,6 +354,19 @@ async function initCategoryFilters() {
       });
     }
 
+    // Đồng bộ động các nút lọc danh mục trong mục Deal sốc mỗi ngày (.hp-pill-btn)
+    const flashPillsContainer = document.getElementById("flashsale-pills-filter");
+    if (flashPillsContainer && categories.length > 0) {
+      flashPillsContainer.innerHTML =
+        `<button class="hp-pill-btn active" data-cat="all">Tất cả sản phẩm</button>` +
+        categories
+          .map(
+            (dm) =>
+              `<button class="hp-pill-btn" data-cat="${dm.madanhmuc}">${dm.tendanhmuc}</button>`,
+          )
+          .join("");
+    }
+
     // Tự động lọc nếu URL có ?cat=... (từ Mobile Category Drawer)
     const urlCat = new URLSearchParams(window.location.search).get("cat");
     if (urlCat) {
@@ -843,15 +856,20 @@ function initInteractionEvents() {
     });
   });
 
-  // Flash sale category pills
-  document.querySelectorAll(".hp-pill-btn, .cp-pill-btn").forEach((pill) => {
-    pill.addEventListener("click", () => {
-      document.querySelectorAll(".hp-pill-btn, .cp-pill-btn").forEach((p) => p.classList.remove("active"));
+  // Flash sale category pills (dùng event delegation để bắt cả nút render động từ API)
+  const flashPillsContainer = document.getElementById("flashsale-pills-filter");
+  if (flashPillsContainer) {
+    flashPillsContainer.addEventListener("click", (e) => {
+      const pill = e.target.closest(".hp-pill-btn, .cp-pill-btn");
+      if (!pill) return;
+      flashPillsContainer
+        .querySelectorAll(".hp-pill-btn, .cp-pill-btn")
+        .forEach((p) => p.classList.remove("active"));
       pill.classList.add("active");
       const cat = pill.getAttribute("data-cat") || "all";
       loadBestSellers(cat);
     });
-  });
+  }
 }
 
 // Khởi chạy khi DOM tải xong

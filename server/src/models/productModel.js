@@ -1,30 +1,42 @@
 const { pool } = require("../config/database");
 
 class ProductModel {
-  // 1. LẤY SẢN PHẨM BÁN CHẠY (CÓ PHÂN TRANG & TỔNG ĐÃ BÁN > 0)
-  static async getBestSellers(page = 1, limit = 8) {
+  // 1. LẤY SẢN PHẨM BÁN CHẠY / DEAL SỐC (CÓ LỌC THEO DANH MỤC & LEFT JOIN ĐỂ KHÔNG BỊ TRỐNG)
+  static async getBestSellers(page = 1, limit = 8, category = "all") {
     try {
       const offset = (page - 1) * limit;
-      const countResult = await pool.query(`
-        SELECT COUNT(DISTINCT sp.masp) as total 
-        FROM sanpham sp
-        INNER JOIN chitiet_donhang ct ON sp.masp = ct.masp
-      `);
-      const totalItems = parseInt(countResult.rows[0].total) || 0;
+      const hasCategory =
+        category &&
+        category !== "all" &&
+        category !== "undefined" &&
+        String(category).trim() !== "";
+
+      const whereClause = hasCategory ? "WHERE sp.madanhmuc = $1" : "";
+      const countParams = hasCategory ? [String(category).trim()] : [];
+
+      const countResult = await pool.query(
+        `SELECT COUNT(*)::int AS total FROM sanpham sp ${whereClause}`,
+        countParams,
+      );
+      const totalItems = parseInt(countResult.rows[0].total, 10) || 0;
+
+      const dataParams = [...countParams, limit, offset];
+      const limitIdx = countParams.length + 1;
+      const offsetIdx = countParams.length + 2;
 
       const result = await pool.query(
         `
-        SELECT 
-          sp.masp, sp.tensp, sp.giaban, sp.hinhanh, 
-          SUM(ct.soluong) as tongdaban
+        SELECT
+          sp.masp, sp.tensp, sp.giaban, sp.hinhanh, sp.madanhmuc,
+          COALESCE(SUM(ct.soluong), 0)::int AS tongdaban
         FROM sanpham sp
-        INNER JOIN chitiet_donhang ct ON sp.masp = ct.masp
-        GROUP BY sp.masp, sp.tensp, sp.giaban, sp.hinhanh
-        HAVING SUM(ct.soluong) > 0
-        ORDER BY tongdaban DESC, sp.masp ASC
-        LIMIT $1 OFFSET $2
+        LEFT JOIN chitiet_donhang ct ON sp.masp = ct.masp
+        ${whereClause}
+        GROUP BY sp.masp, sp.tensp, sp.giaban, sp.hinhanh, sp.madanhmuc
+        ORDER BY tongdaban DESC, sp.giaban DESC, sp.masp ASC
+        LIMIT $${limitIdx} OFFSET $${offsetIdx}
       `,
-        [limit, offset],
+        dataParams,
       );
 
       return { products: result.rows, totalItems };

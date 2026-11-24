@@ -1,13 +1,15 @@
 const ProductModel = require("../models/productModel");
 
-// 1. Lấy sản phẩm bán chạy
+// 1. Lấy sản phẩm bán chạy / Deal sốc (hỗ trợ lọc theo danh mục category)
 exports.getBestSellers = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 8;
+    const category = req.query.category || "all";
     const { products, totalItems } = await ProductModel.getBestSellers(
       page,
       limit,
+      category,
     );
     const totalPages = totalItems > 0 ? Math.ceil(totalItems / limit) : 1;
 
