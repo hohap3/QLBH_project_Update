@@ -19,6 +19,13 @@ exports.register = async (req, res) => {
     const cleanFullname = fullname.trim();
     const cleanPhone = phone.trim();
 
+    // Chặn ký tự HTML (<, >) để phòng chống Stored XSS ngay từ bước đăng ký
+    if (/[<>]/.test(cleanFullname) || /[<>]/.test(cleanUsername)) {
+      return res.status(400).json({
+        message: "Họ tên và tên đăng nhập không được chứa ký tự đặc biệt < hoặc >!",
+      });
+    }
+
     const duplicates = await AuthModel.checkDuplicate(cleanUsername, cleanEmail);
     if (duplicates && duplicates.length > 0) {
       const isUserTaken = duplicates.some((u) => u.tendangnhap === cleanUsername);
