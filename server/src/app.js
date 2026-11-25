@@ -15,6 +15,7 @@ const checkoutRoutes = require("./routes/checkoutRoutes");
 const accountRoutes = require("./routes/accountRoutes");
 const employeeRoutes = require("./routes/employeeRoutes");
 const warehouseRoutes = require("./routes/warehouseRoutes");
+const wishlistRoutes = require("./routes/wishlistRoutes");
 
 const path = require("path");
 
@@ -46,6 +47,7 @@ app.use("/api/checkout", checkoutRoutes);
 app.use("/api/account", accountRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/warehouse", warehouseRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 
 // Test route
 app.get("/", (req, res) => {
