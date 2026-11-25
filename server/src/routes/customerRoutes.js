@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const customerController = require("../controllers/customerController");
+const { verifyToken, authorizeRoles } = require("../middleware/auth");
+
+// Bảo vệ toàn bộ route Quản lý Khách hàng (Chỉ Admin / Manager)
+router.use(verifyToken, authorizeRoles("Admin", "Manager"));
 
 // Lấy danh sách khách hàng: GET /api/customers
 router.get("/", customerController.getCustomers);

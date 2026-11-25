@@ -3,26 +3,11 @@ const router = express.Router();
 const employeeController = require("../controllers/employeeController");
 const { verifyToken, requireSuperAdmin, authorizeRoles } = require("../middleware/auth");
 
-// Middleware tùy chọn: Nếu có token thì giải mã để phân quyền danh sách theo Manager / Admin
-const optionalVerify = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  if (token) {
-    try {
-      const jwt = require("jsonwebtoken");
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded;
-      req.user.role = (decoded.role || decoded.mavaitro || "").toUpperCase();
-      req.user.machinhanh = decoded.machinhanh || null;
-    } catch (e) {
-      // bỏ qua nếu token lỗi
-    }
-  }
-  next();
-};
+// Bảo vệ toàn bộ route Quản lý Nhân sự (Bắt buộc đăng nhập với quyền Admin / Manager)
+router.use(verifyToken, authorizeRoles("Admin", "Manager"));
 
 // Lấy danh sách tất cả nhân viên (Hỗ trợ lọc theo quyền Admin / Manager)
-router.get("/", optionalVerify, (req, res) => employeeController.getAll(req, res));
+router.get("/", (req, res) => employeeController.getAll(req, res));
 
 // Lấy chi tiết một nhân viên
 router.get("/:id", (req, res) => employeeController.getById(req, res));

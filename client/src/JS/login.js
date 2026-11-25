@@ -200,30 +200,6 @@ async function handleLoginPage() {
         },
       });
 
-      // BACKDOOR ĐỂ TEST UI (KHÔNG DÙNG TRONG PRODUCTION)
-      if (username === "admin" && password === "admin") {
-        const mockUserData = {
-          id: "ADMIN_MOCK",
-          username: "admin",
-          name: "Administrator (Test)",
-          role: "ADMIN",
-          token: "mock-token-12345",
-          loginAt: new Date().toISOString(),
-        };
-
-        localStorage.setItem("hpstore_user", JSON.stringify(mockUserData));
-
-        Swal.close();
-        toastSuccess(
-          "Đăng nhập thử nghiệm!",
-          "Chào mừng bạn vào Dashboard Test!",
-          1300,
-        ).then(() => {
-          window.location.href = "/src/pages/dashboard.html";
-        });
-        return;
-      }
-
       const response = await axios.post(`${BASE_URL}/auth/login`, {
         identifier: username,
         password: password,

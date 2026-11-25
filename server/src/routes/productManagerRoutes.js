@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const productController = require("../controllers/productManagerController");
+const { verifyToken, authorizeRoles } = require("../middleware/auth");
 const multer = require("multer");
 
 // 🔥 Cấu hình Cloudinary hỗ trợ 1 ảnh đại diện chính + tối đa 5 ảnh góc chụp phụ
@@ -30,14 +31,23 @@ const handleProductUpload = (req, res, next) => {
   });
 };
 
+const staffGuard = [
+  verifyToken,
+  authorizeRoles("Admin", "Manager", "Employee", "Staff"),
+];
+
+// Đọc sản phẩm giữ công khai cho Trang chủ & Giỏ hàng
 router.get("/", productController.getProducts);
-router.post("/add", handleProductUpload, productController.addProduct);
 router.get("/:id", productController.getProductById);
-router.put("/update/:id", handleProductUpload, productController.editProduct);
-router.delete("/:id/images/:imageId", productController.removeProductImage);
-router.delete("/delete/:id", productController.removeProduct);
+
+// Các thao tác Thêm / Sửa / Xóa / Import bắt buộc có JWT của Quản trị hoặc Nhân viên
+router.post("/add", ...staffGuard, handleProductUpload, productController.addProduct);
+router.put("/update/:id", ...staffGuard, handleProductUpload, productController.editProduct);
+router.delete("/:id/images/:imageId", ...staffGuard, productController.removeProductImage);
+router.delete("/delete/:id", ...staffGuard, productController.removeProduct);
 router.post(
   "/import-excel",
+  ...staffGuard,
   excelUpload.single("excelFile"),
   productController.importExcel,
 );

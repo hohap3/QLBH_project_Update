@@ -8,10 +8,40 @@ export const BASE_URL =
     ? "http://localhost:5000/api"
     : "https://qlbh-project.onrender.com/api");
 
+import axios from "axios";
 import Swal from "sweetalert2";
 import "./notify";
 // Import CSS qua Vite để được bundle khi build (link động "/src/..." không tồn tại trên Vercel)
 import "../../styles/header.css";
+
+// Tự động đính kèm JWT Authorization cho mọi request Axios gửi về API nội bộ HP STORE
+if (typeof window !== "undefined" && !window.__hpAxiosAuthBound) {
+  window.__hpAxiosAuthBound = true;
+  axios.interceptors.request.use((config) => {
+    try {
+      const reqUrl = String(config?.url || "");
+      const isInternalApi =
+        reqUrl.startsWith(BASE_URL) ||
+        reqUrl.startsWith("/api") ||
+        reqUrl.includes("qlbh-project.onrender.com/api") ||
+        reqUrl.startsWith("http://localhost:5000/api");
+
+      if (isInternalApi && !config.headers?.Authorization) {
+        const raw =
+          localStorage.getItem("hpstore_user") || localStorage.getItem("user");
+        const parsed = raw ? JSON.parse(raw) : null;
+        const token = parsed?.token || localStorage.getItem("token");
+        if (token) {
+          config.headers = config.headers || {};
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      }
+    } catch {
+      // Bỏ qua nếu localStorage lỗi định dạng
+    }
+    return config;
+  });
+}
 
 // Khởi tạo Header
 export function initHeader() {

@@ -31,12 +31,6 @@ export async function checkAuth(allowedRoles) {
       return redirectToLogin("Phiên đăng nhập không hợp lệ!");
     }
 
-    // BACKDOOR ĐỂ TEST UI
-    if (user.token === "mock-token-12345") {
-      document.body.style.display = "block";
-      return;
-    }
-
     // ─── ĐỒNG BỘ URL: Dùng BASE_URL đồng bộ với môi trường hiện tại ───
     const response = await axios.get(
       `${BASE_URL}/auth/verify-role`,
@@ -102,8 +96,10 @@ export async function checkAuth(allowedRoles) {
         "Tài khoản của bạn hiện đang bị khóa hoặc hết hạn phiên làm việc!";
     }
 
-    // Xóa dữ liệu lỗi/hết hạn trong localStorage (Lưu ý: Chỉ xóa phiên đăng nhập user, KHÔNG xóa giỏ hàng)
+    // Xóa sạch toàn bộ khóa phiên đăng nhập lỗi/hết hạn trong localStorage (KHÔNG xóa giỏ hàng)
     localStorage.removeItem("hpstore_user");
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     return redirectToLogin(message);
   }
 }
