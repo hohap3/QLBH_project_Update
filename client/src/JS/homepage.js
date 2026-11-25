@@ -100,55 +100,28 @@ function renderHPStoreProductCard(sp) {
   `;
 }
 
-// ─── 1. HÀM TÌM KIẾM GỢI Ý THÔNG MINH ───
-async function initSearchSuggestions() {
-  const searchInput = document.getElementById("search-input");
-  const suggestionsBox = document.getElementById("search-suggestions");
-  if (!searchInput || !suggestionsBox) return;
+// ─── 1. KẾT NỐI TÌM KIẾM TỪ HEADER VÀO DANH SÁCH SẢN PHẨM TRANG CHỦ ───
+window.hpPerformSearch = function (keyword) {
+  const cleanKeyword = String(keyword || "").trim();
+  if (!cleanKeyword) {
+    window.clearProductFilters();
+    return;
+  }
 
-  searchInput.addEventListener("input", async (e) => {
-    const keyword = e.target.value.trim();
-    if (keyword.length < 1) {
-      suggestionsBox.classList.add("d-none");
-      return;
-    }
-    try {
-      const res = await fetch(`${BASE_URL}/productsClient/search?q=${encodeURIComponent(keyword)}`);
-      const result = await res.json();
-      const products = result.data || (Array.isArray(result) ? result : []);
+  const allBtn = document.querySelector('#category-filter button[data-id="all"]');
+  if (allBtn) updateCategoryActiveState(allBtn);
 
-      if (products && products.length > 0) {
-        suggestionsBox.innerHTML = products.slice(0, 6).map((sp) => {
-          const imgPath = getProductImageUrl(sp.hinhanh);
-          return `
-            <a href="/src/pages/product-detail.html?id=${sp.masp}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
-              <img src="${imgPath}" alt="${sp.tensp}" style="width: 44px; height: 44px; object-fit: contain; border-radius: 6px;" onerror="this.onerror=null; this.src='${DEFAULT_IMAGE}';">
-              <div class="overflow-hidden flex-grow-1">
-                <div class="fw-bold text-dark text-truncate" style="font-size: 13px;">${sp.tensp}</div>
-                <div class="d-flex align-items-center justify-content-between mt-1">
-                  <span class="text-danger fw-bold small">${new Intl.NumberFormat("vi-VN").format(sp.giaban)}₫</span>
-                  <span class="badge bg-light text-secondary border" style="font-size: 10px;">${sp.tendanhmuc || "Chính hãng"}</span>
-                </div>
-              </div>
-            </a>
-          `;
-        }).join("");
-        suggestionsBox.classList.remove("d-none");
-      } else {
-        suggestionsBox.innerHTML = `<div class="p-3 text-center text-muted small">Không tìm thấy sản phẩm phù hợp.</div>`;
-        suggestionsBox.classList.remove("d-none");
-      }
-    } catch (err) {
-      console.error("Lỗi tìm kiếm gợi ý:", err);
-    }
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
-      suggestionsBox.classList.add("d-none");
-    }
-  });
-}
+  currentFilters = {
+    search: cleanKeyword,
+    minPrice: null,
+    maxPrice: null,
+    label: `Tìm kiếm: "${cleanKeyword}"`,
+  };
+  loadProducts("all", 1, currentFilters);
+  document
+    .getElementById("product-list")
+    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+};
 
 // ─── 2. HÀM TẢI SẢN PHẨM CHÍNH CÓ PHÂN TRANG VÀ BỘ LỌC ĐA CẤP ───
 export async function loadProducts(maDM = "all", page = 1, options = {}) {
@@ -248,6 +221,8 @@ function renderActiveFilterNotice(filters) {
 // Xóa toàn bộ bộ lọc về trạng thái ban đầu
 window.clearProductFilters = function () {
   currentFilters = { search: null, minPrice: null, maxPrice: null, label: null };
+  const searchInput = document.getElementById("search-input");
+  if (searchInput) searchInput.value = "";
   const allBtn = document.querySelector('#category-filter button[data-id="all"]');
   if (allBtn) updateCategoryActiveState(allBtn);
   loadProducts("all", 1, {});
@@ -1041,10 +1016,16 @@ async function initMemberWidget() {
 document.addEventListener("DOMContentLoaded", () => {
   initMemberWidget();
   initHeroCarousel();
-  initSearchSuggestions();
   initCategoryFilters();
   initMegaMenu();
   loadBestSellers("all");
-  loadProducts("all", 1);
+
+  const urlSearch = new URLSearchParams(window.location.search).get("search");
+  if (urlSearch && urlSearch.trim()) {
+    window.hpPerformSearch(urlSearch.trim());
+  } else {
+    loadProducts("all", 1);
+  }
+
   initInteractionEvents();
 });

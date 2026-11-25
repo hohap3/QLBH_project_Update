@@ -1,5 +1,24 @@
 const { pool } = require("../config/database");
 
+const VN_ACCENTED =
+  "áàảãạăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵ";
+const VN_PLAIN =
+  "aaaaaaaaaaaaaaaaadeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyy";
+
+function normalizeSearchTokens(keyword = "") {
+  const normalized = String(keyword)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!normalized) return [];
+  return normalized.split(" ").filter(Boolean).slice(0, 6);
+}
+
+const NORMALIZED_SEARCH_EXPR = `translate(lower(COALESCE(sp.tensp, '') || ' ' || COALESCE(sp.masp, '') || ' ' || COALESCE(dm.tendanhmuc, '')), '${VN_ACCENTED}', '${VN_PLAIN}')`;
+
 class ProductModel {
   // 1. LẤY SẢN PHẨM BÁN CHẠY / DEAL SỐC (CÓ LỌC THEO DANH MỤC & LEFT JOIN ĐỂ KHÔNG BỊ TRỐNG)
   static async getBestSellers(page = 1, limit = 8, category = "all") {
@@ -71,9 +90,13 @@ class ProductModel {
       }
 
       if (filters.search && filters.search.trim() !== "") {
-        params.push("%" + filters.search.trim() + "%");
-        countQuery += " AND (sp.tensp ILIKE $" + params.length + " OR sp.masp ILIKE $" + params.length + " OR dm.tendanhmuc ILIKE $" + params.length + ")";
-        dataQuery += " AND (sp.tensp ILIKE $" + params.length + " OR sp.masp ILIKE $" + params.length + " OR dm.tendanhmuc ILIKE $" + params.length + ")";
+        const tokens = normalizeSearchTokens(filters.search);
+        for (const token of tokens) {
+          params.push(`%${token}%`);
+          const clause = ` AND ${NORMALIZED_SEARCH_EXPR} LIKE $${params.length}`;
+          countQuery += clause;
+          dataQuery += clause;
+        }
       }
 
       if (filters.minPrice !== null && !isNaN(filters.minPrice)) {
@@ -104,9 +127,17 @@ class ProductModel {
     }
   }
 
-  // 3. 🟢 CẬP NHẬT: TÌM KIẾM SẢN PHẨM THEO TÊN HOẶC TÊN DANH MỤC
+  // 3. TÌM KIẾM SẢN PHẨM THÔNG MINH (Tách nhiều từ + không dấu tiếng Việt + Mã SP / Tên SP / Danh mục)
   static async searchProducts(keyword) {
     try {
+      const tokens = normalizeSearchTokens(keyword);
+      if (tokens.length === 0) return [];
+
+      const params = tokens.map((t) => `%${t}%`);
+      const whereConditions = params
+        .map((_, idx) => `${NORMALIZED_SEARCH_EXPR} LIKE $${idx + 1}`)
+        .join(" AND ");
+
       const queryStr = `
         SELECT 
           sp.masp, 
@@ -117,12 +148,12 @@ class ProductModel {
           dm.tendanhmuc
         FROM sanpham sp
         LEFT JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
-        WHERE sp.tensp ILIKE $1 OR dm.tendanhmuc ILIKE $1
+        WHERE ${whereConditions}
         ORDER BY sp.tensp ASC
-        LIMIT 5
+        LIMIT 6
       `;
 
-      const result = await pool.query(queryStr, [`%${keyword}%`]);
+      const result = await pool.query(queryStr, params);
       return result.rows;
     } catch (error) {
       throw error;

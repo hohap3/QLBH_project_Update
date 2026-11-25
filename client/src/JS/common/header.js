@@ -48,6 +48,7 @@ export function initHeader() {
   renderHeader();
   renderMobileBottomNav();
   renderMobileCategoryDrawer();
+  initGlobalHeaderSearch();
   checkLoginStatus();
   updateCartBadge();
 }
@@ -462,4 +463,174 @@ export function renderMobileCategoryDrawer() {
   `;
 
   document.body.appendChild(drawerEl);
+}
+
+// ─── TÌM KIẾM THÔNG MINH TOÀN TRANG (HOẠT ĐỘNG TRÊN MỌI TRANG + DEBOUNCE + ENTER + KÍNH LÚP) ───
+function initGlobalHeaderSearch() {
+  const searchInput = document.getElementById("search-input");
+  const suggestionsBox = document.getElementById("search-suggestions");
+  const searchBtn = document.getElementById("btnSearchSubmit");
+  if (!searchInput || !suggestionsBox) return;
+
+  if (searchInput.dataset.hpSearchBound === "1") return;
+  searchInput.dataset.hpSearchBound = "1";
+
+  const DEFAULT_IMG =
+    "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500";
+  const rootUrl = BASE_URL.replace("/api", "");
+
+  const resolveImg = (hinhanh) => {
+    if (!hinhanh || hinhanh === "NULL" || hinhanh === "null" || !String(hinhanh).trim()) {
+      return DEFAULT_IMG;
+    }
+    if (String(hinhanh).startsWith("http://") || String(hinhanh).startsWith("https://")) {
+      return hinhanh;
+    }
+    return `${rootUrl}/uploads/products/${hinhanh}`;
+  };
+
+  const escapeHtml = (str = "") =>
+    String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  // Đồng bộ từ khóa đang tìm từ URL (?search=...) vào ô input nếu có
+  const urlSearch = new URLSearchParams(window.location.search).get("search");
+  if (urlSearch && !searchInput.value) {
+    searchInput.value = urlSearch;
+  }
+
+  let debounceTimer = null;
+  let latestReqId = 0;
+
+  const executeFullSearch = () => {
+    const keyword = searchInput.value.trim();
+    suggestionsBox.classList.add("d-none");
+
+    if (!keyword) {
+      if (typeof window.clearProductFilters === "function") {
+        window.clearProductFilters();
+      }
+      return;
+    }
+
+    if (typeof window.hpPerformSearch === "function") {
+      window.hpPerformSearch(keyword);
+    } else {
+      window.location.href = `/index.html?search=${encodeURIComponent(keyword)}#product-list`;
+    }
+  };
+
+  const fetchSuggestions = async (keyword) => {
+    const reqId = ++latestReqId;
+    suggestionsBox.innerHTML = `
+      <div class="p-3 text-center text-muted small">
+        <span class="spinner-border spinner-border-sm text-danger me-2"></span>Đang tìm kiếm...
+      </div>
+    `;
+    suggestionsBox.classList.remove("d-none");
+
+    try {
+      const res = await fetch(
+        `${BASE_URL}/productsClient/search?q=${encodeURIComponent(keyword)}`,
+      );
+      const result = await res.json();
+
+      // Bỏ qua kết quả cũ nếu người dùng đã gõ thêm ký tự mới
+      if (reqId !== latestReqId) return;
+
+      const products = result.data || (Array.isArray(result) ? result : []);
+      const safeKeyword = escapeHtml(keyword);
+
+      if (products.length > 0) {
+        const itemsHtml = products
+          .slice(0, 6)
+          .map((sp) => {
+            const imgPath = resolveImg(sp.hinhanh);
+            const safeName = escapeHtml(sp.tensp || "Sản phẩm");
+            const safeCat = escapeHtml(sp.tendanhmuc || "Chính hãng");
+            const price = new Intl.NumberFormat("vi-VN").format(
+              Number(sp.giaban) || 0,
+            );
+            return `
+              <a href="/src/pages/product-detail.html?id=${encodeURIComponent(sp.masp)}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2">
+                <img src="${imgPath}" alt="${safeName}" style="width: 44px; height: 44px; object-fit: contain; border-radius: 6px; flex-shrink: 0;" onerror="this.onerror=null; this.src='${DEFAULT_IMG}';">
+                <div class="overflow-hidden flex-grow-1">
+                  <div class="fw-bold text-dark text-truncate" style="font-size: 13px;">${safeName}</div>
+                  <div class="d-flex align-items-center justify-content-between mt-1">
+                    <span class="text-danger fw-bold small">${price}₫</span>
+                    <span class="badge bg-light text-secondary border" style="font-size: 10px;">${safeCat}</span>
+                  </div>
+                </div>
+              </a>
+            `;
+          })
+          .join("");
+
+        suggestionsBox.innerHTML = `
+          ${itemsHtml}
+          <button type="button" id="btnViewAllSearchResults" class="list-group-item list-group-item-action text-center fw-semibold text-danger small bg-light py-2">
+            <i class="fa-solid fa-magnifying-glass me-1"></i>Xem tất cả kết quả cho "${safeKeyword}"
+          </button>
+        `;
+
+        const viewAllBtn = document.getElementById("btnViewAllSearchResults");
+        if (viewAllBtn) {
+          viewAllBtn.addEventListener("click", executeFullSearch);
+        }
+      } else {
+        suggestionsBox.innerHTML = `
+          <div class="p-3 text-center text-muted small">
+            Không tìm thấy sản phẩm nào cho <strong>"${safeKeyword}"</strong>.
+          </div>
+        `;
+      }
+      suggestionsBox.classList.remove("d-none");
+    } catch (err) {
+      if (reqId !== latestReqId) return;
+      console.error("Lỗi tìm kiếm gợi ý:", err);
+      suggestionsBox.classList.add("d-none");
+    }
+  };
+
+  searchInput.addEventListener("input", (e) => {
+    const keyword = e.target.value.trim();
+    clearTimeout(debounceTimer);
+    if (keyword.length < 1) {
+      latestReqId++;
+      suggestionsBox.classList.add("d-none");
+      return;
+    }
+    debounceTimer = setTimeout(() => fetchSuggestions(keyword), 280);
+  });
+
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      clearTimeout(debounceTimer);
+      executeFullSearch();
+    } else if (e.key === "Escape") {
+      suggestionsBox.classList.add("d-none");
+    }
+  });
+
+  if (searchBtn) {
+    searchBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      clearTimeout(debounceTimer);
+      executeFullSearch();
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (
+      !searchInput.contains(e.target) &&
+      !suggestionsBox.contains(e.target) &&
+      (!searchBtn || !searchBtn.contains(e.target))
+    ) {
+      suggestionsBox.classList.add("d-none");
+    }
+  });
 }
