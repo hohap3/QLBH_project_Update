@@ -94,6 +94,42 @@ function getCheckedItemsKey() {
   return getCartKey() + "_checked_items";
 }
 
+// 🟢 ĐỒNG BỘ DỮ LIỆU TẠM hpstore_checkout_cart KHI GIỎ HÀNG BỊ XÓA HOẶC ĐỔI SỐ LƯỢNG
+function syncCheckoutCartWithMainCart(mainCart) {
+  try {
+    const rawCheckout = localStorage.getItem("hpstore_checkout_cart");
+    if (!rawCheckout) return;
+
+    const checkoutCart = JSON.parse(rawCheckout);
+    if (!Array.isArray(checkoutCart) || !Array.isArray(mainCart) || mainCart.length === 0) {
+      localStorage.removeItem("hpstore_checkout_cart");
+      localStorage.removeItem("hpstore_checkout_discount");
+      return;
+    }
+
+    const mainMap = new Map(
+      mainCart.map((item) => [String(item.MaSP || item.masp), item]),
+    );
+
+    const synced = checkoutCart
+      .filter((item) => mainMap.has(String(item.MaSP || item.masp)))
+      .map((item) => {
+        const latest = mainMap.get(String(item.MaSP || item.masp));
+        return { ...latest };
+      });
+
+    if (synced.length === 0) {
+      localStorage.removeItem("hpstore_checkout_cart");
+      localStorage.removeItem("hpstore_checkout_discount");
+    } else {
+      localStorage.setItem("hpstore_checkout_cart", JSON.stringify(synced));
+    }
+  } catch {
+    localStorage.removeItem("hpstore_checkout_cart");
+    localStorage.removeItem("hpstore_checkout_discount");
+  }
+}
+
 function renderCartPage() {
   const tableBody = document.getElementById("cart-table-body");
   if (!tableBody) return;
@@ -111,8 +147,10 @@ function renderCartPage() {
                 </td>
             </tr>
         `;
-    // Xóa bộ nhớ tích chọn cũ nếu giỏ hàng trống
+    // Xóa bộ nhớ tích chọn & dữ liệu checkout tạm nếu giỏ hàng trống
     localStorage.removeItem(getCheckedItemsKey());
+    localStorage.removeItem("hpstore_checkout_cart");
+    localStorage.removeItem("hpstore_checkout_discount");
     updateSelectAllCheckbox(false);
     updateSummary(0);
     return;
@@ -401,6 +439,7 @@ window.changeQty = async function (maSP, delta) {
         if (result.isConfirmed) {
           cart.splice(itemIndex, 1);
           localStorage.setItem(cartKey, JSON.stringify(cart));
+          syncCheckoutCartWithMainCart(cart);
 
           // Xóa luôn khỏi danh sách tích chọn nếu có
           let checkedItems =
@@ -458,6 +497,7 @@ window.changeQty = async function (maSP, delta) {
 
     cart[itemIndex].SoLuong = targetQty;
     localStorage.setItem(cartKey, JSON.stringify(cart));
+    syncCheckoutCartWithMainCart(cart);
     renderCartPage();
   }
 };
@@ -477,8 +517,9 @@ window.removeCartItem = function (maSP) {
     cancelButtonText: "Giữ lại",
   }).then((result) => {
     if (result.isConfirmed) {
-      cart = cart.filter((item) => (item.MaSP || item.masp) !== maSP);
+      cart = cart.filter((item) => String(item.MaSP || item.masp) !== String(maSP));
       localStorage.setItem(cartKey, JSON.stringify(cart));
+      syncCheckoutCartWithMainCart(cart);
 
       // Xóa khỏi danh sách tích chọn nếu có
       let checkedItems =

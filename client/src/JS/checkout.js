@@ -48,6 +48,43 @@ function getCheckedItemsKey() {
   return getCartKey() + "_checked_items";
 }
 
+// 🟢 ĐỐI CHIẾU hpstore_checkout_cart VỚI GIỎ HÀNG THẬT (tránh hiện sản phẩm đã bị xóa khi dán link trực tiếp)
+function getSyncedCheckoutCart() {
+  try {
+    const rawCheckout = JSON.parse(
+      localStorage.getItem("hpstore_checkout_cart") || "[]",
+    );
+    const fullCart = JSON.parse(localStorage.getItem(getCartKey()) || "[]");
+
+    if (!Array.isArray(rawCheckout) || rawCheckout.length === 0 || !Array.isArray(fullCart) || fullCart.length === 0) {
+      localStorage.removeItem("hpstore_checkout_cart");
+      localStorage.removeItem("hpstore_checkout_discount");
+      return [];
+    }
+
+    const fullCartMap = new Map(
+      fullCart.map((item) => [String(item.MaSP || item.masp), item]),
+    );
+
+    const synced = rawCheckout
+      .filter((item) => fullCartMap.has(String(item.MaSP || item.masp)))
+      .map((item) => ({ ...fullCartMap.get(String(item.MaSP || item.masp)) }));
+
+    if (synced.length === 0) {
+      localStorage.removeItem("hpstore_checkout_cart");
+      localStorage.removeItem("hpstore_checkout_discount");
+    } else {
+      localStorage.setItem("hpstore_checkout_cart", JSON.stringify(synced));
+    }
+
+    return synced;
+  } catch {
+    localStorage.removeItem("hpstore_checkout_cart");
+    localStorage.removeItem("hpstore_checkout_discount");
+    return [];
+  }
+}
+
 function getProductImageUrl(hinhanh) {
   if (
     !hinhanh ||
@@ -244,8 +281,7 @@ function renderCheckoutSummary() {
   const container = document.getElementById("checkout-items-list");
   if (!container) return;
 
-  const checkoutCart =
-    JSON.parse(localStorage.getItem("hpstore_checkout_cart")) || [];
+  const checkoutCart = getSyncedCheckoutCart();
 
   if (checkoutCart.length === 0) {
     Swal.fire({
@@ -392,8 +428,7 @@ async function handleCheckoutSubmit(e) {
     return;
   }
 
-  const checkoutCart =
-    JSON.parse(localStorage.getItem("hpstore_checkout_cart")) || [];
+  const checkoutCart = getSyncedCheckoutCart();
   const userData = JSON.parse(localStorage.getItem("hpstore_user")) || {};
   const finalTotalMoney = updateFinalTotalDisplay();
 
@@ -537,8 +572,7 @@ async function handleCheckoutSubmit(e) {
 function clearPurchasedItems(shouldRedirect = true) {
   const cartKey = getCartKey();
   const fullCart = JSON.parse(localStorage.getItem(cartKey)) || [];
-  const checkoutCart =
-    JSON.parse(localStorage.getItem("hpstore_checkout_cart")) || [];
+  const checkoutCart = getSyncedCheckoutCart();
 
   const purchasedIds = checkoutCart.map((item) => String(item.MaSP || item.masp));
 
