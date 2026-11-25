@@ -929,8 +929,117 @@ function initHeroCarousel() {
   });
 }
 
+// ─── 10. CÁ NHÂN HÓA WIDGET HP MEMBER KHI ĐÃ ĐĂNG NHẬP ───
+async function initMemberWidget() {
+  const widget = document.getElementById("hp-member-widget");
+  if (!widget) return;
+
+  let userData = null;
+  try {
+    const raw =
+      localStorage.getItem("hpstore_user") || localStorage.getItem("user");
+    if (raw) userData = JSON.parse(raw);
+  } catch (e) {
+    return;
+  }
+
+  if (!userData || (!userData.token && !userData.id && !userData.mand)) return;
+
+  const displayName =
+    userData.name || userData.fullname || userData.hoten || userData.username || "Hội viên";
+  const userRole = String(userData.role || "").toUpperCase();
+  const maND = userData.id || userData.mand || userData.MaND || "";
+  const isAdmin = ["MANAGER", "ADMIN"].includes(userRole);
+  const isStaff = ["EMPLOYEE", "STAFF"].includes(userRole);
+
+  const escapeHtml = (str) =>
+    String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  const safeName = escapeHtml(displayName);
+
+  if (isAdmin || isStaff) {
+    const roleLabel = isAdmin ? "Quản trị viên" : "Nhân viên";
+    const portalHref = isAdmin
+      ? "/src/pages/dashboard.html"
+      : "/src/pages/employeeManager.html";
+    const portalLabel = isAdmin ? "Trang Quản trị" : "Trang Nhân viên";
+    const portalIcon = isAdmin ? "fa-gauge-high" : "fa-user-gear";
+    const portalOnClick = isAdmin
+      ? `onclick="localStorage.setItem('current_admin_page', 'tong-quan')"`
+      : "";
+
+    widget.innerHTML = `
+      <div class="hp-widget-header" style="justify-content: space-between;">
+        <div class="d-flex align-items-center gap-2 min-w-0">
+          <i class="fa-solid fa-shield-halved text-danger fs-5 flex-shrink-0"></i>
+          <span class="text-truncate" title="${safeName}">Chào, ${safeName}</span>
+        </div>
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle flex-shrink-0" style="font-size: 10px;">${roleLabel}</span>
+      </div>
+      <p style="font-size: 11.5px; color: #475569; margin-bottom: 12px; line-height: 1.4;">
+        Truy cập nhanh hệ thống quản lý hoặc kiểm tra thông tin tài khoản của bạn.
+      </p>
+      <div class="d-flex gap-2">
+        <a href="${portalHref}" ${portalOnClick} class="hp-widget-btn">
+          <i class="fa-solid ${portalIcon} me-1"></i>${portalLabel}
+        </a>
+        <a href="/src/pages/hoso.html" class="hp-widget-btn" style="background: #ffffff; color: var(--hp-red); border: 1px solid var(--hp-red);">
+          Hồ sơ
+        </a>
+      </div>
+    `;
+    return;
+  }
+
+  // Khách hàng HP Member
+  widget.innerHTML = `
+    <div class="hp-widget-header" style="justify-content: space-between;">
+      <div class="d-flex align-items-center gap-2 min-w-0">
+        <i class="fa-solid fa-crown text-warning fs-5 flex-shrink-0"></i>
+        <span class="text-truncate" title="${safeName}">Chào, ${safeName}</span>
+      </div>
+      <span class="badge bg-warning-subtle text-dark border border-warning-subtle flex-shrink-0" style="font-size: 10px;">HP Member</span>
+    </div>
+    <p id="hp-member-points-text" style="font-size: 11.5px; color: #475569; margin-bottom: 12px; line-height: 1.4;">
+      Tài khoản <b>HP Member</b> đang hoạt động — tận hưởng tích điểm hoàn tiền & ưu đãi độc quyền.
+    </p>
+    <div class="d-flex gap-2">
+      <a href="/src/pages/order-history.html" class="hp-widget-btn">
+        <i class="fa-solid fa-box-open me-1"></i>Đơn hàng
+      </a>
+      <a href="/src/pages/hoso.html" class="hp-widget-btn" style="background: #ffffff; color: var(--hp-red); border: 1px solid var(--hp-red);">
+        Hồ sơ
+      </a>
+    </div>
+  `;
+
+  // Tải thêm điểm tích lũy thực tế (không làm giật giao diện)
+  if (maND) {
+    try {
+      const res = await axios.get(`${BASE_URL}/profile/${maND}`, {
+        headers: userData.token
+          ? { Authorization: `Bearer ${userData.token}` }
+          : {},
+      });
+      const points = Number(res.data?.diemtichluy);
+      const pointsEl = document.getElementById("hp-member-points-text");
+      if (pointsEl && !Number.isNaN(points)) {
+        const formattedPoints = new Intl.NumberFormat("vi-VN").format(points);
+        pointsEl.innerHTML = `Điểm tích lũy hiện có: <b class="text-danger">${formattedPoints} điểm</b> · Dùng để nhận ưu đãi khi thanh toán.`;
+      }
+    } catch {
+      // Giữ nội dung mặc định nếu API chưa phản hồi
+    }
+  }
+}
+
 // Khởi chạy khi DOM tải xong
 document.addEventListener("DOMContentLoaded", () => {
+  initMemberWidget();
   initHeroCarousel();
   initSearchSuggestions();
   initCategoryFilters();
