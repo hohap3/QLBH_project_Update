@@ -1,6 +1,7 @@
 import axios from "axios";
 import Swal from "sweetalert2";
 import { BASE_URL } from "/src/JS/common/header";
+import { loadFooter } from "/src/JS/common/footer";
 
 const DEFAULT_IMAGE = "/img/default.jpg";
 
@@ -11,6 +12,8 @@ let currentDiscountAmount = 0;
 let baseSubTotal = 0; // Lưu tổng tiền của CÁC SẢN PHẨM ĐƯỢC TÍCH CHỌN trước giảm giá
 
 document.addEventListener("DOMContentLoaded", async () => {
+  loadFooter();
+
   // 1. Tải thông tin điểm tích lũy của khách hàng trước
   await fetchUserPoints();
 
