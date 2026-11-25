@@ -71,7 +71,8 @@ class ProductModel {
       let countQuery = "SELECT COUNT(*) as total FROM sanpham sp LEFT JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc WHERE 1=1";
       let dataQuery = `
         SELECT sp.*, dm.tendanhmuc,
-          COALESCE((SELECT SUM(soluongton) FROM tonkho WHERE masp = sp.masp), 0) AS soluongton
+          COALESCE((SELECT SUM(soluongton) FROM tonkho WHERE masp = sp.masp), 0) AS soluongton,
+          COALESCE((SELECT SUM(soluong) FROM chitiet_donhang WHERE masp = sp.masp), 0)::int AS tongdaban
         FROM sanpham sp
         LEFT JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
         WHERE 1=1
@@ -114,11 +115,30 @@ class ProductModel {
       const countResult = await pool.query(countQuery, params);
       const totalItems = parseInt(countResult.rows[0].total) || 0;
 
+      const sortKey = String(filters.sort || "default").toLowerCase();
+      let orderByClause = "ORDER BY sp.masp ASC";
+      switch (sortKey) {
+        case "price_asc":
+          orderByClause = "ORDER BY sp.giaban ASC NULLS LAST, sp.masp ASC";
+          break;
+        case "price_desc":
+          orderByClause = "ORDER BY sp.giaban DESC NULLS LAST, sp.masp ASC";
+          break;
+        case "bestseller":
+          orderByClause = "ORDER BY tongdaban DESC, sp.giaban DESC NULLS LAST, sp.masp ASC";
+          break;
+        case "name_asc":
+          orderByClause = "ORDER BY sp.tensp ASC, sp.masp ASC";
+          break;
+        default:
+          orderByClause = "ORDER BY sp.masp ASC";
+      }
+
       const dataParams = [...params];
       dataParams.push(limit);
       dataParams.push(offset);
 
-      dataQuery += " ORDER BY sp.masp ASC LIMIT $" + (dataParams.length - 1) + " OFFSET $" + dataParams.length;
+      dataQuery += ` ${orderByClause} LIMIT $${dataParams.length - 1} OFFSET $${dataParams.length}`;
       const resultData = await pool.query(dataQuery, dataParams);
 
       return { products: resultData.rows, totalItems };

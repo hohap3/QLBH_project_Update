@@ -35,6 +35,7 @@ exports.getProducts = async (req, res) => {
     const search = req.query.search || req.query.q || null;
     const minPrice = req.query.minPrice ? parseFloat(req.query.minPrice) : null;
     const maxPrice = req.query.maxPrice ? parseFloat(req.query.maxPrice) : null;
+    const sort = (req.query.sort || "default").trim();
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
 
@@ -42,7 +43,7 @@ exports.getProducts = async (req, res) => {
       maDM,
       page,
       limit,
-      { search, minPrice, maxPrice }
+      { search, minPrice, maxPrice, sort }
     );
 
     res.status(200).json({

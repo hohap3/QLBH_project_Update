@@ -31,6 +31,7 @@ let currentFilters = {
   minPrice: null,
   maxPrice: null,
   label: null,
+  sort: "default",
 };
 const LIMIT = 10;
 
@@ -144,6 +145,7 @@ export async function loadProducts(maDM = "all", page = 1, options = {}) {
     if (currentFilters.search) params.append("search", currentFilters.search);
     if (currentFilters.minPrice !== null && currentFilters.minPrice !== undefined) params.append("minPrice", currentFilters.minPrice);
     if (currentFilters.maxPrice !== null && currentFilters.maxPrice !== undefined) params.append("maxPrice", currentFilters.maxPrice);
+    if (currentFilters.sort && currentFilters.sort !== "default") params.append("sort", currentFilters.sort);
 
     const res = await fetch(`${BASE_URL}/productsClient?${params.toString()}`);
     const data = await res.json();
@@ -218,14 +220,41 @@ function renderActiveFilterNotice(filters) {
   }
 }
 
+function syncSortButtonsUI(activeSort = "default") {
+  const sortBar = document.getElementById("product-sort-bar");
+  if (!sortBar) return;
+  sortBar.querySelectorAll(".hp-sort-btn").forEach((btn) => {
+    const isMatch = btn.getAttribute("data-sort") === activeSort;
+    btn.classList.toggle("active", isMatch);
+    btn.classList.toggle("btn-danger", isMatch);
+    btn.classList.toggle("fw-semibold", isMatch);
+    btn.classList.toggle("btn-outline-secondary", !isMatch);
+    btn.classList.toggle("fw-medium", !isMatch);
+  });
+}
+
+function initSortControls() {
+  const sortBar = document.getElementById("product-sort-bar");
+  if (!sortBar) return;
+  sortBar.addEventListener("click", (e) => {
+    const btn = e.target.closest(".hp-sort-btn");
+    if (!btn) return;
+    const sortVal = btn.getAttribute("data-sort") || "default";
+    if (sortVal === currentFilters.sort) return;
+    syncSortButtonsUI(sortVal);
+    loadProducts(currentCategory, 1, { sort: sortVal });
+  });
+}
+
 // Xóa toàn bộ bộ lọc về trạng thái ban đầu
 window.clearProductFilters = function () {
-  currentFilters = { search: null, minPrice: null, maxPrice: null, label: null };
+  currentFilters = { search: null, minPrice: null, maxPrice: null, label: null, sort: "default" };
   const searchInput = document.getElementById("search-input");
   if (searchInput) searchInput.value = "";
   const allBtn = document.querySelector('#category-filter button[data-id="all"]');
   if (allBtn) updateCategoryActiveState(allBtn);
-  loadProducts("all", 1, {});
+  syncSortButtonsUI("default");
+  loadProducts("all", 1, { sort: "default" });
 };
 
 // ─── 3. HÀM TẢI SẢN PHẨM FLASH SALE / DEAL SỐC ───
@@ -1017,6 +1046,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initMemberWidget();
   initHeroCarousel();
   initCategoryFilters();
+  initSortControls();
   initMegaMenu();
   loadBestSellers("all");
 

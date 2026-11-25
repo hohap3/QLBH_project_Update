@@ -326,6 +326,25 @@
           <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0" id="category-filter"></div>
         </div>
 
+        <!-- Thanh sắp xếp sản phẩm (Sort) -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3" id="product-sort-bar">
+          <span class="small fw-semibold text-secondary me-1">
+            <i class="fa-solid fa-arrow-down-wide-short text-danger me-1"></i>Sắp xếp theo:
+          </span>
+          <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 fw-semibold hp-sort-btn active" data-sort="default">
+            Nổi bật
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-medium hp-sort-btn" data-sort="bestseller">
+            <i class="fa-solid fa-fire text-warning me-1"></i>Bán chạy
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-medium hp-sort-btn" data-sort="price_asc">
+            <i class="fa-solid fa-arrow-up-short-wide me-1"></i>Giá thấp → cao
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-medium hp-sort-btn" data-sort="price_desc">
+            <i class="fa-solid fa-arrow-down-wide-short me-1"></i>Giá cao → thấp
+          </button>
+        </div>
+
         <!-- Danh sách sản phẩm chính -->
         <div class="hp-product-grid px-0" id="product-list"></div>
 
