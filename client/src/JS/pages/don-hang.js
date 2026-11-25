@@ -5,6 +5,7 @@ import ExcelJS from "exceljs/dist/exceljs.min.js";
 import { saveAs } from "file-saver";
 import { BASE_URL } from "/src/JS/common/header";
 import { renderAdminPagination } from "/src/JS/common/pagination";
+import { toastSuccess } from "/src/JS/common/notify";
 
 document.addEventListener("DOMContentLoaded", () => {
   initOrderManager();
@@ -371,12 +372,11 @@ export async function initOrderManager() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      await Swal.fire({
-        icon: "success",
-        title: "Thành công!",
-        text: `Đã xử lý thành công ${selectedOrderIds.length} đơn hàng.`,
-        confirmButtonColor: "#0d6efd",
-      });
+      Swal.close();
+      toastSuccess(
+        "Xử lý hàng loạt thành công!",
+        `Đã cập nhật ${selectedOrderIds.length} đơn hàng.`,
+      );
 
       fetchOrders(currentPage);
     } catch (error) {
@@ -471,12 +471,11 @@ export async function initOrderManager() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      await Swal.fire({
-        icon: "success",
-        title: "Thành công!",
-        text: `Đơn hàng ${maDonHang} đã chuyển sang trạng thái: ${trangThaiMoi}.`,
-        confirmButtonColor: "#0d6efd",
-      });
+      Swal.close();
+      toastSuccess(
+        "Cập nhật thành công!",
+        `Đơn hàng ${maDonHang} → ${trangThaiMoi}`,
+      );
 
       const currentModal = Modal.getInstance(
         document.getElementById("orderDetailModal"),

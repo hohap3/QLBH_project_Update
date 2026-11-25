@@ -9,6 +9,7 @@ export const BASE_URL =
     : "https://qlbh-project.onrender.com/api");
 
 import Swal from "sweetalert2";
+import "./notify";
 // Import CSS qua Vite để được bundle khi build (link động "/src/..." không tồn tại trên Vercel)
 import "../../styles/header.css";
 

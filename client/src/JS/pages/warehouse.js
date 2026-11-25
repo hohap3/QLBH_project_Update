@@ -2,6 +2,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { BASE_URL } from "/src/JS/common/header";
 import { renderAdminPagination } from "/src/JS/common/pagination";
+import { toastSuccess, toastInfo } from "/src/JS/common/notify";
 import * as bootstrap from "bootstrap";
 
 // Mảng chứa dữ liệu của TRANG HIỆN TẠI để phục vụ việc xuất file Excel tại chỗ
@@ -483,7 +484,7 @@ async function handleCreateTransaction(e) {
     );
 
     if (response.data.success) {
-      Swal.fire("Thành công", response.data.message, "success");
+      toastSuccess("Thành công!", response.data.message);
       document.getElementById("formWarehouseTransaction")?.reset();
 
       const modalEl = document.getElementById("modalTransaction");
@@ -620,7 +621,7 @@ async function handleSubmitTransfer(e) {
     );
 
     if (res.data?.success) {
-      await Swal.fire("Thành công", res.data.message, "success");
+      toastSuccess("Thành công!", res.data.message, 2600);
       document.getElementById("formWarehouseTransfer")?.reset();
 
       const modalEl = document.getElementById("modalWarehouseTransfer");
@@ -814,7 +815,7 @@ async function handleApproveTransfer(maYeuCau) {
     );
 
     if (res.data?.success) {
-      await Swal.fire("Đã duyệt!", res.data.message, "success");
+      toastSuccess("Đã duyệt phiếu!", res.data.message, 2600);
       await Promise.all([
         fetchTransferRequests(currentTransferPage),
         fetchWarehouseLogs(1),
@@ -852,7 +853,7 @@ async function handleRejectTransfer(maYeuCau) {
     );
 
     if (res.data?.success) {
-      await Swal.fire("Đã từ chối", res.data.message, "info");
+      toastInfo("Đã từ chối phiếu", res.data.message, 2600);
       await fetchTransferRequests(currentTransferPage);
     }
   } catch (error) {

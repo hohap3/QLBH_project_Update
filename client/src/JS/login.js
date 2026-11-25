@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 
 import { BASE_URL } from "/src/JS/common/header";
+import { toastSuccess } from "/src/JS/common/notify";
 
 async function handleLoginPage() {
   const savedUser = localStorage.getItem("hpstore_user");
@@ -212,13 +213,12 @@ async function handleLoginPage() {
 
         localStorage.setItem("hpstore_user", JSON.stringify(mockUserData));
 
-        Swal.fire({
-          icon: "success",
-          title: "Đăng nhập thử nghiệm!",
-          text: `Chào mừng bạn vào Dashboard Test!`,
-          timer: 1500,
-          showConfirmButton: false,
-        }).then(() => {
+        Swal.close();
+        toastSuccess(
+          "Đăng nhập thử nghiệm!",
+          "Chào mừng bạn vào Dashboard Test!",
+          1300,
+        ).then(() => {
           window.location.href = "/src/pages/dashboard.html";
         });
         return;
@@ -246,13 +246,12 @@ async function handleLoginPage() {
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("token", token);
 
-        Swal.fire({
-          icon: "success",
-          title: "Đăng nhập thành công!",
-          text: `Chào mừng ${userData.name || "bạn"} đã quay lại HP STORE!`,
-          timer: 1500,
-          showConfirmButton: false,
-        }).then(() => {
+        Swal.close();
+        toastSuccess(
+          "Đăng nhập thành công!",
+          `Chào mừng ${userData.name || "bạn"} đã quay lại HP STORE!`,
+          1300,
+        ).then(() => {
           const roleUpper = String(userData.role || "").toUpperCase();
           if (roleUpper === "MANAGER" || roleUpper === "ADMIN") {
             localStorage.setItem("current_admin_page", "tong-quan");
