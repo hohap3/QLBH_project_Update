@@ -475,20 +475,10 @@ function initSortControls() {
   const sortBar = document.getElementById("product-sort-bar");
   if (!sortBar) return;
   sortBar.addEventListener("click", (e) => {
-    const wishlistBtn = e.target.closest("#btnViewWishlist");
-    if (wishlistBtn) {
-      if (isViewingWishlist) {
-        window.clearProductFilters();
-      } else {
-        renderWishlistView();
-      }
-      return;
-    }
-
     const btn = e.target.closest(".hp-sort-btn");
     if (!btn) return;
     const sortVal = btn.getAttribute("data-sort") || "default";
-    if (sortVal === currentFilters.sort && !isViewingWishlist) return;
+    if (sortVal === currentFilters.sort) return;
     syncSortButtonsUI(sortVal);
     loadProducts(currentCategory, 1, { sort: sortVal });
   });

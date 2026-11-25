@@ -265,6 +265,7 @@ export function checkLoginStatus() {
             <small class="badge bg-danger-subtle text-danger border border-danger-subtle mt-1">Hạng: HP VIP Member</small>
           </li>
           <li><a class="dropdown-item py-2" href="/src/pages/hoso.html"><i class="fa-solid fa-id-card me-2 text-secondary"></i>Tài khoản của tôi</a></li>
+          <li><a class="dropdown-item py-2" href="/src/pages/wishlist.html"><i class="fa-solid fa-heart me-2 text-danger"></i>Sản phẩm yêu thích</a></li>
           <li><a class="dropdown-item py-2" href="/src/pages/order-history.html"><i class="fa-solid fa-box-open me-2 text-secondary"></i>Lịch sử mua hàng</a></li>
           
           ${
@@ -446,6 +447,10 @@ export function renderMobileCategoryDrawer() {
           Tiện ích & Dịch vụ
         </div>
         <div class="d-flex flex-column gap-1">
+          <a href="/src/pages/wishlist.html" class="drawer-category-item">
+            <span><i class="fa-solid fa-heart text-danger me-2"></i> Sản phẩm yêu thích</span>
+            <i class="fa-solid fa-angle-right text-muted small"></i>
+          </a>
           <a href="/src/pages/order-history.html" class="drawer-category-item">
             <span><i class="fa-solid fa-receipt text-danger me-2"></i> Tra cứu đơn hàng</span>
             <i class="fa-solid fa-angle-right text-muted small"></i>
