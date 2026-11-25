@@ -14,11 +14,27 @@ export function initSwalTheme() {
   const style = document.createElement("style");
   style.id = STYLE_ID;
   style.textContent = `
-    /* ─── Backdrop mờ kính tinh tế cho Modal ─── */
-    .swal2-container.swal2-backdrop-show {
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      background: rgba(15, 23, 42, 0.45) !important;
+    /* ─── Không phủ nền tối / không làm mờ nền khi hiển thị Toast ─── */
+    .swal2-container.swal2-top-end,
+    .swal2-container.swal2-top-right,
+    .swal2-container.swal2-top-start,
+    .swal2-container.swal2-top-left,
+    .swal2-container:has(.swal2-toast) {
+      background: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      pointer-events: none !important;
+    }
+
+    .swal2-container:has(.swal2-toast) .swal2-popup.swal2-toast {
+      pointer-events: auto !important;
+    }
+
+    /* ─── Nền tối nhẹ chỉ dành riêng cho Modal giữa màn hình (không mờ) ─── */
+    .swal2-container.swal2-center.swal2-backdrop-show:not(:has(.swal2-toast)) {
+      background: rgba(15, 23, 42, 0.42) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
     }
 
     /* ─── Modal giữa màn hình hiện đại ─── */
