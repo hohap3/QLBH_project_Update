@@ -103,12 +103,15 @@ class AuthModel {
     }
   }
 
-  // Cập nhật hoặc cấp lại OTP
-  static async updateOTP(email, otpCode, expiredAt) {
+  // Cập nhật hoặc cấp lại OTP (tính hạn 5 phút trực tiếp bằng NOW() của PostgreSQL để tránh lệch múi giờ)
+  static async updateOTP(email, otpCode) {
     try {
       const result = await pool.query(
-        "UPDATE nguoidung SET otp_code = $1, otp_expired = $2 WHERE email = $3 RETURNING mand",
-        [otpCode, expiredAt, email],
+        `UPDATE nguoidung
+         SET otp_code = $1, otp_expired = NOW() + INTERVAL '5 minutes'
+         WHERE LOWER(TRIM(email)) = LOWER($2)
+         RETURNING mand, email, hoten, tendangnhap`,
+        [String(otpCode).trim(), String(email).trim()],
       );
       return result.rows[0];
     } catch (error) {
@@ -170,8 +173,11 @@ class AuthModel {
   static async verifyAndResetPassword(email, otp, newPasswordHash) {
     try {
       const userResult = await pool.query(
-        "SELECT otp_code, otp_expired FROM nguoidung WHERE email = $1",
-        [email],
+        `SELECT mand, email, hoten, tendangnhap, otp_code,
+                (otp_expired IS NULL OR otp_expired < NOW()) AS is_expired
+         FROM nguoidung
+         WHERE LOWER(TRIM(email)) = LOWER($1)`,
+        [String(email).trim()],
       );
 
       if (userResult.rows.length === 0) {
@@ -183,23 +189,31 @@ class AuthModel {
 
       const user = userResult.rows[0];
 
-      if (!user.otp_code || user.otp_code !== otp) {
+      if (!user.otp_code || String(user.otp_code).trim() !== String(otp).trim()) {
         return { success: false, message: "Mã xác thực OTP không chính xác!" };
       }
 
-      if (new Date() > new Date(user.otp_expired)) {
+      if (user.is_expired) {
         return {
           success: false,
-          message: "Mã xác thực OTP đã hết hạn sử dụng!",
+          message: "Mã xác thực OTP đã hết hạn (quá 5 phút). Vui lòng bấm Gửi lại mã mới!",
         };
       }
 
       await pool.query(
-        "UPDATE nguoidung SET matkhauhash = $1, otp_code = NULL, otp_expired = NULL WHERE email = $2",
-        [newPasswordHash, email],
+        "UPDATE nguoidung SET matkhauhash = $1, otp_code = NULL, otp_expired = NULL WHERE mand = $2",
+        [newPasswordHash, user.mand],
       );
 
-      return { success: true };
+      return {
+        success: true,
+        user: {
+          mand: user.mand,
+          email: user.email,
+          hoten: user.hoten,
+          tendangnhap: user.tendangnhap,
+        },
+      };
     } catch (error) {
       throw error;
     }

@@ -6,48 +6,140 @@ document.addEventListener("DOMContentLoaded", () => {
   const forgotPasswordForm = document.getElementById("forgotPasswordForm");
   const resetPasswordForm = document.getElementById("resetPasswordForm");
   const toggleNewPasswordBtn = document.getElementById("toggleNewPassword");
+  const toggleConfirmPasswordBtn = document.getElementById(
+    "toggleConfirmNewPassword",
+  );
   const newPasswordInput = document.getElementById("newPassword");
+  const confirmNewPasswordInput = document.getElementById("confirmNewPassword");
 
   // DOM các phần tử phục vụ hiển thị lỗi inline
   const emailInput = document.getElementById("email");
   const otpInput = document.getElementById("otp");
+  const resetTargetEmailEl = document.getElementById("resetTargetEmail");
+  const btnChangeEmail = document.getElementById("btnChangeEmail");
+  const btnResendOtp = document.getElementById("btnResendOtp");
 
   const emailError = document.getElementById("emailError");
   const otpError = document.getElementById("otpError");
   const newPasswordError = document.getElementById("newPasswordError");
+  const confirmNewPasswordError = document.getElementById(
+    "confirmNewPasswordError",
+  );
 
-  let savedEmail = ""; // Biến toàn cục tạm thời để lưu email giữa 2 bước
+  let savedEmail = "";
+  let resendCountdown = 0;
+  let resendTimer = null;
 
-  // 🟢 Hàm xử lý hiển thị thông báo lỗi dưới ô dữ liệu
   const showInputError = (formElement, errorElement, inputElement, message) => {
-    errorElement.innerText = message;
-    errorElement.classList.remove("d-none");
-    inputElement.classList.add("is-invalid");
+    if (errorElement) {
+      errorElement.innerText = message;
+      errorElement.classList.remove("d-none");
+    }
+    if (inputElement) inputElement.classList.add("is-invalid");
 
-    formElement.classList.add("animate-shake");
-    setTimeout(() => formElement.classList.remove("animate-shake"), 500);
+    if (formElement) {
+      formElement.classList.add("animate-shake");
+      setTimeout(() => formElement.classList.remove("animate-shake"), 500);
+    }
   };
 
-  // 🟢 Hàm dọn dẹp sạch sẽ các vết lỗi cũ
   const clearErrors = () => {
-    [emailError, otpError, newPasswordError].forEach((el) => {
-      if (el) {
-        el.classList.add("d-none");
-        el.innerText = "";
-      }
-    });
-    [emailInput, otpInput, newPasswordInput].forEach((input) => {
-      if (input) input.classList.remove("is-invalid");
-    });
+    [emailError, otpError, newPasswordError, confirmNewPasswordError].forEach(
+      (el) => {
+        if (el) {
+          el.classList.add("d-none");
+          el.innerText = "";
+        }
+      },
+    );
+    [emailInput, otpInput, newPasswordInput, confirmNewPasswordInput].forEach(
+      (input) => {
+        if (input) input.classList.remove("is-invalid");
+      },
+    );
   };
 
-  // Gắn sự kiện dọn lỗi khi người dùng bắt đầu nhập lại text
+  const startResendCooldown = (seconds = 60) => {
+    if (!btnResendOtp) return;
+    clearInterval(resendTimer);
+    resendCountdown = seconds;
+    btnResendOtp.disabled = true;
+    btnResendOtp.innerHTML = `<i class="fa-regular fa-clock me-1"></i> Gửi lại mã sau ${resendCountdown}s`;
+
+    resendTimer = setInterval(() => {
+      resendCountdown--;
+      if (resendCountdown <= 0) {
+        clearInterval(resendTimer);
+        btnResendOtp.disabled = false;
+        btnResendOtp.innerHTML =
+          '<i class="fa-solid fa-rotate-right me-1"></i> Gửi lại mã OTP';
+      } else {
+        btnResendOtp.innerHTML = `<i class="fa-regular fa-clock me-1"></i> Gửi lại mã sau ${resendCountdown}s`;
+      }
+    }, 1000);
+  };
+
   if (emailInput) emailInput.addEventListener("input", clearErrors);
-  if (otpInput) otpInput.addEventListener("input", clearErrors);
+  if (otpInput) {
+    otpInput.addEventListener("input", () => {
+      otpInput.value = otpInput.value.replace(/\D/g, "").slice(0, 6);
+      clearErrors();
+    });
+  }
   if (newPasswordInput) newPasswordInput.addEventListener("input", clearErrors);
+  if (confirmNewPasswordInput) {
+    confirmNewPasswordInput.addEventListener("input", clearErrors);
+  }
+
+  // Quay lại nhập email khác
+  if (btnChangeEmail) {
+    btnChangeEmail.onclick = () => {
+      clearErrors();
+      clearInterval(resendTimer);
+      resetPasswordForm.classList.add("d-none");
+      forgotPasswordForm.classList.remove("d-none");
+      emailInput.focus();
+    };
+  }
+
+  // Gửi lại mã OTP
+  if (btnResendOtp) {
+    btnResendOtp.onclick = async () => {
+      if (!savedEmail || resendCountdown > 0) return;
+      btnResendOtp.disabled = true;
+      btnResendOtp.innerHTML =
+        '<span class="spinner-border spinner-border-sm me-1"></span> Đang gửi lại...';
+
+      try {
+        const res = await axios.post(
+          `${BASE_URL}/auth/forgot-password`,
+          { email: savedEmail },
+          { timeout: 25000 },
+        );
+        await Swal.fire({
+          icon: "success",
+          title: "Đã gửi lại mã OTP!",
+          text:
+            res.data?.message ||
+            "Mã OTP mới đã được gửi về email của bạn (hiệu lực 5 phút).",
+          confirmButtonColor: "#6138ff",
+        });
+        startResendCooldown(60);
+      } catch (error) {
+        btnResendOtp.disabled = false;
+        btnResendOtp.innerHTML =
+          '<i class="fa-solid fa-rotate-right me-1"></i> Gửi lại mã OTP';
+        Swal.fire(
+          "Thất bại",
+          error.response?.data?.message || "Không thể gửi lại mã OTP!",
+          "error",
+        );
+      }
+    };
+  }
 
   // =================================================================================
-  // ⚡ XỬ LÝ BƯỚC 1: GỬI EMAIL ĐỂ NHẬN MÃ OTP
+  // BƯỚC 1: GỬI EMAIL ĐỂ NHẬN MÃ OTP
   // =================================================================================
   if (forgotPasswordForm) {
     forgotPasswordForm.onsubmit = async (e) => {
@@ -56,7 +148,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const email = emailInput.value.trim();
 
-      // Kiểm tra rỗng Client-side
       if (!email) {
         showInputError(
           forgotPasswordForm,
@@ -68,7 +159,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Kiểm tra cấu trúc định dạng Email RFC 5322 chuẩn
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(email)) {
         showInputError(
@@ -81,7 +171,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Đổi trạng thái nút bấm để báo hiệu đang xử lý
       const btnSubmitEmail = document.getElementById("btnSubmitEmail");
       const originalBtnHtml = btnSubmitEmail.innerHTML;
       btnSubmitEmail.disabled = true;
@@ -89,9 +178,11 @@ document.addEventListener("DOMContentLoaded", () => {
         '<span class="spinner-border spinner-border-sm me-2"></span> Đang gửi mã...';
 
       try {
-        const response = await axios.post(`${BASE_URL}/auth/forgot-password`, {
-          email,
-        });
+        const response = await axios.post(
+          `${BASE_URL}/auth/forgot-password`,
+          { email },
+          { timeout: 25000 },
+        );
 
         await Swal.fire({
           icon: "success",
@@ -103,17 +194,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         savedEmail = email;
+        if (resetTargetEmailEl) {
+          resetTargetEmailEl.textContent = response.data.maskedEmail || email;
+        }
 
-        // Chuyển form mượt mà bước tiếp theo
         forgotPasswordForm.classList.add("d-none");
         resetPasswordForm.classList.remove("d-none");
+        startResendCooldown(60);
+        if (otpInput) otpInput.focus();
       } catch (error) {
         console.error("FORGOT PASSWORD ERROR:", error);
         const errorMsg =
           error.response?.data?.message ||
           "Email không tồn tại hoặc lỗi hệ thống!";
-
-        // Đẩy thông báo lỗi hệ thống/hoặc lỗi không tồn tại xuống dưới input email
         showInputError(forgotPasswordForm, emailError, emailInput, errorMsg);
       } finally {
         btnSubmitEmail.disabled = false;
@@ -123,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =================================================================================
-  // ⚡ XỬ LÝ BƯỚC 2: XÁC THỰC OTP & CẬP NHẬT MẬT KHẨU MỚI
+  // BƯỚC 2: XÁC THỰC OTP & CẬP NHẬT MẬT KHẨU MỚI
   // =================================================================================
   if (resetPasswordForm) {
     resetPasswordForm.onsubmit = async (e) => {
@@ -132,8 +225,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const otp = otpInput.value.trim();
       const newPassword = newPasswordInput.value;
+      const confirmNewPassword = confirmNewPasswordInput
+        ? confirmNewPasswordInput.value
+        : newPassword;
 
-      // Validate dữ liệu OTP
       if (!otp) {
         showInputError(
           resetPasswordForm,
@@ -145,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      if (otp.length !== 6 || isNaN(otp)) {
+      if (!/^\d{6}$/.test(otp)) {
         showInputError(
           resetPasswordForm,
           otpError,
@@ -156,7 +251,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Validate dữ liệu mật khẩu mới
       if (!newPassword) {
         showInputError(
           resetPasswordForm,
@@ -168,7 +262,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Kiểm tra độ mạnh mật khẩu bảo mật nghiêm ngặt (Regex)
       const passwordRegex =
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/;
       if (!passwordRegex.test(newPassword)) {
@@ -182,6 +275,28 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      if (confirmNewPasswordInput && !confirmNewPassword) {
+        showInputError(
+          resetPasswordForm,
+          confirmNewPasswordError,
+          confirmNewPasswordInput,
+          "Vui lòng nhập lại mật khẩu mới để xác nhận!",
+        );
+        confirmNewPasswordInput.focus();
+        return;
+      }
+
+      if (newPassword !== confirmNewPassword) {
+        showInputError(
+          resetPasswordForm,
+          confirmNewPasswordError,
+          confirmNewPasswordInput,
+          "Mật khẩu xác nhận không khớp!",
+        );
+        confirmNewPasswordInput?.focus();
+        return;
+      }
+
       const btnResetPass = document.getElementById("btnResetPass");
       const originalResetHtml = btnResetPass.innerHTML;
       btnResetPass.disabled = true;
@@ -189,19 +304,24 @@ document.addEventListener("DOMContentLoaded", () => {
         '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';
 
       try {
-        const response = await axios.post(`${BASE_URL}/auth/reset-password`, {
-          email: savedEmail,
-          otp: otp,
-          newPassword: newPassword,
-        });
+        const response = await axios.post(
+          `${BASE_URL}/auth/reset-password`,
+          {
+            email: savedEmail,
+            otp,
+            newPassword,
+          },
+          { timeout: 25000 },
+        );
 
         await Swal.fire({
           icon: "success",
-          title: "Thành công!",
+          title: "Khôi phục thành công!",
           text:
             response.data.message ||
             "Đổi mật khẩu thành công! Hãy đăng nhập bằng mật khẩu mới.",
           confirmButtonColor: "#6138ff",
+          allowOutsideClick: false,
         });
 
         window.location.href = "/src/pages/login.html";
@@ -211,7 +331,6 @@ document.addEventListener("DOMContentLoaded", () => {
           error.response?.data?.message ||
           "Mã OTP không đúng hoặc đã hết hiệu lực!";
 
-        // Phân tích nội dung chuỗi lỗi để đẩy xuống input OTP hay Input Mật khẩu tương ứng
         if (
           errorMsg.toLowerCase().includes("mật khẩu") ||
           errorMsg.toLowerCase().includes("password")
@@ -232,22 +351,22 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // Xử lý bật tắt ẩn hiện password
-  if (toggleNewPasswordBtn && newPasswordInput) {
-    toggleNewPasswordBtn.onclick = () => {
-      const isPassword = newPasswordInput.type === "password";
-      newPasswordInput.type = isPassword ? "text" : "password";
-
-      const icon = toggleNewPasswordBtn.querySelector("i");
+  // Bật/tắt ẩn hiện mật khẩu cho cả 2 ô
+  const bindPasswordToggle = (btn, input) => {
+    if (!btn || !input) return;
+    btn.onclick = () => {
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
+      const icon = btn.querySelector("i");
       if (icon) {
-        if (isPassword) {
-          icon.classList.remove("fa-regular", "fa-eye");
-          icon.classList.add("fa-solid", "fa-eye-slash");
-        } else {
-          icon.classList.remove("fa-solid", "fa-eye-slash");
-          icon.classList.add("fa-regular", "fa-eye");
-        }
+        icon.classList.toggle("fa-regular", !isPassword);
+        icon.classList.toggle("fa-eye", !isPassword);
+        icon.classList.toggle("fa-solid", isPassword);
+        icon.classList.toggle("fa-eye-slash", isPassword);
       }
     };
-  }
+  };
+
+  bindPasswordToggle(toggleNewPasswordBtn, newPasswordInput);
+  bindPasswordToggle(toggleConfirmPasswordBtn, confirmNewPasswordInput);
 });

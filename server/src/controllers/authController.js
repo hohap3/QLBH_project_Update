@@ -2,6 +2,10 @@ const AuthModel = require("../models/authModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const transporter = require("../config/mailer");
+const {
+  maskEmail,
+  sendPasswordChangedAlertEmail,
+} = require("../utils/passwordOtpHelper");
 
 // 1. Bước 1 Đăng ký: Validate, kiểm tra trùng, gửi OTP — CHƯA lưu vào Database cho đến khi xác thực OTP thành công
 exports.register = async (req, res) => {
@@ -300,32 +304,34 @@ exports.verifyRole = async (req, res) => {
 // 5. Xử lý OTP khi quên mật khẩu
 exports.forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) {
+    const cleanEmail = (req.body?.email || "").trim();
+    if (!cleanEmail) {
       return res
         .status(400)
         .json({ message: "Vui lòng cung cấp địa chỉ Email!" });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiredAt = new Date(Date.now() + 5 * 60 * 1000);
 
-    const user = await AuthModel.updateOTP(email, otp, expiredAt);
+    const user = await AuthModel.updateOTP(cleanEmail, otp);
     if (!user) {
       return res
         .status(404)
         .json({ message: "Địa chỉ Email này không tồn tại trên hệ thống!" });
     }
 
+    const targetEmail = (user.email || cleanEmail).trim();
+    const displayName = user.hoten || "bạn";
+
     const mailOptions = {
-      to: email,
+      to: targetEmail,
       subject: "[HP STORE] - Mã xác thực khôi phục mật khẩu",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-          <h2 style="color: #6138ff; text-align: center;">HP STORE</h2>
-          <p>Chào bạn,</p>
-          <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu của bạn. Dưới đây là mã xác thực OTP:</p>
-          <div style="background: #f4f4ff; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #6138ff; border-radius: 5px; margin: 20px 0;">
+        <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+          <h2 style="color: #6138ff; text-align: center; margin-top: 0;">HP STORE</h2>
+          <p>Chào <strong>${displayName}</strong>,</p>
+          <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Dưới đây là mã xác thực OTP:</p>
+          <div style="background: #f4f4ff; padding: 15px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #6138ff; border-radius: 8px; margin: 20px 0;">
             ${otp}
           </div>
           <p style="color: #ff3838; font-size: 13px;">* Mã OTP này có hiệu lực trong vòng 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>
@@ -334,9 +340,11 @@ exports.forgotPassword = async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-    return res
-      .status(200)
-      .json({ message: "Mã OTP đã được gửi thành công đến Email của bạn!" });
+    return res.status(200).json({
+      success: true,
+      maskedEmail: maskEmail(targetEmail),
+      message: `Mã OTP đã được gửi tới email ${maskEmail(targetEmail)} (kiểm tra cả mục Spam nếu chưa thấy)!`,
+    });
   } catch (error) {
     console.error("FORGOT PASSWORD ERROR:", error);
     return res
@@ -345,10 +353,12 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-// 6. Đặt lại mật khẩu mới qua OTP
+// 6. Đặt lại mật khẩu mới qua OTP + gửi email thông báo bảo mật cho chính chủ
 exports.resetPassword = async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
+    const email = (req.body?.email || "").trim();
+    const otp = String(req.body?.otp || "").trim();
+    const newPassword = req.body?.newPassword || "";
 
     if (!email || !otp || !newPassword) {
       return res
@@ -375,9 +385,25 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ message: result.message });
     }
 
-    return res
-      .status(200)
-      .json({ message: "Mật khẩu của bạn đã được cập nhật thành công!" });
+    // Gửi email cảnh báo bảo mật cho chính chủ
+    const ownerEmail = (result.user?.email || email).trim();
+    if (ownerEmail) {
+      try {
+        await sendPasswordChangedAlertEmail({
+          to: ownerEmail,
+          fullName: result.user?.hoten,
+          username: result.user?.tendangnhap,
+        });
+      } catch (mailErr) {
+        console.error("RESET PASSWORD ALERT EMAIL ERROR:", mailErr);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Đặt lại mật khẩu thành công! Email thông báo bảo mật đã được gửi về hộp thư của bạn.",
+    });
   } catch (error) {
     console.error("RESET PASSWORD ERROR:", error);
     return res.status(500).json({
