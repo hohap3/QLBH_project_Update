@@ -6,9 +6,15 @@ import axios from "axios";
 import { BASE_URL } from "/src/JS/common/header";
 
 const checkLoggedIn = () => {
-  const userData = JSON.parse(localStorage.getItem("hpstore_user"));
-  if (userData && userData.token) {
-    window.location.href = "/index.html";
+  try {
+    const raw =
+      localStorage.getItem("hpstore_user") || localStorage.getItem("user");
+    const userData = raw ? JSON.parse(raw) : null;
+    if (userData && userData.token) {
+      window.location.href = "/index.html";
+    }
+  } catch {
+    // Bỏ qua nếu dữ liệu localStorage không hợp lệ
   }
 };
 
@@ -248,31 +254,126 @@ function handleRegisterPage() {
     const submitBtn = registerForm.querySelector('button[type="submit"]');
 
     // Lưu pendingToken tạm trong bộ nhớ trang để gửi kèm khi xác thực OTP
-    if (!window.__hpPendingReg) window.__hpPendingReg = { token: null, email: null };
+    if (!window.__hpPendingReg) {
+      window.__hpPendingReg = { token: null, email: null, expiresAt: 0 };
+    }
 
-    // 🟢 HÀM XỬ LÝ HIỂN THỊ MODAL NHẬP OTP (Tách ra để có thể tái sử dụng)
+    const requestRegisterOtp = async () => {
+      const regRes = await axios.post(
+        `${BASE_URL}/auth/register`,
+        { fullname, username, email, phone, password },
+        { timeout: 25000 },
+      );
+
+      window.__hpPendingReg = {
+        token: regRes.data?.pendingToken || null,
+        email: email.toLowerCase(),
+        expiresAt: Date.now() + 5 * 60 * 1000,
+      };
+
+      if (submitBtn) {
+        submitBtn.setAttribute("data-state", "pending-otp");
+        submitBtn.innerHTML = `<i class="fa-solid fa-key me-2"></i> Nhập mã OTP xác thực`;
+        submitBtn.classList.remove("btn-primary");
+        submitBtn.classList.add("btn-warning", "text-dark");
+      }
+
+      return regRes.data;
+    };
+
+    // 🟢 HÀM XỬ LÝ HIỂN THỊ MODAL NHẬP OTP (Có nút Gửi lại mã OTP đếm ngược 60s)
     const openOtpModal = () => {
+      let resendTimer = null;
+
       Swal.fire({
         icon: "info",
-        title: "Xác thực Email!",
-        text: `Mã OTP gồm 6 số đã được gửi đến Email: ${email}. Tài khoản sẽ được tạo sau khi xác thực thành công.`,
+        title: "Xác thực Email đăng ký",
+        html: `
+          <p class="small text-muted mb-1">
+            Mã OTP gồm 6 chữ số đã được gửi đến <strong>${email}</strong> (hiệu lực 5 phút).
+            Vui lòng kiểm tra cả mục <em>Spam / Thư rác</em> nếu chưa thấy.
+          </p>
+        `,
         input: "text",
-        inputPlaceholder: "Nhập mã OTP 6 chữ số tại đây...",
+        inputPlaceholder: "Nhập mã OTP 6 chữ số...",
         confirmButtonColor: "#d70018",
         confirmButtonText: "Xác nhận & Tạo tài khoản",
         showCancelButton: true,
         cancelButtonText: "Đóng",
         allowOutsideClick: false,
         showLoaderOnConfirm: true,
+        footer: `
+          <button type="button" id="swal-resend-reg-otp" class="btn btn-link btn-sm text-decoration-none fw-semibold" style="color: #d70018;" disabled>
+            <i class="fa-regular fa-clock me-1"></i> Gửi lại mã sau 60s
+          </button>
+        `,
         inputAttributes: {
           maxlength: "6",
           inputmode: "numeric",
+          autocomplete: "one-time-code",
           autocapitalize: "off",
           autocorrect: "off",
+          style: "text-align:center; letter-spacing:6px; font-weight:700; font-size:20px;",
+        },
+        didOpen: () => {
+          const inputEl = Swal.getInput();
+          if (inputEl) {
+            inputEl.addEventListener("input", () => {
+              inputEl.value = inputEl.value.replace(/\D/g, "").slice(0, 6);
+            });
+          }
+
+          const resendBtn = document.getElementById("swal-resend-reg-otp");
+          const startCooldown = (sec = 60) => {
+            if (!resendBtn) return;
+            clearInterval(resendTimer);
+            let left = sec;
+            resendBtn.disabled = true;
+            resendBtn.innerHTML = `<i class="fa-regular fa-clock me-1"></i> Gửi lại mã sau ${left}s`;
+            resendTimer = setInterval(() => {
+              left--;
+              if (left <= 0) {
+                clearInterval(resendTimer);
+                resendBtn.disabled = false;
+                resendBtn.innerHTML =
+                  '<i class="fa-solid fa-rotate-right me-1"></i> Gửi lại mã OTP mới';
+              } else {
+                resendBtn.innerHTML = `<i class="fa-regular fa-clock me-1"></i> Gửi lại mã sau ${left}s`;
+              }
+            }, 1000);
+          };
+
+          startCooldown(60);
+
+          if (resendBtn) {
+            resendBtn.addEventListener("click", async () => {
+              if (resendBtn.disabled) return;
+              resendBtn.disabled = true;
+              resendBtn.innerHTML =
+                '<span class="spinner-border spinner-border-sm me-1"></span> Đang gửi lại mã...';
+              try {
+                await requestRegisterOtp();
+                Swal.resetValidationMessage();
+                startCooldown(60);
+              } catch (err) {
+                resendBtn.disabled = false;
+                resendBtn.innerHTML =
+                  '<i class="fa-solid fa-rotate-right me-1"></i> Gửi lại mã OTP mới';
+                Swal.showValidationMessage(
+                  err.response?.data?.message ||
+                    "Không thể gửi lại mã OTP. Vui lòng thử lại!",
+                );
+              }
+            });
+          }
+        },
+        willClose: () => {
+          clearInterval(resendTimer);
         },
         inputValidator: (value) => {
           if (!value) return "Vui lòng nhập mã OTP để hoàn tất đăng ký!";
-          if (!/^[0-9]{6}$/.test(value.trim())) return "Mã OTP phải bao gồm 6 chữ số!";
+          if (!/^[0-9]{6}$/.test(value.trim()))
+            return "Mã OTP phải bao gồm 6 chữ số!";
         },
         preConfirm: async (otpValue) => {
           try {
@@ -299,7 +400,7 @@ function handleRegisterPage() {
         },
       }).then((result) => {
         if (result.isConfirmed && result.value) {
-          window.__hpPendingReg = { token: null, email: null };
+          window.__hpPendingReg = { token: null, email: null, expiresAt: 0 };
           Swal.fire({
             icon: "success",
             title: "Đăng ký thành công!",
@@ -308,18 +409,19 @@ function handleRegisterPage() {
               "Tài khoản của bạn đã được tạo và kích hoạt thành công.",
             confirmButtonColor: "#d70018",
           }).then(() => {
-            window.location.href = "login.html";
+            window.location.href = "/src/pages/login.html";
           });
         }
       });
     };
 
-    // 🟢 KIỂM TRA: Nếu đang chờ nhập OTP cho đúng email này, mở lại hộp thoại OTP ngay
+    // 🟢 Nếu đang chờ nhập OTP cho đúng email này VÀ token chưa hết hạn 5 phút → mở lại modal ngay
     if (
       submitBtn &&
       submitBtn.getAttribute("data-state") === "pending-otp" &&
       window.__hpPendingReg.token &&
-      window.__hpPendingReg.email === email
+      window.__hpPendingReg.email === email.toLowerCase() &&
+      Date.now() < window.__hpPendingReg.expiresAt
     ) {
       openOtpModal();
       return;
@@ -334,30 +436,7 @@ function handleRegisterPage() {
         didOpen: () => Swal.showLoading(),
       });
 
-      const regRes = await axios.post(
-        `${BASE_URL}/auth/register`,
-        {
-          fullname,
-          username,
-          email,
-          phone,
-          password,
-        },
-        { timeout: 25000 },
-      );
-
-      window.__hpPendingReg = {
-        token: regRes.data?.pendingToken || null,
-        email,
-      };
-
-      // 🟢 Thay đổi trạng thái nút Submit trên giao diện Form
-      if (submitBtn) {
-        submitBtn.setAttribute("data-state", "pending-otp");
-        submitBtn.innerHTML = `<i class="fa-solid fa-key me-2"></i> Nhập mã OTP xác thực`;
-        submitBtn.classList.remove("btn-primary");
-        submitBtn.classList.add("btn-warning", "text-dark");
-      }
+      await requestRegisterOtp();
 
       // Khởi động hiển thị hộp thoại OTP lần đầu tiên
       openOtpModal();

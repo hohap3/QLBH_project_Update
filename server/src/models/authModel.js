@@ -38,12 +38,12 @@ class AuthModel {
     }
   }
 
-  // 3. Kiểm tra trùng lặp tài khoản / email
+  // 3. Kiểm tra trùng lặp tài khoản / email (không phân biệt HOA/thường với email)
   static async checkDuplicate(username, email) {
     try {
       const result = await pool.query(
-        "SELECT tendangnhap, email FROM nguoidung WHERE tendangnhap = $1 OR email = $2",
-        [username, email],
+        "SELECT tendangnhap, email FROM nguoidung WHERE tendangnhap = $1 OR LOWER(TRIM(email)) = LOWER($2)",
+        [String(username).trim(), String(email).trim()],
       );
       return result.rows;
     } catch (error) {
