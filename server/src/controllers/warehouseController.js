@@ -1,6 +1,14 @@
 const WarehouseModel = require("../models/warehouseModel");
 const crypto = require("crypto");
 
+const VALID_WAREHOUSES = ["KHO_TONG", "KHO_CN1", "KHO_CN2"];
+
+function generateTransferRequestCode() {
+  const datePart = new Date().toISOString().slice(2, 10).replace(/-/g, "");
+  const randPart = crypto.randomBytes(4).toString("hex").toUpperCase();
+  return `CK${datePart}${randPart}`; // 16 ký tự <= 24
+}
+
 function generateRandomTransactionCode() {
   // Sinh 9 bytes ngẫu nhiên -> chuyển thành 18 ký tự Hex (Ví dụ: 4f8e21a9c3d4f5e6b7)
   const randomHex = crypto.randomBytes(9).toString("hex").toUpperCase();
@@ -141,6 +149,275 @@ class WarehouseController {
       res.status(400).json({
         success: false,
         message: error.message || "Thao tác kho hàng thất bại!",
+      });
+    }
+  }
+
+  // [GET] /api/warehouse/stock?maSP=...&makho=...
+  static async getWarehouseStock(req, res) {
+    try {
+      const { maSP, makho = "KHO_TONG" } = req.query;
+      if (!maSP) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Thiếu mã sản phẩm (maSP)!" });
+      }
+      const stock = await WarehouseModel.getStockByWarehouse(maSP, makho);
+      res.status(200).json({ success: true, maSP, makho, ...stock });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Lỗi server khi tra cứu tồn kho!",
+        error: error.message,
+      });
+    }
+  }
+
+  // [GET] /api/warehouse/transfers
+  static async getTransferRequests(req, res) {
+    try {
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = 10;
+      const status = (req.query.status || "").trim().toUpperCase();
+      const search = (req.query.search || "").trim();
+
+      const role = String(req.user?.role || "").toUpperCase();
+      const isManagerOrAdmin = ["ADMIN", "MANAGER"].includes(role);
+      const onlyUserId = isManagerOrAdmin ? null : req.user?.id || null;
+
+      const result = await WarehouseModel.getTransferRequests({
+        page,
+        limit,
+        status,
+        search,
+        onlyUserId,
+      });
+
+      res.status(200).json({
+        success: true,
+        currentPage: page,
+        limitPerPage: limit,
+        totalRecords: result.totalRecords,
+        totalPages: result.totalPages,
+        pendingCount: result.pendingCount,
+        data: result.transfers,
+      });
+    } catch (error) {
+      console.error("GET TRANSFERS ERROR:", error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi server khi tải danh sách phiếu chuyển kho!",
+        error: error.message,
+      });
+    }
+  }
+
+  // [POST] /api/warehouse/transfers/request (Nhân viên hoặc Quản lý lập yêu cầu)
+  static async createTransferRequest(req, res) {
+    try {
+      const { maSP, khoNguon, khoDich, soLuong, lyDo } = req.body;
+
+      if (!maSP || !khoNguon || !khoDich || soLuong === undefined || soLuong === "") {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Vui lòng chọn đầy đủ Sản phẩm, Kho nguồn, Kho đích và Số lượng!",
+        });
+      }
+
+      if (
+        !VALID_WAREHOUSES.includes(khoNguon) ||
+        !VALID_WAREHOUSES.includes(khoDich)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Mã kho nguồn hoặc kho đích không hợp lệ!",
+        });
+      }
+
+      if (khoNguon === khoDich) {
+        return res.status(400).json({
+          success: false,
+          message: "Kho nguồn và kho đích không được trùng nhau!",
+        });
+      }
+
+      const parsedQty = parseInt(soLuong, 10);
+      if (isNaN(parsedQty) || parsedQty <= 0 || parsedQty > 100000) {
+        return res.status(400).json({
+          success: false,
+          message: "Số lượng yêu cầu phải là số nguyên từ 1 đến 100.000!",
+        });
+      }
+
+      const nguoiTao = req.user?.id || null;
+      const tenNguoiTao =
+        (await WarehouseModel.getUserDisplayName(nguoiTao)) ||
+        req.user?.name ||
+        req.user?.username ||
+        "Nhân viên";
+
+      const maYeuCau = generateTransferRequestCode();
+      const created = await WarehouseModel.createTransferRequest({
+        maYeuCau,
+        maSP,
+        khoNguon,
+        khoDich,
+        soLuong: parsedQty,
+        lyDo: (lyDo || "").trim(),
+        nguoiTao,
+        tenNguoiTao,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: `Đã lập phiếu yêu cầu chuyển kho ${maYeuCau} và gửi cho Quản lý duyệt!`,
+        data: created,
+      });
+    } catch (error) {
+      console.error("CREATE TRANSFER REQUEST ERROR:", error);
+      res.status(400).json({
+        success: false,
+        message: error.message || "Không thể lập yêu cầu chuyển kho!",
+      });
+    }
+  }
+
+  // [POST] /api/warehouse/transfers/direct (Chỉ ADMIN / MANAGER điều chuyển trực tiếp)
+  static async directTransfer(req, res) {
+    try {
+      const { maSP, khoNguon, khoDich, soLuong, lyDo } = req.body;
+
+      if (!maSP || !khoNguon || !khoDich || soLuong === undefined || soLuong === "") {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Vui lòng chọn đầy đủ Sản phẩm, Kho nguồn, Kho đích và Số lượng!",
+        });
+      }
+
+      if (
+        !VALID_WAREHOUSES.includes(khoNguon) ||
+        !VALID_WAREHOUSES.includes(khoDich)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Mã kho nguồn hoặc kho đích không hợp lệ!",
+        });
+      }
+
+      if (khoNguon === khoDich) {
+        return res.status(400).json({
+          success: false,
+          message: "Kho nguồn và kho đích không được trùng nhau!",
+        });
+      }
+
+      const parsedQty = parseInt(soLuong, 10);
+      if (isNaN(parsedQty) || parsedQty <= 0 || parsedQty > 100000) {
+        return res.status(400).json({
+          success: false,
+          message: "Số lượng điều chuyển phải là số nguyên từ 1 đến 100.000!",
+        });
+      }
+
+      const nguoiTao = req.user?.id || null;
+      const tenNguoiTao =
+        (await WarehouseModel.getUserDisplayName(nguoiTao)) ||
+        req.user?.name ||
+        req.user?.username ||
+        "Quản lý";
+
+      const maYeuCau = generateTransferRequestCode();
+      const result = await WarehouseModel.directTransfer({
+        maYeuCau,
+        maSP,
+        khoNguon,
+        khoDich,
+        soLuong: parsedQty,
+        lyDo: (lyDo || "").trim(),
+        nguoiTao,
+        tenNguoiTao,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: `Điều chuyển thành công ${parsedQty} sản phẩm từ ${khoNguon} sang ${khoDich} (Mã phiếu: ${maYeuCau})!`,
+        data: result,
+      });
+    } catch (error) {
+      console.error("DIRECT TRANSFER ERROR:", error);
+      res.status(400).json({
+        success: false,
+        message: error.message || "Điều chuyển hàng liên kho thất bại!",
+      });
+    }
+  }
+
+  // [PUT] /api/warehouse/transfers/:maYeuCau/approve (Chỉ ADMIN / MANAGER)
+  static async approveTransferRequest(req, res) {
+    try {
+      const { maYeuCau } = req.params;
+      const { ghiChuDuyet } = req.body || {};
+
+      const nguoiDuyet = req.user?.id || null;
+      const tenNguoiDuyet =
+        (await WarehouseModel.getUserDisplayName(nguoiDuyet)) ||
+        req.user?.name ||
+        req.user?.username ||
+        "Quản lý";
+
+      const result = await WarehouseModel.approveTransferRequest({
+        maYeuCau,
+        nguoiDuyet,
+        tenNguoiDuyet,
+        ghiChuDuyet: (ghiChuDuyet || "").trim(),
+      });
+
+      res.status(200).json({
+        success: true,
+        message: `Đã duyệt phiếu ${maYeuCau} và hoàn tất chuyển tồn kho!`,
+        data: result,
+      });
+    } catch (error) {
+      console.error("APPROVE TRANSFER ERROR:", error);
+      res.status(400).json({
+        success: false,
+        message: error.message || "Duyệt phiếu chuyển kho thất bại!",
+      });
+    }
+  }
+
+  // [PUT] /api/warehouse/transfers/:maYeuCau/reject (Chỉ ADMIN / MANAGER)
+  static async rejectTransferRequest(req, res) {
+    try {
+      const { maYeuCau } = req.params;
+      const { ghiChuDuyet } = req.body || {};
+
+      const nguoiDuyet = req.user?.id || null;
+      const tenNguoiDuyet =
+        (await WarehouseModel.getUserDisplayName(nguoiDuyet)) ||
+        req.user?.name ||
+        req.user?.username ||
+        "Quản lý";
+
+      const updated = await WarehouseModel.rejectTransferRequest({
+        maYeuCau,
+        nguoiDuyet,
+        tenNguoiDuyet,
+        ghiChuDuyet: (ghiChuDuyet || "").trim(),
+      });
+
+      res.status(200).json({
+        success: true,
+        message: `Đã từ chối phiếu chuyển kho ${maYeuCau}.`,
+        data: updated,
+      });
+    } catch (error) {
+      console.error("REJECT TRANSFER ERROR:", error);
+      res.status(400).json({
+        success: false,
+        message: error.message || "Từ chối phiếu chuyển kho thất bại!",
       });
     }
   }

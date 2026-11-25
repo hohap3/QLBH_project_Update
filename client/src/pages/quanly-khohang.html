@@ -1,99 +1,206 @@
 <div class="warehouse-container fade-in py-4 px-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
-      <h2 class="content-title mb-1">Quản lý kho hàng & Biến động</h2>
-      <small class="text-muted"
-        >Theo dõi lịch sử nhập xuất kho và tồn kho của sản phẩm</small
-      >
+      <h2 class="content-title mb-1">Quản lý kho hàng &amp; Điều chuyển liên kho</h2>
+      <small class="text-muted">
+        Theo dõi lịch sử nhập xuất kho, lập yêu cầu chuyển kho và điều phối hàng giữa các chi nhánh
+      </small>
     </div>
-    <div class="action-buttons">
-      <button class="btn btn-success me-2" id="btnExportExcel">
-        <i class="fa-solid fa-file-excel me-2"></i> Xuất báo cáo Excel
+    <div class="action-buttons d-flex flex-wrap gap-2">
+      <button type="button" class="btn btn-outline-success" id="btnExportExcel">
+        <i class="fa-solid fa-file-excel me-1"></i> Xuất báo cáo Excel
       </button>
-      <button class="btn btn-primary" id="btnOpenTransactionModal">
-        <i class="fa-solid fa-plus me-2"></i> Tạo phiếu kho
+      <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnOpenTransferRequestModal">
+        <i class="fa-solid fa-paper-plane me-1"></i> Lập yêu cầu chuyển kho
+      </button>
+      <button type="button" class="btn btn-info text-white fw-semibold" id="btnOpenDirectTransferModal">
+        <i class="fa-solid fa-right-left me-1"></i> Điều chuyển liên kho
+      </button>
+      <button type="button" class="btn btn-primary" id="btnOpenTransactionModal">
+        <i class="fa-solid fa-plus me-1"></i> Tạo phiếu kho
       </button>
     </div>
   </div>
 
-  <div class="card filter-card mb-4 border-0 shadow-sm">
-    <div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="input-group">
-            <span class="input-group-text bg-white border-end-0"
-              ><i class="fa-solid fa-magnifying-glass text-muted"></i
-            ></span>
-            <input
-              type="text"
-              class="form-control border-start-0 ps-0"
-              id="searchWarehouse"
-              placeholder="Mã GD, tên SP..."
-            />
+  <!-- Tabs chuyển đổi giữa Lịch sử kho & Yêu cầu điều chuyển liên kho -->
+  <ul class="nav nav-pills gap-2 mb-3" id="warehouseMainTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+        type="button"
+        class="nav-link active fw-semibold px-3 py-2"
+        id="tabBtnLogs"
+        data-warehouse-tab="logs"
+      >
+        <i class="fa-solid fa-clock-rotate-left me-1"></i> Lịch sử nhập / xuất kho
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        type="button"
+        class="nav-link fw-semibold px-3 py-2 d-inline-flex align-items-center gap-2"
+        id="tabBtnTransfers"
+        data-warehouse-tab="transfers"
+      >
+        <span><i class="fa-solid fa-truck-arrow-right me-1"></i> Yêu cầu &amp; Điều chuyển liên kho</span>
+        <span
+          id="pendingTransferBadge"
+          class="badge rounded-pill bg-danger d-none"
+          title="Số phiếu đang chờ quản lý duyệt"
+        >0</span>
+      </button>
+    </li>
+  </ul>
+
+  <!-- TAB 1: LỊCH SỬ NHẬP / XUẤT KHO -->
+  <div id="warehouseLogsSection">
+    <div class="card filter-card mb-4 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="input-group">
+              <span class="input-group-text bg-white border-end-0">
+                <i class="fa-solid fa-magnifying-glass text-muted"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control border-start-0 ps-0"
+                id="searchWarehouse"
+                placeholder="Mã GD, tên SP..."
+              />
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="filterKho">
+              <option value="KHO_TONG">Kho Tổng Trung Tâm</option>
+              <option value="KHO_CN1">Kho Chi nhánh 1</option>
+              <option value="KHO_CN2">Kho Chi nhánh 2</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="filterLoaiGD">
+              <option value="">-- Loại giao dịch --</option>
+              <option value="1">Nhập kho (+)</option>
+              <option value="2">Xuất kho (-)</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button type="button" class="btn btn-secondary w-100" id="btnResetFilter" style="white-space: nowrap;">
+              <i class="fa-solid fa-arrow-rotate-left"></i> Làm mới
+            </button>
           </div>
         </div>
-        <div class="col-md-3">
-          <select class="form-select" id="filterKho">
-            <option value="KHO_TONG">Kho Tổng Trung Tâm</option>
-            <option value="KHO_CN1">Kho Chi nhánh 1</option>
-            <option value="KHO_CN2">Kho Chi nhánh 2</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <select class="form-select" id="filterLoaiGD">
-            <option value="">-- Loại giao dịch --</option>
-            <option value="1">Nhập kho (+)</option>
-            <option value="2">Xuất kho (-)</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <button class="btn btn-secondary w-100" id="btnResetFilter" style="white-space: nowrap;">
-            <i class="fa-solid fa-arrow-rotate-left"></i> Làm mới
-          </button>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0" id="tableWarehouse">
+            <thead class="table-light">
+              <tr>
+                <th>Mã GD</th>
+                <th>Sản phẩm</th>
+                <th>Loại GD</th>
+                <th class="text-center">Số lượng</th>
+                <th class="text-center">Đơn vị tính</th>
+                <th class="text-center">Tồn đầu kì</th>
+                <th class="text-center">Tồn cuối kì</th>
+                <th>Thời gian</th>
+              </tr>
+            </thead>
+            <tbody id="warehouseDataBody">
+              <tr>
+                <td colspan="8" class="text-center py-4">
+                  <div class="spinner-border text-primary" role="status"></div>
+                  <div class="mt-2">Đang tải dữ liệu lịch sử kho...</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div
+            id="warehousePaginationContainer"
+            class="d-flex justify-content-center py-3 px-3 border-top"
+          ></div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="card border-0 shadow-sm">
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0" id="tableWarehouse">
-          <thead class="table-light">
-            <tr>
-              <th>Mã GD</th>
-              <th>Sản phẩm</th>
-              <th>Loại GD</th>
-              <th class="text-center">Số lượng</th>
-              <th class="text-center">Đơn vị tính</th>
-              <th class="text-center">Tồn đầu kì</th>
-              <th class="text-center">Tồn cuối kì</th>
-              <th>Thời gian</th>
-            </tr>
-          </thead>
-          <tbody id="warehouseDataBody">
-            <tr>
-              <td colspan="7" class="text-center py-4">
-                <div class="spinner-border text-primary" role="status"></div>
-                <div class="mt-2">Đang tải dữ liệu lịch sử kho...</div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div
-          id="warehousePaginationContainer"
-          class="d-flex justify-content-center mt-3"
-        ></div>
+  <!-- TAB 2: YÊU CẦU & ĐIỀU CHUYỂN LIÊN KHO -->
+  <div id="warehouseTransfersSection" class="d-none">
+    <div class="card filter-card mb-4 border-0 shadow-sm">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-5">
+            <div class="input-group">
+              <span class="input-group-text bg-white border-end-0">
+                <i class="fa-solid fa-magnifying-glass text-muted"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control border-start-0 ps-0"
+                id="searchTransfer"
+                placeholder="Tìm theo mã phiếu, tên SP, người lập, lý do..."
+              />
+            </div>
+          </div>
+          <div class="col-md-4">
+            <select class="form-select" id="filterTransferStatus">
+              <option value="">-- Tất cả trạng thái phiếu --</option>
+              <option value="CHO_DUYET">Chờ duyệt</option>
+              <option value="DA_DUYET">Đã duyệt / Hoàn tất</option>
+              <option value="TU_CHOI">Đã từ chối</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button type="button" class="btn btn-secondary w-100" id="btnResetTransferFilter" style="white-space: nowrap;">
+              <i class="fa-solid fa-arrow-rotate-left me-1"></i> Làm mới danh sách
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0" id="tableTransferRequests">
+            <thead class="table-light">
+              <tr>
+                <th>Mã phiếu</th>
+                <th>Sản phẩm</th>
+                <th>Luồng điều chuyển</th>
+                <th class="text-center">Số lượng</th>
+                <th>Người lập &amp; Lý do</th>
+                <th class="text-center">Trạng thái</th>
+                <th>Xử lý / Ghi chú</th>
+                <th class="text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="transferDataBody">
+              <tr>
+                <td colspan="8" class="text-center py-4 text-muted">
+                  Đang tải danh sách phiếu chuyển kho...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div
+            id="transferPaginationContainer"
+            class="d-flex justify-content-center py-3 px-3 border-top"
+          ></div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- MODAL 1: TẠO PHIẾU NHẬP / XUẤT KHO LẺ (GIỮ NGUYÊN) -->
 <div class="modal fade" id="modalTransaction" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
       <div class="modal-header bg-light">
-        <h5 class="modal-title font-weight-bold">
+        <h5 class="modal-title fw-bold">
           Tạo phiếu điều phối kho hàng
         </h5>
         <button
@@ -174,6 +281,101 @@
           </button>
           <button type="submit" class="btn btn-primary">
             Xác nhận thực thi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 2: LẬP YÊU CẦU CHUYỂN KHO / ĐIỀU CHUYỂN LIÊN KHO TRỰC TIẾP -->
+<div class="modal fade" id="modalWarehouseTransfer" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-light">
+        <div>
+          <h5 class="modal-title fw-bold mb-0" id="transferModalTitle">
+            Lập yêu cầu chuyển kho
+          </h5>
+          <small class="text-muted" id="transferModalSubtitle">
+            Phiếu sẽ được gửi tới Quản lý để xem xét và phê duyệt
+          </small>
+        </div>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <form id="formWarehouseTransfer">
+        <input type="hidden" id="transferMode" value="request" />
+        <div class="modal-body">
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Kho nguồn (Xuất đi)</label>
+              <select class="form-select" id="transferKhoNguon" required>
+                <option value="KHO_TONG">Kho Tổng Trung Tâm</option>
+                <option value="KHO_CN1">Kho Chi nhánh 1</option>
+                <option value="KHO_CN2">Kho Chi nhánh 2</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Kho đích (Nhận về)</label>
+              <select class="form-select" id="transferKhoDich" required>
+                <option value="KHO_CN1" selected>Kho Chi nhánh 1</option>
+                <option value="KHO_CN2">Kho Chi nhánh 2</option>
+                <option value="KHO_TONG">Kho Tổng Trung Tâm</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label fw-semibold">Chọn Sản phẩm cần chuyển</label>
+            <select class="form-select" id="transferSelectProduct" required></select>
+          </div>
+
+          <div
+            id="transferSourceStockHint"
+            class="alert alert-light border py-2 px-3 small mb-3 d-flex align-items-center justify-content-between"
+          >
+            <span><i class="fa-solid fa-boxes-stacked text-primary me-1"></i> Tồn hiện tại tại kho nguồn:</span>
+            <strong id="transferSourceStockValue" class="text-primary">--</strong>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Số lượng điều chuyển</label>
+            <input
+              type="number"
+              class="form-control"
+              id="transferSoLuong"
+              min="1"
+              max="100000"
+              placeholder="Nhập số lượng cần chuyển (> 0)"
+              required
+            />
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label fw-semibold">Lý do / Ghi chú chuyển kho</label>
+            <textarea
+              class="form-control"
+              id="transferLyDo"
+              rows="2"
+              placeholder="VD: Bổ sung hàng trưng bày / khách đặt tại Chi nhánh 1..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Hủy
+          </button>
+          <button type="submit" class="btn btn-primary fw-semibold" id="btnSubmitWarehouseTransfer">
+            Gửi yêu cầu chuyển kho
           </button>
         </div>
       </form>
