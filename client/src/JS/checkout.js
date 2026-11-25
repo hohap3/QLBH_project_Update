@@ -404,12 +404,15 @@ async function handleCheckoutSubmit(e) {
   const selectedBranchEl = document.querySelector('input[name="checkoutBranch"]:checked');
   const selectedMakho = selectedBranchEl ? selectedBranchEl.value : "KHO_TONG";
   const selectedMachinhanh = selectedMakho === "KHO_CN1" ? "CN_1" : selectedMakho === "KHO_CN2" ? "CN_2" : "CN_CHINH";
+  const selectedShipEl = document.querySelector('input[name="shippingMethod"]:checked');
+  const shipFee = selectedShipEl ? parseInt(selectedShipEl.value, 10) || 0 : 0;
 
   const checkoutPayload = {
     MaNguoiDung:
       userData.maND || userData.id || userData.MaND || userData.mand || null,
     MaKho: selectedMakho,
     MaChiNhanh: selectedMachinhanh,
+    PhiVanChuyen: shipFee,
     GhiChu: note || null,
     NguoiNhan: name,
     SDTNguoiNhan: phone,
@@ -455,7 +458,12 @@ async function handleCheckoutSubmit(e) {
 
     if (response.ok && result.success) {
       const createdOrderId = result.maDonHang || result.MaDonHang;
+      // Dùng đúng tổng tiền chuẩn do Server tính toán để khớp 100% giữa QR và Database
+      const serverTotalMoney =
+        typeof result.tongTien === "number" ? result.tongTien : finalTotalMoney;
 
+      // Xóa ngay các món đã đặt khỏi giỏ hàng (tránh đặt trùng nếu khách tắt tab ở màn hình QR)
+      clearPurchasedItems(false);
       localStorage.removeItem("hpstore_checkout_discount");
 
       const methodCheck = paymentMethod.toUpperCase();
@@ -465,7 +473,7 @@ async function handleCheckoutSubmit(e) {
         methodCheck === "CHUYENKHOAN"
       ) {
         const memo = `HPSTORE DH${createdOrderId}`;
-        const qrUrl = `https://img.vietqr.io/image/${BANK_CONFIG.bankId}-${BANK_CONFIG.accountNo}-compact2.jpg?amount=${finalTotalMoney}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
+        const qrUrl = `https://img.vietqr.io/image/${BANK_CONFIG.bankId}-${BANK_CONFIG.accountNo}-compact2.jpg?amount=${serverTotalMoney}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
 
         Swal.fire({
           title: "Thanh Toán Chuyển Khoản QR",
@@ -478,7 +486,7 @@ async function handleCheckoutSubmit(e) {
               <div class="text-start px-3 py-2 border rounded bg-light" style="font-size: 0.9rem;">
                 <div class="mb-1"><b>Ngân hàng:</b> ${BANK_CONFIG.bankId.toUpperCase()}</div>
                 <div class="mb-1"><b>Số tài khoản:</b> <span class="text-primary fw-bold">${BANK_CONFIG.accountNo}</span></div>
-                <div class="mb-1"><b>Số tiền:</b> <span class="text-danger fw-bold">${finalTotalMoney.toLocaleString("vi-VN")} đ</span></div>
+                <div class="mb-1"><b>Số tiền:</b> <span class="text-danger fw-bold">${serverTotalMoney.toLocaleString("vi-VN")} đ</span></div>
                 <div><b>Nội dung chuyển:</b> <span class="text-success fw-bold">${memo}</span></div>
               </div>
               <p class="text-warning small mt-2 mb-0"><i class="fa fa-info-circle"></i> Hệ thống sẽ duyệt đơn tự động khi nhận được tiền.</p>
@@ -490,25 +498,28 @@ async function handleCheckoutSubmit(e) {
           allowOutsideClick: false,
         }).then((invoiceResult) => {
           if (invoiceResult.isConfirmed) {
-            clearPurchasedItems();
+            window.location.href = "/";
           }
         });
       } else {
         Swal.fire({
           icon: "success",
           title: "Đặt hàng thành công!",
-          html: `Cảm ơn bạn đã mua sắm tại HP STORE.<br>Mã đơn hàng của bạn là: <b>${createdOrderId}</b>`,
-          confirmButtonColor: "#6366f1",
+          html: `Cảm ơn bạn đã mua sắm tại HP STORE.<br>Mã đơn hàng của bạn là: <b>${createdOrderId}</b><br>Tổng thanh toán: <b class="text-danger">${serverTotalMoney.toLocaleString("vi-VN")} đ</b>`,
+          confirmButtonColor: "#d70018",
           confirmButtonText: "Quay lại trang chủ",
         }).then(() => {
-          clearPurchasedItems();
+          window.location.href = "/";
         });
       }
     } else {
       Swal.fire({
         icon: "error",
-        title: "Quá trình đặt hàng thất bại",
-        text: result.message || "Có lỗi ngoài ý muốn xảy ra, vui lòng thử lại.",
+        title: "Không thể tạo đơn hàng",
+        text:
+          result.message ||
+          result.error ||
+          "Có lỗi ngoài ý muốn xảy ra, vui lòng thử lại.",
         confirmButtonColor: "#ef4444",
       });
     }
@@ -523,16 +534,16 @@ async function handleCheckoutSubmit(e) {
   }
 }
 
-function clearPurchasedItems() {
+function clearPurchasedItems(shouldRedirect = true) {
   const cartKey = getCartKey();
   const fullCart = JSON.parse(localStorage.getItem(cartKey)) || [];
   const checkoutCart =
     JSON.parse(localStorage.getItem("hpstore_checkout_cart")) || [];
 
-  const purchasedIds = checkoutCart.map((item) => item.MaSP || item.masp);
+  const purchasedIds = checkoutCart.map((item) => String(item.MaSP || item.masp));
 
   const remainingCart = fullCart.filter(
-    (item) => !purchasedIds.includes(item.MaSP || item.masp),
+    (item) => !purchasedIds.includes(String(item.MaSP || item.masp)),
   );
 
   localStorage.setItem(cartKey, JSON.stringify(remainingCart));
@@ -547,5 +558,7 @@ function clearPurchasedItems() {
   const badge = document.getElementById("cart-count");
   if (badge) badge.innerText = totalItems;
 
-  window.location.href = "/";
+  if (shouldRedirect) {
+    window.location.href = "/";
+  }
 }

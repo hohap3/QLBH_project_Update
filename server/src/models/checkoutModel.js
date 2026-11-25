@@ -1,36 +1,99 @@
 // src/models/checkoutModel.js
 const { pool } = require("../config/database");
+const crypto = require("crypto");
+
+// Bảng quy đổi điểm thưởng chuẩn phía Server (chống sửa giá/giảm giá từ Client)
+const POINT_DISCOUNT_TIERS = {
+  0: 0,
+  75: 5,
+  150: 10,
+  225: 15,
+};
+
+const VALID_WAREHOUSES = ["KHO_TONG", "KHO_CN1", "KHO_CN2"];
+
+function createBusinessError(message) {
+  const err = new Error(message);
+  err.statusCode = 400;
+  return err;
+}
 
 class CheckoutModel {
   /**
-   * Xử lý giao dịch Đặt hàng & Trừ tồn kho Đa chi nhánh (Phase 4)
+   * Xử lý giao dịch Đặt hàng & Trừ tồn kho Đa chi nhánh
    * Đảm bảo an toàn Concurrency bằng Transaction & SELECT ... FOR UPDATE
-   * @param {Object} checkoutData
+   * Tính lại giá bán, giảm giá điểm thưởng và phí vận chuyển 100% ở Server
    */
   static async saveCheckoutTransaction(checkoutData) {
-    // 1. Rút kết nối độc lập từ Connection Pool
     const client = await pool.connect();
 
     try {
-      // 2. BẮT ĐẦU TRANSACTION AN TOÀN
       await client.query("BEGIN");
 
-      // 🟢 Xác định chi nhánh và kho hàng thao tác (Có cơ chế Intelligent Fallback Đa Chi Nhánh)
-      let defaultKho = checkoutData.MaKho || checkoutData.makho || "KHO_TONG";
-      const candidateWarehouses = [defaultKho, "KHO_TONG", "KHO_CN1", "KHO_CN2"].filter((v, i, a) => a.indexOf(v) === i);
-      
-      let makho = defaultKho;
+      // 1. Gộp các sản phẩm trùng mã (nếu có) và validate số lượng > 0
+      const mergedMap = new Map();
+      for (const item of checkoutData.ChiTiet) {
+        const maSP = String(item.MaSP || item.masp || "").trim();
+        const soLuong = parseInt(item.SoLuong || item.soluong, 10) || 0;
+        if (!maSP) {
+          throw createBusinessError("Có sản phẩm bị thiếu mã sản phẩm!");
+        }
+        if (soLuong <= 0) {
+          throw createBusinessError(
+            `Số lượng đặt cho sản phẩm '${maSP}' phải lớn hơn 0!`,
+          );
+        }
+        mergedMap.set(maSP, (mergedMap.get(maSP) || 0) + soLuong);
+      }
+
+      const normalizedItems = [];
+      let rawTotal = 0;
+
+      // 2. Truy vấn GIÁ BÁN THẬT từ bảng sanpham (không tin GiaBan từ Client)
+      for (const [maSP, soLuong] of mergedMap.entries()) {
+        const spRes = await client.query(
+          "SELECT masp, tensp, giaban FROM sanpham WHERE masp = $1",
+          [maSP],
+        );
+        if (spRes.rows.length === 0) {
+          throw createBusinessError(
+            `Sản phẩm '${maSP}' không còn tồn tại trong hệ thống!`,
+          );
+        }
+        const realGiaBan = parseFloat(spRes.rows[0].giaban) || 0;
+        rawTotal += realGiaBan * soLuong;
+        normalizedItems.push({
+          maSP,
+          tenSP: spRes.rows[0].tensp,
+          soLuong,
+          giaBan: realGiaBan,
+        });
+      }
+
+      // 3. Xác định kho hàng thao tác (Ưu tiên kho khách chọn, fallback sang kho khác nếu đủ hàng)
+      const requestedKho = VALID_WAREHOUSES.includes(checkoutData.MaKho)
+        ? checkoutData.MaKho
+        : "KHO_TONG";
+      const candidateWarehouses = [
+        requestedKho,
+        "KHO_TONG",
+        "KHO_CN1",
+        "KHO_CN2",
+      ].filter((v, i, a) => a.indexOf(v) === i);
+
+      let makho = requestedKho;
       for (const candidateKho of candidateWarehouses) {
         let isEligible = true;
-        for (const item of checkoutData.ChiTiet) {
-          const maSP = item.MaSP || item.masp;
-          const soLuong = parseInt(item.SoLuong || item.soluong, 10) || 0;
+        for (const item of normalizedItems) {
           const checkRes = await client.query(
             `SELECT soluongton FROM tonkho WHERE masp = $1 AND makho = $2`,
-            [maSP, candidateKho]
+            [item.maSP, candidateKho],
           );
-          const avail = checkRes.rows.length > 0 ? parseFloat(checkRes.rows[0].soluongton) : 0;
-          if (avail < soLuong) {
+          const avail =
+            checkRes.rows.length > 0
+              ? parseFloat(checkRes.rows[0].soluongton)
+              : 0;
+          if (avail < item.soLuong) {
             isEligible = false;
             break;
           }
@@ -41,74 +104,90 @@ class CheckoutModel {
         }
       }
 
+      // Đồng bộ MaChiNhanh theo đúng makho thực tế được chọn
       const machinhanh =
-        checkoutData.MaChiNhanh ||
-        checkoutData.machinhanh ||
-        (makho === "KHO_CN1"
+        makho === "KHO_CN1"
           ? "CN_1"
           : makho === "KHO_CN2"
             ? "CN_2"
-            : "CN_CHINH");
+            : "CN_CHINH";
 
-      // 🟢 Tìm MaKH từ MaNguoiDung (nếu có tài khoản đăng nhập)
+      // 4. Tìm MaKH & Xác thực + Khấu trừ Điểm tích lũy (chống giả mạo TongGiamGia)
       let maKhachHang = null;
+      const pointsToDeduct = parseInt(checkoutData.PointsToDeduct, 10) || 0;
+
+      if (!(pointsToDeduct in POINT_DISCOUNT_TIERS)) {
+        throw createBusinessError(
+          `Mốc điểm đổi thưởng (${pointsToDeduct} điểm) không hợp lệ!`,
+        );
+      }
+
+      let discountPercent = 0;
+
       if (checkoutData.MaNguoiDung) {
-        const findCustomerQuery = `SELECT makh, diemtichluy FROM khachhang WHERE mand = $1`;
-        const customerResult = await client.query(findCustomerQuery, [
-          checkoutData.MaNguoiDung,
-        ]);
+        const customerResult = await client.query(
+          `SELECT makh, diemtichluy FROM khachhang WHERE mand = $1 FOR UPDATE`,
+          [checkoutData.MaNguoiDung],
+        );
 
         if (customerResult.rows && customerResult.rows.length > 0) {
           maKhachHang = customerResult.rows[0].makh;
 
-          // 🟢 TASK 2: Khấu trừ Điểm tích lũy Smember nếu khách chọn dùng điểm
-          const pointsToDeduct = parseInt(checkoutData.PointsToDeduct, 10) || 0;
           if (pointsToDeduct > 0) {
-            const currentPoints = parseInt(customerResult.rows[0].diemtichluy, 10) || 0;
+            const currentPoints =
+              parseInt(customerResult.rows[0].diemtichluy, 10) || 0;
             if (currentPoints < pointsToDeduct) {
-              throw new Error(`Điểm tích lũy khả dụng (${currentPoints}) không đủ để khấu trừ (${pointsToDeduct})!`);
+              throw createBusinessError(
+                `Điểm tích lũy khả dụng (${currentPoints}) không đủ để đổi mốc ${pointsToDeduct} điểm!`,
+              );
             }
             await client.query(
               `UPDATE khachhang SET diemtichluy = diemtichluy - $1 WHERE makh = $2`,
-              [pointsToDeduct, maKhachHang]
+              [pointsToDeduct, maKhachHang],
             );
+            discountPercent = POINT_DISCOUNT_TIERS[pointsToDeduct];
           }
+        } else if (pointsToDeduct > 0) {
+          throw createBusinessError(
+            "Tài khoản hiện tại không có hồ sơ điểm tích lũy để áp dụng giảm giá!",
+          );
         }
       }
 
-      // 3. SINH MÃ ĐƠN HÀNG TỰ ĐỘNG
-      const maDonHang = "DH" + Date.now().toString().slice(-8);
+      // 5. Tính tổng tiền chuẩn phía Server (bao gồm Phí vận chuyển)
+      const discount = Math.round(rawTotal * (discountPercent / 100));
+      const shipFee = Math.max(
+        0,
+        Math.min(200000, Math.round(parseFloat(checkoutData.PhiVanChuyen) || 0)),
+      );
+      const tongTien = Math.max(0, rawTotal - discount + shipFee);
 
-      // Tính tổng tiền đơn hàng (đã trừ giảm giá điểm thưởng)
-      const rawTotal = checkoutData.ChiTiet.reduce((sum, item) => {
-        const giaBan = parseFloat(item.GiaBan || item.giaban) || 0;
-        const soLuong = parseInt(item.SoLuong || item.soluong, 10) || 0;
-        return sum + giaBan * soLuong;
-      }, 0);
-      const discount = parseFloat(checkoutData.TongGiamGia) || 0;
-      const tongTien = Math.max(0, rawTotal - discount);
+      // 6. SINH MÃ ĐƠN HÀNG TỰ ĐỘNG
+      const maDonHang =
+        "DH" +
+        Date.now().toString().slice(-6) +
+        Math.floor(10 + Math.random() * 90);
 
-      // 4. CHÈN VÀO BẢNG: donhang
-      const insertOrderQuery = `
-        INSERT INTO donhang (madonhang, makh, manguoidung, makho, machinhanh, ngaydat, trangthai, tongtien, ghichu)
-        VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7, $8)
-      `;
-      const orderValues = [
-        maDonHang,
-        maKhachHang,
-        checkoutData.MaNguoiDung || null,
-        makho,
-        machinhanh,
-        "Chờ xử lý",
-        tongTien,
-        checkoutData.GhiChu || checkoutData.ghichu || "",
-      ];
-      await client.query(insertOrderQuery, orderValues);
+      // 7. CHÈN VÀO BẢNG: donhang
+      await client.query(
+        `INSERT INTO donhang (madonhang, makh, manguoidung, makho, machinhanh, ngaydat, trangthai, tongtien, ghichu)
+         VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7, $8)`,
+        [
+          maDonHang,
+          maKhachHang,
+          checkoutData.MaNguoiDung || null,
+          makho,
+          machinhanh,
+          "Chờ xử lý",
+          tongTien,
+          checkoutData.GhiChu || checkoutData.ghichu || "",
+        ],
+      );
 
-      // 5. CHÈN VÀO BẢNG: chitiet_donhang & TRỪ TỒN KHO tonkho (PHASE 4 ĐA CHI NHÁNH)
+      // 8. CHÈN chitiet_donhang (lưu đúng giamgia từng món) & TRỪ TỒN KHO tonkho + GHI SỔ CÁI giaodichkho
       const insertDetailQuery = `
         INSERT INTO chitiet_donhang (madonhang, masp, soluong, giaban, giamgia)
-        VALUES ($1, $2, $3, $4, 0)
+        VALUES ($1, $2, $3, $4, $5)
       `;
       const updateStockQuery = `
         UPDATE tonkho 
@@ -120,86 +199,80 @@ class CheckoutModel {
         VALUES ($1, $2, $3, 2, $4, $5, $6, NOW())
       `;
 
-      for (const item of checkoutData.ChiTiet) {
-        const maSP = item.MaSP || item.masp;
-        const soLuong = parseInt(item.SoLuong || item.soluong, 10) || 0;
-        const giaBan = parseFloat(item.GiaBan || item.giaban) || 0;
-
-        if (soLuong <= 0) {
-          throw new Error(`Số lượng đặt cho sản phẩm '${maSP}' phải lớn hơn 0!`);
-        }
-
-        // 5a. Đảm bảo có dòng tồn kho khởi tạo cho kho này (nếu chưa có)
+      for (const item of normalizedItems) {
         await client.query(
           `INSERT INTO tonkho (makho, masp, soluongton, soluongtamgiu)
            VALUES ($1, $2, 0, 0)
            ON CONFLICT (makho, masp) DO NOTHING`,
-          [makho, maSP],
+          [makho, item.maSP],
         );
 
-        // 5b. Khóa dòng tồn kho an toàn bằng FOR UPDATE để loại trừ Race Condition
         const stockCheck = await client.query(
           `SELECT soluongton FROM tonkho WHERE masp = $1 AND makho = $2 FOR UPDATE`,
-          [maSP, makho],
+          [item.maSP, makho],
         );
         const tonTruoc =
           stockCheck.rows.length > 0
-            ? parseFloat(stockCheck.rows[0].soluongton)
+            ? Math.trunc(parseFloat(stockCheck.rows[0].soluongton) || 0)
             : 0;
 
-        // 5c. Kiểm tra tồn kho khả dụng (Fail-fast để dừng ngay trước khi ghi các bảng khác)
-        if (tonTruoc < soLuong) {
-          throw new Error(
-            `Kho hàng '${makho}' không đủ số lượng xuất cho sản phẩm '${maSP}'! (Hiện còn: ${tonTruoc}, Yêu cầu: ${soLuong})`,
+        if (tonTruoc < item.soLuong) {
+          throw createBusinessError(
+            `Kho hàng '${makho}' không đủ tồn kho cho '${item.tenSP}'! (Hiện còn: ${tonTruoc}, Yêu cầu: ${item.soLuong})`,
           );
         }
 
-        const tonSau = tonTruoc - soLuong;
+        const tonSau = tonTruoc - item.soLuong;
+        const itemDiscount =
+          discountPercent > 0
+            ? Math.round(item.giaBan * item.soLuong * (discountPercent / 100))
+            : 0;
 
-        // 5d. Lưu chi tiết đơn hàng
         await client.query(insertDetailQuery, [
           maDonHang,
-          maSP,
-          soLuong,
-          giaBan,
+          item.maSP,
+          item.soLuong,
+          item.giaBan,
+          itemDiscount,
         ]);
 
-        // 5e. Cập nhật số lượng tồn mới vào bảng tonkho
-        await client.query(updateStockQuery, [soLuong, maSP, makho]);
+        await client.query(updateStockQuery, [item.soLuong, item.maSP, makho]);
 
-        // 5f. Ghi nhận sổ cái biến động kho (Sổ cái Ledger - loaigd = 2: Xuất kho)
-        const maGD =
-          "GD_DH_" +
-          Date.now().toString().slice(-6) +
-          Math.floor(Math.random() * 1000);
+        // Sinh mã giao dịch 20 ký tự duy nhất bằng crypto (chống trùng khi đơn có nhiều sản phẩm)
+        const maGD = `GD${crypto.randomBytes(9).toString("hex").toUpperCase()}`;
         await client.query(insertGDQuery, [
           maGD,
-          maSP,
+          item.maSP,
           makho,
-          soLuong,
+          item.soLuong,
           tonTruoc,
           tonSau,
         ]);
       }
 
-      // 6. CHÈN VÀO BẢNG: phieugiaohang
-      const maGiaoHang = "GH" + Date.now().toString().slice(-8);
-      const insertDeliveryQuery = `
-        INSERT INTO phieugiaohang (magiaohang, madonhang, diachi, ngaygiao, trangthai, nguoinhan, sdtnguoinhan)
-        VALUES ($1, $2, $3, NOW(), $4, $5, $6)
-      `;
-      const deliveryValues = [
-        maGiaoHang,
-        maDonHang,
-        checkoutData.DiaChi || checkoutData.diachi || "Chưa có địa chỉ",
-        "Đang xử lý",
-        checkoutData.NguoiNhan || checkoutData.nguoinhan || "Khách mua lẻ",
-        checkoutData.SDTNguoiNhan || checkoutData.sdtnguoinhan || "",
-      ];
-      await client.query(insertDeliveryQuery, deliveryValues);
+      // 9. CHÈN VÀO BẢNG: phieugiaohang
+      const maGiaoHang =
+        "GH" +
+        Date.now().toString().slice(-6) +
+        Math.floor(10 + Math.random() * 90);
+      await client.query(
+        `INSERT INTO phieugiaohang (magiaohang, madonhang, diachi, ngaygiao, trangthai, nguoinhan, sdtnguoinhan)
+         VALUES ($1, $2, $3, NOW(), $4, $5, $6)`,
+        [
+          maGiaoHang,
+          maDonHang,
+          checkoutData.DiaChi || checkoutData.diachi || "Chưa có địa chỉ",
+          "Đang xử lý",
+          checkoutData.NguoiNhan || checkoutData.nguoinhan || "Khách mua lẻ",
+          checkoutData.SDTNguoiNhan || checkoutData.sdtnguoinhan || "",
+        ],
+      );
 
-      // 7. CHÈN VÀO BẢNG: thanhtoan
-      const maThanhToan = "TT" + Date.now().toString().slice(-8);
+      // 10. CHÈN VÀO BẢNG: thanhtoan
+      const maThanhToan =
+        "TT" +
+        Date.now().toString().slice(-6) +
+        Math.floor(10 + Math.random() * 90);
       const phuongThuc =
         checkoutData.PhuongThucThanhToan ||
         checkoutData.phuongthuc ||
@@ -209,33 +282,23 @@ class CheckoutModel {
           ? "Chưa Thanh Toán"
           : "Chờ Xác Nhận";
 
-      const insertPaymentQuery = `
-        INSERT INTO thanhtoan (mathanhtoan, madonhang, ngaythanhtoan, sotien, phuongthuc, magiaodich, trangthai)
-        VALUES ($1, $2, NOW(), $3, $4, NULL, $5)
-      `;
-      const paymentValues = [
-        maThanhToan,
-        maDonHang,
-        tongTien,
-        phuongThuc,
-        trangThaiTT,
-      ];
-      await client.query(insertPaymentQuery, paymentValues);
+      await client.query(
+        `INSERT INTO thanhtoan (mathanhtoan, madonhang, ngaythanhtoan, sotien, phuongthuc, magiaodich, trangthai)
+         VALUES ($1, $2, NOW(), $3, $4, NULL, $5)`,
+        [maThanhToan, maDonHang, tongTien, phuongThuc, trangThaiTT],
+      );
 
-      // 🟢 XÁC NHẬN GIAO DỊCH THÀNH CÔNG
       await client.query("COMMIT");
 
       return {
-        maDonHang: maDonHang,
-        tongTien: tongTien,
-        makho: makho,
+        maDonHang,
+        tongTien,
+        makho,
       };
     } catch (error) {
-      // 🔴 NẾU CÓ BẤT KỲ LỖI NÀO -> ROLLBACK NGAY ĐỂ BẢO VỆ DATABASE
       await client.query("ROLLBACK");
       throw error;
     } finally {
-      // 🟢 TRẢ KẾT NỐI VỀ CONNECTION POOL
       client.release();
     }
   }

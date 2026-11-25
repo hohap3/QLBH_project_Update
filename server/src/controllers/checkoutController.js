@@ -2,13 +2,15 @@ const checkoutModel = require("../models/checkoutModel");
 
 const createCheckoutOrder = async (req, res) => {
   try {
-    // 🟢 CHUẨN HÓA: Bóc tách tường minh 100% tất cả các trường từ Frontend gửi lên
     const {
       MaNguoiDung,
+      MaKho,
+      MaChiNhanh,
       NguoiNhan,
       SDTNguoiNhan,
       DiaChi,
       PhuongThucThanhToan,
+      PhiVanChuyen,
       PointsToDeduct,
       TongGiamGia,
       GhiChu,
@@ -23,7 +25,7 @@ const createCheckoutOrder = async (req, res) => {
       });
     }
 
-    // 2. Kiểm tra thông tin tài khoản (Chặn nếu hệ thống bắt buộc đăng nhập mới được mua)
+    // 2. Kiểm tra thông tin tài khoản
     if (!MaNguoiDung) {
       return res.status(401).json({
         success: false,
@@ -41,39 +43,46 @@ const createCheckoutOrder = async (req, res) => {
       });
     }
 
-    // 🟢 TỐI ƯU PAYLOAD: Đóng gói dữ liệu sạch, ép kiểu an toàn tránh lỗi lệch kiểu dữ liệu trong DB
+    // 4. Đóng gói dữ liệu sạch (giữ nguyên chuỗi MaNguoiDung chuẩn VARCHAR(20), giữ đủ MaKho/MaChiNhanh/PhiVanChuyen)
     const cleanPayload = {
-      MaNguoiDung: parseInt(MaNguoiDung) || MaNguoiDung, // Ép kiểu số nếu MaNguoiDung là ID số
-      NguoiNhan: NguoiNhan.trim(),
-      SDTNguoiNhan: SDTNguoiNhan.trim(),
-      DiaChi: DiaChi.trim(),
-      PhuongThucThanhToan: PhuongThucThanhToan,
-      GhiChu: GhiChu ? GhiChu.trim() : null,
-      PointsToDeduct: parseInt(PointsToDeduct) || 0, // Đảm bảo luôn là số nguyên, tránh rác hoặc số thập phân
-      TongGiamGia: parseFloat(TongGiamGia) || 0, // Đảm bảo là số thực/decimal phù hợp DB
+      MaNguoiDung: String(MaNguoiDung).trim(),
+      MaKho: MaKho ? String(MaKho).trim() : null,
+      MaChiNhanh: MaChiNhanh ? String(MaChiNhanh).trim() : null,
+      NguoiNhan: String(NguoiNhan).trim(),
+      SDTNguoiNhan: String(SDTNguoiNhan).trim(),
+      DiaChi: String(DiaChi).trim(),
+      PhuongThucThanhToan: String(PhuongThucThanhToan).trim(),
+      PhiVanChuyen: Math.max(0, parseFloat(PhiVanChuyen) || 0),
+      GhiChu: GhiChu ? String(GhiChu).trim() : null,
+      PointsToDeduct: Math.max(0, parseInt(PointsToDeduct, 10) || 0),
+      TongGiamGia: Math.max(0, parseFloat(TongGiamGia) || 0),
       ChiTiet: ChiTiet.map((item) => ({
-        MaSP: item.MaSP || item.masp,
-        SoLuong: parseInt(item.SoLuong) || 0,
-        GiaBan: parseFloat(item.GiaBan) || 0,
-        GiamGia: parseFloat(item.GiamGia) || 0, // Tránh số lẻ thập phân chưa làm tròn khi chia phần trăm
+        MaSP: String(item.MaSP || item.masp || "").trim(),
+        SoLuong: parseInt(item.SoLuong || item.soluong, 10) || 0,
+        GiaBan: parseFloat(item.GiaBan || item.giaban) || 0,
+        GiamGia: parseFloat(item.GiamGia || item.giamgia) || 0,
       })),
     };
 
-    // Gửi payload sạch đã qua chuẩn hóa sang Model xử lý SQL Transaction
     const result = await checkoutModel.saveCheckoutTransaction(cleanPayload);
 
     return res.status(200).json({
       success: true,
       message: "Đơn hàng tạo thành công trên hệ thống HP STORE!",
       maDonHang: result.maDonHang || result.MaDonHang,
+      tongTien: result.tongTien,
+      makho: result.makho,
     });
   } catch (error) {
-    // Lưu ý: Toàn bộ lỗi từ Model (Lỗi kết nối Postgres, sai tên cột, sai Trigger...) sẽ rơi vào đây
-    console.error("🔥 Lỗi nghiêm trọng tại checkoutController:", error);
-    return res.status(500).json({
+    console.error("🔥 Lỗi tại checkoutController:", error);
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({
       success: false,
-      message: "Lỗi máy chủ hệ thống, quá trình đặt hàng thất bại.",
-      error: error.message, // Trả ra message lỗi cụ thể của Postgres giúp bạn debug cực nhanh
+      message:
+        statusCode === 400
+          ? error.message
+          : "Lỗi máy chủ hệ thống, quá trình đặt hàng thất bại.",
+      error: error.message,
     });
   }
 };
