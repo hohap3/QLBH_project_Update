@@ -1,5 +1,13 @@
 const userModel = require("../models/userModel");
 const bcrypt = require("bcrypt");
+const {
+  generateSixDigitOtp,
+  maskEmail,
+  createPasswordOtpToken,
+  verifyPasswordOtpToken,
+  sendPasswordChangeOtpEmail,
+  sendPasswordChangedAlertEmail,
+} = require("../utils/passwordOtpHelper");
 
 const userController = {
   // [GET] Lấy thông tin tài khoản cá nhân
@@ -67,8 +75,8 @@ const userController = {
     }
   },
 
-  // [POST] Đổi mật khẩu tài khoản
-  changePassword: async (req, res) => {
+  // [POST] Bước 1: Kiểm tra mật khẩu cũ & gửi OTP về email chính chủ (Admin/Nhân viên)
+  requestPasswordChangeOtp: async (req, res) => {
     try {
       const { MaND, OldPassword, NewPassword } = req.body;
 
@@ -78,9 +86,89 @@ const userController = {
           .json({ message: "Vui lòng nhập đầy đủ thông tin yêu cầu!" });
       }
 
+      if (OldPassword === NewPassword) {
+        return res
+          .status(400)
+          .json({ message: "Mật khẩu mới không được giống mật khẩu cũ!" });
+      }
+
+      const [currentHash, user] = await Promise.all([
+        userModel.getPassword(MaND),
+        userModel.getUserById(MaND),
+      ]);
+
+      if (!currentHash || !user) {
+        return res.status(404).json({ message: "Người dùng không tồn tại!" });
+      }
+
+      const isMatch = await bcrypt.compare(OldPassword, currentHash);
+      if (!isMatch) {
+        return res
+          .status(400)
+          .json({ message: "Mật khẩu cũ không chính xác!" });
+      }
+
+      const userEmail = (user.email || "").trim();
+      if (!userEmail) {
+        return res.status(400).json({
+          message:
+            "Tài khoản chưa có email! Vui lòng cập nhật email trong thông tin tài khoản trước khi đổi mật khẩu.",
+        });
+      }
+
+      const otp = generateSixDigitOtp();
+      const otpToken = await createPasswordOtpToken({
+        maND: MaND,
+        email: userEmail,
+        otp,
+      });
+
+      await sendPasswordChangeOtpEmail({
+        to: userEmail,
+        fullName: user.hoten,
+        otp,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: `Đã gửi mã OTP xác thực về email ${maskEmail(userEmail)}.`,
+        maskedEmail: maskEmail(userEmail),
+        otpToken,
+      });
+    } catch (error) {
+      console.error("Lỗi Controller (requestPasswordChangeOtp):", error);
+      res
+        .status(500)
+        .json({ message: "Không thể gửi mã OTP qua email. Vui lòng thử lại sau!" });
+    }
+  },
+
+  // [PUT] Bước 2: Xác thực OTP, đổi mật khẩu và gửi email thông báo cho chính chủ
+  changePassword: async (req, res) => {
+    try {
+      const { MaND, OldPassword, NewPassword, Otp, OtpToken } = req.body;
+
+      if (!MaND || !OldPassword || !NewPassword) {
+        return res
+          .status(400)
+          .json({ message: "Vui lòng nhập đầy đủ thông tin yêu cầu!" });
+      }
+
+      const otpCheck = await verifyPasswordOtpToken({
+        maND: MaND,
+        otp: Otp,
+        otpToken: OtpToken,
+      });
+      if (!otpCheck.ok) {
+        return res.status(400).json({ message: otpCheck.message });
+      }
+
       // 1. Lấy mật khẩu băm hiện tại từ DB
-      const currentHash = await userModel.getPassword(MaND);
-      if (!currentHash) {
+      const [currentHash, user] = await Promise.all([
+        userModel.getPassword(MaND),
+        userModel.getUserById(MaND),
+      ]);
+      if (!currentHash || !user) {
         return res.status(404).json({ message: "Người dùng không tồn tại!" });
       }
 
@@ -99,9 +187,28 @@ const userController = {
       // 4. Lưu cập nhật vào DB
       await userModel.updatePassword(MaND, newHash);
 
-      res
-        .status(200)
-        .json({ success: true, message: "Đổi mật khẩu thành công!" });
+      // 5. Gửi email thông báo cho chính chủ
+      const ownerEmail = (user.email || otpCheck.email || "").trim();
+      if (ownerEmail) {
+        try {
+          await sendPasswordChangedAlertEmail({
+            to: ownerEmail,
+            fullName: user.hoten,
+            username: user.tendangnhap,
+          });
+        } catch (mailErr) {
+          console.error(
+            "SEND PASSWORD CHANGED ALERT EMAIL ERROR (user):",
+            mailErr,
+          );
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        message:
+          "Đổi mật khẩu thành công! Email thông báo bảo mật đã được gửi về hộp thư của bạn.",
+      });
     } catch (error) {
       console.error("Lỗi Controller (changePassword):", error);
       res.status(500).json({ message: "Lỗi server khi đổi mật khẩu!" });

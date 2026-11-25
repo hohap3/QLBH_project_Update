@@ -2,6 +2,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { Modal } from "bootstrap";
 import { BASE_URL } from "/src/JS/common/header";
+import { renderAdminPagination } from "/src/JS/common/pagination";
 
 document.addEventListener("DOMContentLoaded", () => {
   initCustomerManager();
@@ -47,7 +48,7 @@ export async function initCustomerManager() {
         currentTableData = data; // 10 bản ghi khách hàng của trang này
 
         renderTable(currentTableData);
-        renderPagination(); // Vẽ thanh chuyển trang ra màn hình
+        renderPagination(totalRecords); // Vẽ thanh chuyển trang nâng cấp ra màn hình
 
         if (totalCountSpan) {
           totalCountSpan.innerText = totalRecords; // Hiển thị tổng số khách hàng toàn hệ thống
@@ -160,71 +161,18 @@ export async function initCustomerManager() {
   });
 
   /**
-   * 🟢 BỔ SUNG: Hàm render thanh điều hướng phân trang bằng CSS Bootstrap
+   * 🟢 Thanh phân trang nâng cấp dùng chung
    */
-  const renderPagination = () => {
+  const renderPagination = (totalRecords = null) => {
     const paginationContainer = document.getElementById(
       "customerPaginationContainer",
     );
-    if (!paginationContainer) return;
-
-    if (totalPages <= 1) {
-      paginationContainer.innerHTML = "";
-      return;
-    }
-
-    let html = `<nav><ul class="pagination pagination-sm mb-0">`;
-
-    // 1. Nút Trước (Previous)
-    html += `
-      <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
-        <button type="button" class="page-link" data-page="${currentPage - 1}" aria-label="Previous">
-          <span aria-hidden="true">&laquo;</span>
-        </button>
-      </li>
-    `;
-
-    // 2. Vòng lặp các số trang (Đã sửa: Bổ sung type="button")
-    for (let i = 1; i <= totalPages; i++) {
-      html += `
-        <li class="page-item ${currentPage === i ? "active" : ""}">
-          <button type="button" class="page-link" data-page="${i}">${i}</button>
-        </li>
-      `;
-    }
-
-    // 3. Nút Kế tiếp (Next) (Đã sửa: Bổ sung type="button")
-    html += `
-      <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
-        <button type="button" class="page-link" data-page="${currentPage + 1}" aria-label="Next">
-          <span aria-hidden="true">&raquo;</span>
-        </button>
-      </li>
-    `;
-
-    html += `</ul></nav>`;
-    paginationContainer.innerHTML = html;
-
-    // Gắn sự kiện click đổi trang cho các nút (Giữ nguyên logic chặn sủi bọt an toàn của bạn)
-    paginationContainer.querySelectorAll(".page-link").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-
-        const targetPage = parseInt(
-          e.currentTarget.getAttribute("data-page"),
-          10,
-        );
-        if (
-          targetPage &&
-          targetPage !== currentPage &&
-          targetPage >= 1 &&
-          targetPage <= totalPages
-        ) {
-          fetchCustomers(targetPage);
-        }
-      });
+    renderAdminPagination(paginationContainer, {
+      currentPage,
+      totalPages,
+      totalItems: totalRecords,
+      pageSize: 10,
+      onPageChange: (targetPage) => fetchCustomers(targetPage),
     });
   };
 

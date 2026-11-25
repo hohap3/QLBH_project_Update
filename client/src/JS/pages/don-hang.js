@@ -4,6 +4,7 @@ import { Modal } from "bootstrap";
 import ExcelJS from "exceljs/dist/exceljs.min.js";
 import { saveAs } from "file-saver";
 import { BASE_URL } from "/src/JS/common/header";
+import { renderAdminPagination } from "/src/JS/common/pagination";
 
 document.addEventListener("DOMContentLoaded", () => {
   initOrderManager();
@@ -89,7 +90,7 @@ export async function initOrderManager() {
       currentTableData = data;
 
       applyClientFilter();
-      renderPagination();
+      renderPagination(totalRecords);
 
       if (orderCountSpan) {
         orderCountSpan.innerText = totalRecords;
@@ -397,59 +398,15 @@ export async function initOrderManager() {
     btnBulkCancel.onclick = () => handleBulkUpdateStatus("CANCEL");
 
   /**
-   * 4. Hàm render các nút bấm phân trang Bootstrap 5
+   * 4. Hàm render các nút bấm phân trang hiện đại
    */
-  const renderPagination = () => {
-    if (!paginationContainer) return;
-    if (totalPages <= 1) {
-      paginationContainer.innerHTML = "";
-      return;
-    }
-
-    let html = `<nav><ul class="pagination pagination-sm mb-0">`;
-
-    html += `
-      <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
-        <button class="page-link" data-page="${currentPage - 1}" aria-label="Previous">
-          <span aria-hidden="true">&laquo;</span>
-        </button>
-      </li>
-    `;
-
-    for (let i = 1; i <= totalPages; i++) {
-      html += `
-        <li class="page-item ${currentPage === i ? "active" : ""}">
-          <button class="page-link" data-page="${i}">${i}</button>
-        </li>
-      `;
-    }
-
-    html += `
-      <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
-        <button class="page-link" data-page="${currentPage + 1}" aria-label="Next">
-          <span aria-hidden="true">&raquo;</span>
-        </button>
-      </li>
-    `;
-
-    html += `</ul></nav>`;
-    paginationContainer.innerHTML = html;
-
-    paginationContainer.querySelectorAll(".page-link").forEach((button) => {
-      button.addEventListener("click", (e) => {
-        const targetPage = parseInt(
-          e.currentTarget.getAttribute("data-page"),
-          10,
-        );
-        if (
-          targetPage &&
-          targetPage !== currentPage &&
-          targetPage >= 1 &&
-          targetPage <= totalPages
-        ) {
-          fetchOrders(targetPage);
-        }
-      });
+  const renderPagination = (totalRecords = 0) => {
+    renderAdminPagination(paginationContainer, {
+      currentPage,
+      totalPages,
+      totalItems: totalRecords,
+      pageSize: 10,
+      onPageChange: (targetPage) => fetchOrders(targetPage),
     });
   };
 

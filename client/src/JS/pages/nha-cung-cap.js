@@ -2,6 +2,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { Modal } from "bootstrap";
 import { BASE_URL } from "/src/JS/common/header";
+import { renderAdminPagination } from "/src/JS/common/pagination";
 
 let supplierModal;
 
@@ -15,18 +16,47 @@ export async function initSupplierManager() {
   const searchInput = document.getElementById("searchSupplier");
   const filterStatus = document.getElementById("filterStatus");
   const totalCount = document.getElementById("totalSuppliers");
+  const paginationContainer = document.getElementById("supplierPaginationContainer");
+
+  let allSuppliers = [];
+  let filteredSuppliers = [];
+  let currentPage = 1;
+  const LIMIT = 8;
 
   // Khởi tạo Bootstrap Modal
   if (modalEl) supplierModal = new Modal(modalEl);
 
   // --- Helper Functions ---
 
+  const renderPaginatedSuppliers = () => {
+    const totalItems = filteredSuppliers.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / LIMIT));
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * LIMIT;
+    const pageData = filteredSuppliers.slice(startIdx, startIdx + LIMIT);
+
+    renderTable(pageData);
+    renderAdminPagination(paginationContainer, {
+      currentPage,
+      totalPages,
+      totalItems,
+      pageSize: LIMIT,
+      onPageChange: (targetPage) => {
+        currentPage = targetPage;
+        renderPaginatedSuppliers();
+      },
+    });
+  };
+
   // 1. Tải danh sách nhà cung cấp
   const loadSuppliers = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/suppliers`);
-      renderTable(res.data);
-      if (totalCount) totalCount.innerText = res.data.length;
+      allSuppliers = Array.isArray(res.data) ? res.data : [];
+      if (totalCount) totalCount.innerText = allSuppliers.length;
+      handleFilter(false);
     } catch (err) {
       console.error("Lỗi tải nhà cung cấp:", err);
       Swal.fire("Lỗi", "Không thể kết nối đến máy chủ", "error");
@@ -35,6 +65,11 @@ export async function initSupplierManager() {
 
   // 2. Render Table
   const renderTable = (data) => {
+    if (!data || data.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">Không tìm thấy nhà cung cấp nào phù hợp</td></tr>`;
+      return;
+    }
+
     tableBody.innerHTML = data
       .map(
         (ncc) => `
@@ -99,36 +134,40 @@ export async function initSupplierManager() {
   }
 
   // Tìm kiếm & Lọc trạng thái
-  const handleFilter = () => {
-    const searchVal = searchInput.value.toLowerCase().trim();
-    const statusVal = filterStatus.value; // "" hoặc "1" hoặc "0"
-    const rows = tableBody.querySelectorAll("tr");
+  const handleFilter = (resetPage = true) => {
+    const searchVal = (searchInput?.value || "").toLowerCase().trim();
+    const statusVal = filterStatus?.value || ""; // "" hoặc "1" hoặc "0"
 
-    rows.forEach((row) => {
-      // 1. Lấy toàn bộ chữ trong dòng để phục vụ tìm kiếm chuỗi
-      const rowText = row.innerText.toLowerCase();
+    filteredSuppliers = allSuppliers.filter((ncc) => {
+      const haystack = [
+        ncc.mancc,
+        ncc.tenncc,
+        ncc.sdt,
+        ncc.email,
+        ncc.diachi,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
 
-      // 2. Kiểm tra điều kiện trạng thái (Đọc trực tiếp text hiển thị của dòng)
-      let statusMatch = false;
-      if (statusVal === "") {
-        statusMatch = true; // Chọn "-- Tất cả trạng thái --"
-      } else if (statusVal === "1") {
-        statusMatch = rowText.includes("đang hoạt động");
+      const searchMatch = !searchVal || haystack.includes(searchVal);
+
+      let statusMatch = true;
+      if (statusVal === "1") {
+        statusMatch = Boolean(ncc.trangthai);
       } else if (statusVal === "0") {
-        statusMatch = rowText.includes("ngừng hợp tác");
+        statusMatch = !ncc.trangthai;
       }
 
-      // 3. Khớp cả 2 điều kiện tìm kiếm và bộ lọc trạng thái
-      if (rowText.includes(searchVal) && statusMatch) {
-        row.style.display = "";
-      } else {
-        row.style.display = "none";
-      }
+      return searchMatch && statusMatch;
     });
+
+    if (resetPage) currentPage = 1;
+    renderPaginatedSuppliers();
   };
 
-  if (searchInput) searchInput.oninput = handleFilter;
-  if (filterStatus) filterStatus.onchange = handleFilter;
+  if (searchInput) searchInput.oninput = () => handleFilter(true);
+  if (filterStatus) filterStatus.onchange = () => handleFilter(true);
 
   // Xử lý Submit Form
   supplierForm.onsubmit = async (e) => {

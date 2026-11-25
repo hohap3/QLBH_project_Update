@@ -1,6 +1,7 @@
 import axios from "axios";
 import Swal from "sweetalert2";
 import { BASE_URL } from "/src/JS/common/header";
+import { renderAdminPagination } from "/src/JS/common/pagination";
 import * as bootstrap from "bootstrap";
 
 // Mảng chứa dữ liệu của TRANG HIỆN TẠI để phục vụ việc xuất file Excel tại chỗ
@@ -129,6 +130,7 @@ async function fetchWarehouseLogs(page = 1) {
         data,
         currentPage: resPage,
         totalPages: resTotalPages,
+        totalRecords,
       } = response.data;
 
       currentPage = resPage;
@@ -147,7 +149,7 @@ async function fetchWarehouseLogs(page = 1) {
       });
 
       renderTable(displayData);
-      renderPagination();
+      renderPagination(totalRecords || null);
     }
   } catch (error) {
     console.error("Lỗi lấy dữ liệu kho:", error);
@@ -207,55 +209,15 @@ function renderTable(data) {
     .join("");
 }
 
-// 3. Render các nút bấm phân trang Bootstrap 5
-function renderPagination() {
+// 3. Render thanh phân trang nâng cấp dùng chung
+function renderPagination(totalRecords = null) {
   const paginationContainer = document.getElementById("warehousePaginationContainer");
-  if (!paginationContainer) return;
-
-  if (totalPages <= 1) {
-    paginationContainer.innerHTML = "";
-    return;
-  }
-
-  let html = `<nav><ul class="pagination pagination-sm mb-0">`;
-
-  // Nút Previous
-  html += `
-    <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
-      <button class="page-link" data-page="${currentPage - 1}" aria-label="Previous">
-        <span aria-hidden="true">&laquo;</span>
-      </button>
-    </li>
-  `;
-
-  // Các nút số trang
-  for (let i = 1; i <= totalPages; i++) {
-    html += `
-      <li class="page-item ${currentPage === i ? "active" : ""}">
-        <button class="page-link" data-page="${i}">${i}</button>
-      </li>
-    `;
-  }
-
-  // Nút Next
-  html += `
-    <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
-      <button class="page-link" data-page="${currentPage + 1}" aria-label="Next">
-        <span aria-hidden="true">&raquo;</span>
-      </button>
-    </li>
-  `;
-
-  html += `</ul></nav>`;
-  paginationContainer.innerHTML = html;
-
-  paginationContainer.querySelectorAll(".page-link").forEach((button) => {
-    button.onclick = (e) => {
-      const targetPage = parseInt(e.currentTarget.getAttribute("data-page"), 10);
-      if (targetPage && targetPage !== currentPage && targetPage >= 1 && targetPage <= totalPages) {
-        fetchWarehouseLogs(targetPage);
-      }
-    };
+  renderAdminPagination(paginationContainer, {
+    currentPage,
+    totalPages,
+    totalItems: totalRecords,
+    pageSize: 10,
+    onPageChange: (targetPage) => fetchWarehouseLogs(targetPage),
   });
 }
 

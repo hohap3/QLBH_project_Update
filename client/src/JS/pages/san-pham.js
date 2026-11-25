@@ -2,6 +2,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { Modal } from "bootstrap";
 import { BASE_URL } from "/src/JS/common/header";
+import { renderAdminPagination } from "/src/JS/common/pagination";
 
 let editModal;
 let addModal;
@@ -219,94 +220,22 @@ export async function initProductManager() {
       .join("");
   };
 
-  // 🔥 SỬA ĐỔI 1: Tối ưu Render thanh phân trang & Ngăn lỗi click lặp lại
-  const renderPagination = (totalPages, pageCurrent) => {
-    if (!paginationContainer) return;
-    if (totalPages <= 1) {
-      paginationContainer.innerHTML = "";
-      return;
-    }
-
-    let html = "";
-
-    // 1. NÚT BACK
-    html += `
-      <li class="page-item ${pageCurrent === 1 ? "disabled" : ""}">
-        <button class="page-link" data-page="${pageCurrent - 1}" ${pageCurrent === 1 ? "disabled" : ""} aria-label="Previous">
-          <span aria-hidden="true">&laquo;</span>
-        </button>
-      </li>
-    `;
-
-    const delta = 1;
-    const range = [];
-
-    for (let i = 1; i <= totalPages; i++) {
-      if (
-        i === 1 ||
-        i === totalPages ||
-        (i >= pageCurrent - delta && i <= pageCurrent + delta)
-      ) {
-        range.push(i);
-      }
-    }
-
-    let l;
-    for (let i of range) {
-      if (l) {
-        if (i - l === 2) {
-          html += `
-            <li class="page-item">
-              <button class="page-link" data-page="${l + 1}">${l + 1}</button>
-            </li>
-          `;
-        } else if (i - l > 2) {
-          html += `
-            <li class="page-item disabled">
-              <span class="page-link bg-light text-muted">...</span>
-            </li>
-          `;
-        }
-      }
-
-      html += `
-        <li class="page-item ${i === pageCurrent ? "active" : ""}">
-          <button class="page-link ${i === pageCurrent ? "fw-bold shadow-sm" : ""}" data-page="${i}">${i}</button>
-        </li>
-      `;
-      l = i;
-    }
-
-    // 2. NÚT NEXT
-    html += `
-      <li class="page-item ${pageCurrent === totalPages ? "disabled" : ""}">
-        <button class="page-link" data-page="${pageCurrent + 1}" ${pageCurrent === totalPages ? "disabled" : ""} aria-label="Next">
-          <span aria-hidden="true">&raquo;</span>
-        </button>
-      </li>
-    `;
-
-    paginationContainer.innerHTML = html;
-  };
-
-  // 🔥 SỬA ĐỔI 2: Sử dụng Ủy quyền sự kiện (Event Delegation) cho phân trang độc lập, tránh xung đột click
-  if (paginationContainer) {
-    paginationContainer.onclick = (e) => {
-      const button = e.target.closest(".page-link");
-      if (!button || button.parentElement.classList.contains("disabled"))
-        return;
-
-      const targetPage = parseInt(button.getAttribute("data-page"));
-      if (targetPage && targetPage !== currentPage) {
+  // Thanh phân trang nâng cấp (Trang đầu / Trước / ... / Sau / Trang cuối + Đến trang)
+  const renderPagination = (totalPages, pageCurrent, totalItemsCount = null) => {
+    renderAdminPagination(paginationContainer, {
+      currentPage: pageCurrent,
+      totalPages,
+      totalItems: totalItemsCount,
+      pageSize: limit,
+      onPageChange: (targetPage) => {
         currentPage = targetPage;
-        loadData(); // Gọi hàm tải trang mới
-
+        loadData();
         if (tableBody) {
           tableBody.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
-      }
-    };
-  }
+      },
+    });
+  };
 
   // Hàm tải dữ liệu từ Server API
   const loadData = async () => {
@@ -323,7 +252,7 @@ export async function initProductManager() {
       const { products, totalItems, totalPages } = res.data;
 
       renderProducts(products);
-      renderPagination(totalPages, currentPage);
+      renderPagination(totalPages, currentPage, totalItems);
       if (totalCount) totalCount.innerText = totalItems;
     } catch (err) {
       console.error("Lỗi tải danh sách sản phẩm:", err);

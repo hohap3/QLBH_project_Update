@@ -2,6 +2,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { Modal } from "bootstrap";
 import { BASE_URL } from "/src/JS/common/header";
+import { renderAdminPagination } from "/src/JS/common/pagination";
 
 let categoryModal;
 let currentPage = 1; // Lưu trữ trang hiện tại
@@ -33,7 +34,7 @@ export async function initCategoryManager() {
       const { data, pagination } = res.data;
 
       renderGrid(data);
-      renderPagination(pagination.totalPages, pagination.page);
+      renderPagination(pagination.totalPages, pagination.page, pagination.total);
 
       if (totalCount) totalCount.innerText = pagination.total;
     } catch (err) {
@@ -86,51 +87,14 @@ export async function initCategoryManager() {
       .join("");
   };
 
-  // Hàm vẽ các nút chuyển trang (Phân trang)
-  const renderPagination = (totalPages, activePage) => {
-    if (!categoryPagination) return;
-    if (totalPages <= 1) {
-      categoryPagination.innerHTML = ""; // Không cần hiện thanh phân trang nếu chỉ có 1 trang
-      return;
-    }
-
-    let html = "";
-
-    // Nút "Trang trước"
-    html += `
-      <li class="page-item ${activePage === 1 ? "disabled" : ""}">
-        <a class="page-link" href="#" data-page="${activePage - 1}">&laquo;</a>
-      </li>
-    `;
-
-    // Vòng lặp in số trang
-    for (let i = 1; i <= totalPages; i++) {
-      html += `
-        <li class="page-item ${activePage === i ? "active" : ""}">
-          <a class="page-link" href="#" data-page="${i}">${i}</a>
-        </li>
-      `;
-    }
-
-    // Nút "Trang sau"
-    html += `
-      <li class="page-item ${activePage === totalPages ? "disabled" : ""}">
-        <a class="page-link" href="#" data-page="${activePage + 1}">&raquo;</a>
-      </li>
-    `;
-
-    categoryPagination.innerHTML = html;
-
-    // Gắn sự kiện click đổi trang cho các nút vừa tạo
-    const links = categoryPagination.querySelectorAll(".page-link");
-    links.forEach((link) => {
-      link.onclick = (e) => {
-        e.preventDefault();
-        const targetPage = parseInt(e.target.getAttribute("data-page"));
-        if (targetPage && targetPage !== activePage) {
-          loadCategories(targetPage);
-        }
-      };
+  // Hàm vẽ thanh phân trang nâng cấp
+  const renderPagination = (totalPages, activePage, totalItemsCount = null) => {
+    renderAdminPagination(categoryPagination, {
+      currentPage: activePage,
+      totalPages,
+      totalItems: totalItemsCount,
+      pageSize: LIMIT,
+      onPageChange: (targetPage) => loadCategories(targetPage),
     });
   };
 

@@ -4,7 +4,9 @@ import { BASE_URL } from "/src/JS/common/header";
 
 export async function initUpdatePass() {
   const passwordForm = document.getElementById("passwordForm");
-  const userStorage = JSON.parse(localStorage.getItem("hpstore_user"));
+  const rawUser =
+    localStorage.getItem("hpstore_user") || localStorage.getItem("user");
+  const userStorage = rawUser ? JSON.parse(rawUser) : null;
 
   // Kiểm tra xem người dùng đã đăng nhập chưa, nếu chưa có thông tin thì chặn thao tác
   if (!userStorage) {
@@ -71,28 +73,108 @@ export async function initUpdatePass() {
           return;
         }
 
-        // 🟢 FIX LỖI 1: Đồng bộ sang phương thức POST phù hợp với Router/Controller ở Backend
-        const response = await axios.put(`${BASE_URL}/user/change-password`, {
-          MaND: maND,
-          OldPassword: oldPass,
-          NewPassword: newPass,
+        // Bước 1: Kiểm tra mật khẩu cũ & gửi mã OTP về email chính chủ
+        Swal.fire({
+          title: "Đang gửi mã OTP...",
+          text: "Vui lòng chờ hệ thống gửi mã xác thực về email của bạn.",
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
         });
 
-        // 🟢 Kiểm tra nếu Backend phản hồi thành công (Có trả về status 200 hoặc success)
-        if (response.status === 200 || response.data.success) {
-          // Chờ người dùng bấm "OK" trên hộp thoại thông báo rồi mới thực hiện chuỗi đăng xuất
+        const otpRes = await axios.post(
+          `${BASE_URL}/user/request-password-otp`,
+          {
+            MaND: maND,
+            OldPassword: oldPass,
+            NewPassword: newPass,
+          },
+          { timeout: 25000 },
+        );
+
+        const { maskedEmail, otpToken } = otpRes.data;
+
+        // Bước 2: Hiển thị modal nhập mã OTP 6 chữ số
+        const otpModal = await Swal.fire({
+          title: "Xác thực OTP đổi mật khẩu",
+          html: `
+            <p class="small text-muted mb-2">
+              Mã xác thực 6 chữ số đã được gửi tới email <strong>${maskedEmail || "của bạn"}</strong>
+              (hiệu lực 5 phút). Vui lòng kiểm tra cả mục <em>Spam / Thư rác</em> nếu chưa thấy.
+            </p>
+            <input
+              id="swal-admin-otp"
+              type="text"
+              inputmode="numeric"
+              maxlength="6"
+              autocomplete="one-time-code"
+              class="swal2-input text-center fw-bold"
+              style="letter-spacing: 8px; font-size: 22px; max-width: 240px;"
+              placeholder="000000"
+            />
+          `,
+          icon: "info",
+          showCancelButton: true,
+          confirmButtonText: "Xác nhận đổi mật khẩu",
+          cancelButtonText: "Hủy",
+          confirmButtonColor: "#6f42c1",
+          showLoaderOnConfirm: true,
+          allowOutsideClick: () => !Swal.isLoading(),
+          didOpen: () => {
+            const input = document.getElementById("swal-admin-otp");
+            if (input) {
+              input.focus();
+              input.addEventListener("input", () => {
+                input.value = input.value.replace(/\D/g, "").slice(0, 6);
+              });
+            }
+          },
+          preConfirm: async () => {
+            const otpVal = (
+              document.getElementById("swal-admin-otp")?.value || ""
+            ).trim();
+            if (!/^\d{6}$/.test(otpVal)) {
+              Swal.showValidationMessage("Vui lòng nhập đủ 6 chữ số mã OTP!");
+              return false;
+            }
+            try {
+              const res = await axios.put(
+                `${BASE_URL}/user/change-password`,
+                {
+                  MaND: maND,
+                  OldPassword: oldPass,
+                  NewPassword: newPass,
+                  Otp: otpVal,
+                  OtpToken: otpToken,
+                },
+                { timeout: 25000 },
+              );
+              return res.data;
+            } catch (err) {
+              const msg =
+                err.response?.data?.message ||
+                "Xác thực OTP thất bại. Vui lòng thử lại!";
+              Swal.showValidationMessage(msg);
+              return false;
+            }
+          },
+        });
+
+        // 🟢 Kiểm tra nếu Backend phản hồi thành công
+        if (otpModal.isConfirmed && otpModal.value?.success) {
           await Swal.fire({
             icon: "success",
-            title: "Thành công",
+            title: "Đổi mật khẩu thành công!",
             text:
-              response.data.message ||
-              "Mật khẩu đã được cập nhật thành công! Vui lòng đăng nhập lại.",
+              otpModal.value.message ||
+              "Mật khẩu đã được cập nhật và email thông báo bảo mật đã gửi về hộp thư của bạn. Vui lòng đăng nhập lại.",
             confirmButtonColor: "#6f42c1",
-            allowOutsideClick: false, // Ép người dùng phải bấm nút để kiểm soát luồng chuyển trang
+            allowOutsideClick: false,
           });
 
           // 1. Xóa thông tin phiên làm việc cũ khỏi localStorage của HP STORE
           localStorage.removeItem("hpstore_user");
+          localStorage.removeItem("user");
+          localStorage.removeItem("token");
           localStorage.removeItem("current_admin_page");
 
           // 2. Làm mới form nhập liệu

@@ -2,6 +2,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { Modal } from "bootstrap";
 import { BASE_URL } from "/src/JS/common/header";
+import { renderAdminPagination } from "/src/JS/common/pagination";
 
 let employeeModal;
 let roleModal;
@@ -96,7 +97,8 @@ export async function initEmployeeManager() {
 
         renderPagination(
           paginationInfo.totalPages || 1,
-          paginationInfo.currentPage || 1
+          paginationInfo.currentPage || 1,
+          paginationInfo.totalItems || null,
         );
       }
     } catch (err) {
@@ -199,45 +201,17 @@ export async function initEmployeeManager() {
       .join("");
   };
 
-  // Phân trang
-  const renderPagination = (totalPages, activePage) => {
-    if (totalPages <= 1) {
-      paginationContainer.innerHTML = "";
-      return;
-    }
-
-    let html = `<ul class="pagination pagination-sm m-0">`;
-    html += `
-      <li class="page-item ${activePage === 1 ? "disabled" : ""}">
-        <a class="page-link" href="#" data-page="${activePage - 1}"><i class="fa-solid fa-angle-left"></i></a>
-      </li>
-    `;
-
-    for (let i = 1; i <= totalPages; i++) {
-      html += `
-        <li class="page-item ${activePage === i ? "active" : ""}">
-          <a class="page-link" href="#" data-page="${i}">${i}</a>
-        </li>
-      `;
-    }
-
-    html += `
-      <li class="page-item ${activePage === totalPages ? "disabled" : ""}">
-        <a class="page-link" href="#" data-page="${activePage + 1}"><i class="fa-solid fa-angle-right"></i></a>
-      </li>
-    `;
-    html += `</ul>`;
-    paginationContainer.innerHTML = html;
-
-    paginationContainer.querySelectorAll(".page-link").forEach((link) => {
-      link.onclick = (e) => {
-        e.preventDefault();
-        const targetPage = parseInt(link.getAttribute("data-page"), 10);
-        if (targetPage && targetPage !== activePage && targetPage >= 1 && targetPage <= totalPages) {
-          currentPage = targetPage;
-          loadEmployees();
-        }
-      };
+  // Phân trang nâng cấp
+  const renderPagination = (totalPages, activePage, totalItemsCount = null) => {
+    renderAdminPagination(paginationContainer, {
+      currentPage: activePage,
+      totalPages,
+      totalItems: totalItemsCount,
+      pageSize: 10,
+      onPageChange: (targetPage) => {
+        currentPage = targetPage;
+        loadEmployees();
+      },
     });
   };
 
