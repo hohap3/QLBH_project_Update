@@ -11,6 +11,7 @@ export const BASE_URL =
 import axios from "axios";
 import Swal from "sweetalert2";
 import "./notify";
+import { syncCartFromServer } from "./cartSync";
 // Import CSS qua Vite để được bundle khi build (link động "/src/..." không tồn tại trên Vercel)
 import "../../styles/header.css";
 
@@ -51,6 +52,7 @@ export function initHeader() {
   initGlobalHeaderSearch();
   checkLoginStatus();
   updateCartBadge();
+  syncCartFromServer();
 }
 
 if (document.readyState === "loading") {

@@ -288,6 +288,20 @@ class CheckoutModel {
         [maThanhToan, maDonHang, tongTien, phuongThuc, trangThaiTT],
       );
 
+      // 11. TỰ ĐỘNG XÓA CÁC MÓN ĐÃ MUA KHỎI BẢNG giohang (ĐỒNG BỘ ĐA THIẾT BỊ)
+      if (checkoutData.MaNguoiDung && normalizedItems.length > 0) {
+        const tableCheck = await client.query(
+          "SELECT to_regclass('public.giohang') AS tbl",
+        );
+        if (tableCheck.rows[0]?.tbl) {
+          const purchasedIds = normalizedItems.map((it) => it.maSP);
+          await client.query(
+            "DELETE FROM giohang WHERE mand = $1 AND masp = ANY($2::varchar[])",
+            [String(checkoutData.MaNguoiDung).trim(), purchasedIds],
+          );
+        }
+      }
+
       await client.query("COMMIT");
 
       return {

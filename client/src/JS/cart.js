@@ -2,6 +2,11 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { BASE_URL } from "/src/JS/common/header";
 import { loadFooter } from "/src/JS/common/footer";
+import {
+  syncCartFromServer,
+  syncUpdateCartItemQty,
+  syncRemoveCartItem,
+} from "/src/JS/common/cartSync";
 
 const DEFAULT_IMAGE = "/img/default.jpg";
 
@@ -14,8 +19,8 @@ let baseSubTotal = 0; // Lưu tổng tiền của CÁC SẢN PHẨM ĐƯỢC TÍ
 document.addEventListener("DOMContentLoaded", async () => {
   loadFooter();
 
-  // 1. Tải thông tin điểm tích lũy của khách hàng trước
-  await fetchUserPoints();
+  // 1. Tải điểm tích lũy & đồng bộ giỏ hàng mới nhất từ Database song song
+  await Promise.all([fetchUserPoints(), syncCartFromServer()]);
 
   // 2. Kích hoạt vẽ giỏ hàng
   renderCartPage();
@@ -440,6 +445,7 @@ window.changeQty = async function (maSP, delta) {
           cart.splice(itemIndex, 1);
           localStorage.setItem(cartKey, JSON.stringify(cart));
           syncCheckoutCartWithMainCart(cart);
+          syncRemoveCartItem(maSP);
 
           // Xóa luôn khỏi danh sách tích chọn nếu có
           let checkedItems =
@@ -498,6 +504,7 @@ window.changeQty = async function (maSP, delta) {
     cart[itemIndex].SoLuong = targetQty;
     localStorage.setItem(cartKey, JSON.stringify(cart));
     syncCheckoutCartWithMainCart(cart);
+    syncUpdateCartItemQty(maSP, targetQty);
     renderCartPage();
   }
 };
@@ -520,6 +527,7 @@ window.removeCartItem = function (maSP) {
       cart = cart.filter((item) => String(item.MaSP || item.masp) !== String(maSP));
       localStorage.setItem(cartKey, JSON.stringify(cart));
       syncCheckoutCartWithMainCart(cart);
+      syncRemoveCartItem(maSP);
 
       // Xóa khỏi danh sách tích chọn nếu có
       let checkedItems =

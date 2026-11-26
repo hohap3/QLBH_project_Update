@@ -1,5 +1,6 @@
 import Swal from "sweetalert2";
 import { BASE_URL } from "/src/JS/common/header";
+import { syncAddCartItem } from "/src/JS/common/cartSync";
 
 const DEFAULT_IMAGE = "/img/default.jpg";
 let currentProductData = null;
@@ -715,6 +716,7 @@ function executeAddProductToCart(product, quantityToBuy) {
   }
 
   localStorage.setItem(userCartKey, JSON.stringify(userCart));
+  syncAddCartItem(maSP, quantityToBuy);
 
   Swal.fire({
     title: "Đã thêm vào giỏ hàng!",

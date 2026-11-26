@@ -1,5 +1,6 @@
 import axios from "axios";
 import { BASE_URL, updateCartBadge } from "/src/JS/common/header";
+import { syncAddCartItem } from "/src/JS/common/cartSync";
 import { loadFooter } from "/src/JS/common/footer";
 import { toastSuccess, toastInfo, toastWarning, toastError } from "/src/JS/common/notify";
 
@@ -293,6 +294,7 @@ function handleAddToCart(maSP) {
 
   localStorage.setItem(cartKey, JSON.stringify(cart));
   updateCartBadge();
+  syncAddCartItem(sp.masp, 1);
   toastSuccess("Đã thêm vào giỏ hàng!", `${sp.tensp}`, 1800);
 }
 
