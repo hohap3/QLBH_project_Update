@@ -1,4 +1,5 @@
 const Order = require("../models/oderModel");
+const { sendOrderStatusEmail } = require("../utils/orderEmailHelper");
 
 const orderController = {
   // 1. API lấy danh sách đơn hàng kèm theo phân trang (Admin/Staff)
@@ -102,6 +103,10 @@ const orderController = {
           .status(404)
           .json({ success: false, message: "Đơn hàng không tồn tại" });
       }
+
+      // Gửi email thông báo cho khách ở các mốc quan trọng (Đang giao / Thành công / Đã hủy)
+      void sendOrderStatusEmail(id, TrangThai);
+
       res
         .status(200)
         .json({ success: true, message: "Cập nhật trạng thái thành công" });
@@ -148,6 +153,9 @@ const orderController = {
       const orderDetails = await Order.getOrderDetailsForCancel(madonhang);
       await Order.processCancelAndRestoreStock(madonhang, orderDetails);
 
+      // Gửi email xác nhận hủy đơn chạy nền
+      void sendOrderStatusEmail(madonhang, "Đã hủy");
+
       return res.status(200).json({
         success: true,
         message:
@@ -184,6 +192,11 @@ const orderController = {
 
       // Thực thi Transaction trong Model
       await Order.processBulkStatusUpdate(orderIds, actionType);
+
+      // Gửi email thông báo chạy nền cho các đơn vừa chuyển sang Đang giao / Thành công / Đã hủy
+      orderIds.forEach((oid) => {
+        void sendOrderStatusEmail(oid);
+      });
 
       return res.status(200).json({
         success: true,

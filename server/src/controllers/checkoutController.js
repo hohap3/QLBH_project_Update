@@ -1,4 +1,5 @@
 const checkoutModel = require("../models/checkoutModel");
+const { sendOrderCreatedEmail } = require("../utils/orderEmailHelper");
 
 const createCheckoutOrder = async (req, res) => {
   try {
@@ -65,11 +66,15 @@ const createCheckoutOrder = async (req, res) => {
     };
 
     const result = await checkoutModel.saveCheckoutTransaction(cleanPayload);
+    const createdOrderId = result.maDonHang || result.MaDonHang;
+
+    // Gửi email xác nhận đơn hàng chạy nền (không làm chậm phản hồi đặt hàng)
+    void sendOrderCreatedEmail(createdOrderId);
 
     return res.status(200).json({
       success: true,
       message: "Đơn hàng tạo thành công trên hệ thống HP STORE!",
-      maDonHang: result.maDonHang || result.MaDonHang,
+      maDonHang: createdOrderId,
       tongTien: result.tongTien,
       makho: result.makho,
     });
