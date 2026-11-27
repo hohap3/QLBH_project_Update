@@ -1,3 +1,4 @@
+import axios from "axios";
 import Swal from "sweetalert2";
 import { BASE_URL } from "/src/JS/common/header";
 import { syncAddCartItem } from "/src/JS/common/cartSync";

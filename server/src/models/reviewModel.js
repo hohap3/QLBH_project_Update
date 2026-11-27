@@ -167,7 +167,7 @@ class ReviewModel {
         tennguoidung = EXCLUDED.tennguoidung,
         sosao = EXCLUDED.sosao,
         noidung = EXCLUDED.noidung,
-        damuahang = GREATEST(danhgia.damuahang, EXCLUDED.damuahang),
+        damuahang = (danhgia.damuahang OR EXCLUDED.damuahang),
         ngaytao = NOW()
       RETURNING *
       `,
