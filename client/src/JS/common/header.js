@@ -503,8 +503,9 @@ function initGlobalHeaderSearch() {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
 
-  // Đồng bộ từ khóa đang tìm từ URL (?search=...) vào ô input nếu có
-  const urlSearch = new URLSearchParams(window.location.search).get("search");
+  // Đồng bộ từ khóa đang tìm từ URL (?q=... hoặc ?search=...) vào ô input nếu có
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlSearch = urlParams.get("q") || urlParams.get("search");
   if (urlSearch && !searchInput.value) {
     searchInput.value = urlSearch;
   }
@@ -516,18 +517,17 @@ function initGlobalHeaderSearch() {
     const keyword = searchInput.value.trim();
     suggestionsBox.classList.add("d-none");
 
-    if (!keyword) {
-      if (typeof window.clearProductFilters === "function") {
-        window.clearProductFilters();
-      }
+    if (typeof window.hpUpdateSearchKeyword === "function") {
+      window.hpUpdateSearchKeyword(keyword);
       return;
     }
 
-    if (typeof window.hpPerformSearch === "function") {
-      window.hpPerformSearch(keyword);
-    } else {
-      window.location.href = `/index.html?search=${encodeURIComponent(keyword)}#product-list`;
+    if (!keyword) {
+      window.location.href = "/src/pages/search.html";
+      return;
     }
+
+    window.location.href = `/src/pages/search.html?q=${encodeURIComponent(keyword)}`;
   };
 
   const fetchSuggestions = async (keyword) => {

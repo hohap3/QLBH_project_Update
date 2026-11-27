@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kết quả tìm kiếm - HP STORE</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <style>
+      .search-page-wrap {
+        min-height: 65vh;
+      }
+      .search-product-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        position: relative;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+      .search-product-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 28px -10px rgba(15, 23, 42, 0.14);
+        border-color: rgba(215, 0, 24, 0.28);
+      }
+      .search-card-img-box {
+        position: relative;
+        height: 185px;
+        padding: 16px;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .search-card-img-box img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        transition: transform 0.25s ease;
+      }
+      .search-product-card:hover .search-card-img-box img {
+        transform: scale(1.05);
+      }
+      .search-card-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #0f172a;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 38px;
+        line-height: 1.4;
+      }
+      .search-wishlist-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #64748b;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        transition: all 0.15s ease;
+      }
+      .search-wishlist-btn:hover {
+        border-color: #fca5a5;
+        color: #dc2626;
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div id="header-shared"></div>
+
+    <main class="container py-4 search-page-wrap">
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small mb-0">
+          <li class="breadcrumb-item">
+            <a href="/index.html" class="text-decoration-none text-secondary">
+              <i class="fa-solid fa-house me-1"></i>Trang chủ
+            </a>
+          </li>
+          <li class="breadcrumb-item active fw-semibold text-danger" aria-current="page">
+            Kết quả tìm kiếm
+          </li>
+        </ol>
+      </nav>
+
+      <!-- Tiêu đề kết quả + Bộ lọc -->
+      <div class="bg-white rounded-4 shadow-sm border p-3 p-md-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pb-3 mb-3 border-bottom">
+          <div>
+            <h1 class="h5 fw-bold text-dark mb-1" id="searchHeading">
+              <i class="fa-solid fa-magnifying-glass text-danger me-2"></i>Tất cả sản phẩm
+            </h1>
+            <p class="text-muted small mb-0" id="searchSubHeading">
+              Đang tìm kiếm sản phẩm phù hợp...
+            </p>
+          </div>
+          <button
+            type="button"
+            id="btnClearSearchFilters"
+            class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold"
+          >
+            <i class="fa-solid fa-rotate-left me-1"></i>Xóa bộ lọc
+          </button>
+        </div>
+
+        <!-- Lọc Danh mục -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+          <span class="small fw-semibold text-secondary me-1">
+            <i class="fa-solid fa-layer-group text-danger me-1"></i>Danh mục:
+          </span>
+          <div class="d-flex flex-wrap gap-2" id="searchCategoryFilter">
+            <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 fw-semibold" data-cat="all">
+              Tất cả
+            </button>
+          </div>
+        </div>
+
+        <!-- Lọc Khoảng giá -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3" id="searchPriceFilter">
+          <span class="small fw-semibold text-secondary me-1">
+            <i class="fa-solid fa-tag text-danger me-1"></i>Mức giá:
+          </span>
+          <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 fw-semibold price-filter-btn active" data-min="" data-max="">
+            Tất cả giá
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 price-filter-btn" data-min="0" data-max="5000000">
+            Dưới 5 triệu
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 price-filter-btn" data-min="5000000" data-max="15000000">
+            5 – 15 triệu
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 price-filter-btn" data-min="15000000" data-max="30000000">
+            15 – 30 triệu
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 price-filter-btn" data-min="30000000" data-max="">
+            Trên 30 triệu
+          </button>
+        </div>
+
+        <!-- Sắp xếp -->
+        <div class="d-flex flex-wrap align-items-center gap-2" id="searchSortBar">
+          <span class="small fw-semibold text-secondary me-1">
+            <i class="fa-solid fa-arrow-down-wide-short text-danger me-1"></i>Sắp xếp:
+          </span>
+          <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 fw-semibold sort-filter-btn active" data-sort="default">
+            Nổi bật
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 sort-filter-btn" data-sort="bestseller">
+            <i class="fa-solid fa-fire text-warning me-1"></i>Bán chạy
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 sort-filter-btn" data-sort="price_asc">
+            Giá thấp → cao
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 sort-filter-btn" data-sort="price_desc">
+            Giá cao → thấp
+          </button>
+        </div>
+      </div>
+
+      <!-- Lưới sản phẩm kết quả -->
+      <div id="searchResultsGrid" class="row g-3 g-md-4">
+        <div class="col-12 text-center py-5 text-muted">
+          <div class="spinner-border text-danger mb-2" role="status"></div>
+          <div>Đang tải kết quả tìm kiếm...</div>
+        </div>
+      </div>
+
+      <!-- Phân trang -->
+      <div id="searchPagination" class="mt-4 d-flex justify-content-center"></div>
+    </main>
+
+    <div id="footer-shared"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="/src/JS/common/header.js"></script>
+    <script type="module" src="/src/JS/search.js"></script>
+  </body>
+</html>
