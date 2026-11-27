@@ -930,6 +930,9 @@ function setupStickyMobileBar() {
 
   let activeFilter = "all";
   let currentProductId = null;
+  let cachedReviews = [];
+  let paintStarPicker = () => {};
+  let isEditingReview = false;
 
   const esc = (str = "") =>
     String(str)
@@ -1072,6 +1075,13 @@ function setupStickyMobileBar() {
 
               <div class="d-flex gap-1 flex-shrink-0">
                 ${
+                  isOwner
+                    ? `<button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 btn-edit-review" data-review-id="${rv.madanhgia}" style="font-size: 12px;" title="Chỉnh sửa đánh giá của bạn">
+                        <i class="fa-regular fa-pen-to-square me-1"></i>Sửa
+                      </button>`
+                    : ""
+                }
+                ${
                   isStaff
                     ? `<button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 btn-reply-review" data-review-id="${rv.madanhgia}" style="font-size: 12px;">
                         <i class="fa-solid fa-reply me-1"></i>${rv.phanhoi_admin ? "Sửa phản hồi" : "Phản hồi"}
@@ -1111,8 +1121,9 @@ function setupStickyMobileBar() {
       }`;
       const res = await axios.get(url);
       if (res.data?.success) {
+        cachedReviews = Array.isArray(res.data.reviews) ? res.data.reviews : [];
         renderStats(res.data.stats);
-        renderReviewsList(res.data.reviews);
+        renderReviewsList(cachedReviews);
       }
     } catch (err) {
       console.error("Lỗi tải đánh giá:", err);
@@ -1125,7 +1136,8 @@ function setupStickyMobileBar() {
     const label = document.getElementById("reviewStarLabel");
     if (!picker || !input) return;
 
-    const paint = (val) => {
+    paintStarPicker = (val) => {
+      input.value = String(val);
       picker.querySelectorAll("i[data-star]").forEach((icon) => {
         const s = Number(icon.getAttribute("data-star"));
         icon.classList.toggle("fa-solid", s <= val);
@@ -1138,11 +1150,10 @@ function setupStickyMobileBar() {
       const starEl = e.target.closest("i[data-star]");
       if (!starEl) return;
       const val = Number(starEl.getAttribute("data-star"));
-      input.value = String(val);
-      paint(val);
+      paintStarPicker(val);
     });
 
-    paint(5);
+    paintStarPicker(5);
   };
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -1216,8 +1227,16 @@ function setupStickyMobileBar() {
             { soSao, noiDung },
           );
           if (res.data?.success) {
+            const wasEditing = isEditingReview;
+            isEditingReview = false;
             document.getElementById("reviewContent").value = "";
-            toastSuccess("Đã gửi đánh giá!", res.data.message);
+            paintStarPicker(5);
+            toastSuccess(
+              wasEditing ? "Đã cập nhật đánh giá!" : "Đã gửi đánh giá!",
+              wasEditing
+                ? "Đánh giá của bạn đã được cập nhật thành công."
+                : res.data.message,
+            );
             await fetchReviews();
           }
         } catch (err) {
@@ -1228,16 +1247,44 @@ function setupStickyMobileBar() {
         } finally {
           if (btn) {
             btn.disabled = false;
-            btn.innerHTML = oldHtml;
+            btn.innerHTML = isEditingReview
+              ? '<i class="fa-solid fa-check me-1"></i>Cập nhật đánh giá'
+              : '<i class="fa-solid fa-paper-plane me-1"></i>Gửi đánh giá';
           }
         }
       });
     }
 
-    // Event delegation cho nút Phản hồi (Admin) & Xóa đánh giá
+    // Event delegation cho nút Sửa (Chính chủ), Phản hồi (Admin) & Xóa đánh giá
     const listEl = document.getElementById("reviewListContainer");
     if (listEl) {
       listEl.addEventListener("click", async (e) => {
+        const editBtn = e.target.closest(".btn-edit-review");
+        if (editBtn) {
+          const reviewId = editBtn.getAttribute("data-review-id");
+          const targetReview = cachedReviews.find(
+            (r) => String(r.madanhgia) === String(reviewId),
+          );
+          if (!targetReview) return;
+
+          isEditingReview = true;
+          paintStarPicker(Number(targetReview.sosao) || 5);
+          const contentEl = document.getElementById("reviewContent");
+          if (contentEl) {
+            contentEl.value = targetReview.noidung || "";
+            contentEl.focus();
+          }
+          const submitBtn = document.getElementById("btnSubmitReview");
+          if (submitBtn) {
+            submitBtn.innerHTML =
+              '<i class="fa-solid fa-check me-1"></i>Cập nhật đánh giá';
+          }
+          document
+            .getElementById("reviewFormWrapper")
+            ?.scrollIntoView({ behavior: "smooth", block: "center" });
+          return;
+        }
+
         const replyBtn = e.target.closest(".btn-reply-review");
         if (replyBtn) {
           const reviewId = replyBtn.getAttribute("data-review-id");
