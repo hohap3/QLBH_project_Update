@@ -1,6 +1,7 @@
 import Swal from "sweetalert2";
 import { BASE_URL } from "/src/JS/common/header";
 import { syncAddCartItem } from "/src/JS/common/cartSync";
+import { toastSuccess, toastInfo, toastError } from "/src/JS/common/notify";
 
 const DEFAULT_IMAGE = "/img/default.jpg";
 let currentProductData = null;
@@ -913,3 +914,389 @@ function setupStickyMobileBar() {
   // Kiểm tra ngay sau khi khởi tạo
   checkStickyVisibility();
 }
+
+// =========================================================================
+// ĐÁNH GIÁ & BÌNH LUẬN SẢN PHẨM (CÁCH A: VERIFIED PURCHASE + ADMIN REPLY)
+// =========================================================================
+(function initProductReviewsModule() {
+  const STAR_LABELS = {
+    1: "Rất tệ",
+    2: "Không hài lòng",
+    3: "Bình thường",
+    4: "Hài lòng",
+    5: "Tuyệt vời",
+  };
+
+  let activeFilter = "all";
+  let currentProductId = null;
+
+  const esc = (str = "") =>
+    String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  const getCurrentAuthUser = () => {
+    try {
+      const raw =
+        localStorage.getItem("hpstore_user") || localStorage.getItem("user");
+      const parsed = raw ? JSON.parse(raw) : null;
+      const token = parsed?.token || localStorage.getItem("token");
+      const id = parsed?.id || parsed?.maND || parsed?.mand || parsed?.MaND;
+      if (!parsed || !token || !id) return null;
+      return {
+        id: String(id),
+        role: String(parsed.role || parsed.mavaitro || "").toUpperCase(),
+        token,
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  const renderStarsHtml = (rating = 0) => {
+    const r = Math.round(Number(rating) || 0);
+    let html = "";
+    for (let i = 1; i <= 5; i++) {
+      html += i <= r
+        ? '<i class="fa-solid fa-star text-warning"></i>'
+        : '<i class="fa-regular fa-star text-warning"></i>';
+    }
+    return html;
+  };
+
+  const renderStats = (stats) => {
+    const avgEl = document.getElementById("reviewAvgScore");
+    const starsEl = document.getElementById("reviewAvgStars");
+    const countEl = document.getElementById("reviewTotalCount");
+    const barsEl = document.getElementById("reviewStarBars");
+
+    const total = Number(stats?.total || 0);
+    const avg = Number(stats?.avg_rating || 0);
+
+    if (avgEl) avgEl.textContent = `${avg.toFixed(1)}/5`;
+    if (starsEl) starsEl.innerHTML = renderStarsHtml(avg);
+    if (countEl) {
+      countEl.textContent =
+        total > 0
+          ? `${total} đánh giá (${stats.verified_count || 0} đã mua hàng)`
+          : "Chưa có đánh giá nào — hãy là người đầu tiên!";
+    }
+
+    if (barsEl) {
+      barsEl.innerHTML = [5, 4, 3, 2, 1]
+        .map((star) => {
+          const cnt = Number(stats?.[`star_${star}`] || 0);
+          const pct = total > 0 ? Math.round((cnt / total) * 100) : 0;
+          return `
+            <div class="d-flex align-items-center gap-2 mb-1 small">
+              <span class="fw-semibold text-nowrap" style="width: 36px;">${star} <i class="fa-solid fa-star text-warning"></i></span>
+              <div class="progress flex-grow-1" style="height: 8px; background: #e2e8f0;">
+                <div class="progress-bar bg-warning" role="progressbar" style="width: ${pct}%;"></div>
+              </div>
+              <span class="text-muted text-end" style="width: 64px;">${cnt} (${pct}%)</span>
+            </div>
+          `;
+        })
+        .join("");
+    }
+  };
+
+  const renderReviewsList = (reviews = []) => {
+    const listEl = document.getElementById("reviewListContainer");
+    if (!listEl) return;
+
+    if (!reviews || reviews.length === 0) {
+      listEl.innerHTML = `
+        <div class="text-center py-4 text-muted small border rounded-3 bg-light">
+          <i class="fa-regular fa-comment-dots fs-3 d-block mb-2 opacity-50"></i>
+          Chưa có đánh giá nào phù hợp với bộ lọc này.
+        </div>
+      `;
+      return;
+    }
+
+    const user = getCurrentAuthUser();
+    const isStaff =
+      user && ["ADMIN", "MANAGER", "STAFF", "EMPLOYEE"].includes(user.role);
+
+    listEl.innerHTML = reviews
+      .map((rv) => {
+        const displayName = esc(rv.tennguoidung || "Thành viên HP STORE");
+        const initial = displayName.trim().slice(0, 1).toUpperCase() || "H";
+        const createdAt = rv.ngaytao
+          ? new Date(rv.ngaytao).toLocaleString("vi-VN")
+          : "";
+        const isOwner = user && String(rv.mand) === String(user.id);
+        const canDelete = isOwner || isStaff;
+
+        const verifiedBadge = rv.damuahang
+          ? '<span class="badge bg-success-subtle text-success border border-success-subtle ms-1" style="font-size: 11px;"><i class="fa-solid fa-circle-check me-1"></i>Đã mua tại HP STORE</span>'
+          : "";
+
+        const replyHtml = rv.phanhoi_admin
+          ? `
+            <div class="mt-2 p-2 px-3 rounded-3 bg-danger-subtle bg-opacity-25 border border-danger-subtle small">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <div>
+                  <span class="badge bg-danger me-1">HP STORE</span>
+                  <strong class="text-dark">${esc(rv.ten_admin || "Quản trị viên")}</strong>
+                </div>
+                <span class="text-muted" style="font-size: 11px;">${rv.ngayphanhoi ? new Date(rv.ngayphanhoi).toLocaleString("vi-VN") : ""}</span>
+              </div>
+              <div class="text-dark">${esc(rv.phanhoi_admin)}</div>
+            </div>
+          `
+          : "";
+
+        return `
+          <div class="p-3 rounded-3 border bg-white">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle bg-danger text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; font-size: 14px;">
+                  ${initial}
+                </div>
+                <div>
+                  <div class="fw-bold text-dark small d-flex flex-wrap align-items-center gap-1">
+                    <span>${displayName}</span>
+                    ${verifiedBadge}
+                  </div>
+                  <div class="d-flex align-items-center gap-2 mt-1">
+                    <span class="small">${renderStarsHtml(rv.sosao)}</span>
+                    <span class="text-muted" style="font-size: 11px;">${createdAt}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex gap-1 flex-shrink-0">
+                ${
+                  isStaff
+                    ? `<button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 btn-reply-review" data-review-id="${rv.madanhgia}" style="font-size: 12px;">
+                        <i class="fa-solid fa-reply me-1"></i>${rv.phanhoi_admin ? "Sửa phản hồi" : "Phản hồi"}
+                      </button>`
+                    : ""
+                }
+                ${
+                  canDelete
+                    ? `<button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 btn-delete-review" data-review-id="${rv.madanhgia}" style="font-size: 12px;" title="Xóa đánh giá">
+                        <i class="fa-regular fa-trash-can"></i>
+                      </button>`
+                    : ""
+                }
+              </div>
+            </div>
+
+            <p class="text-dark small mb-0 mt-2" style="white-space: pre-line; line-height: 1.55;">${esc(rv.noidung)}</p>
+            ${replyHtml}
+          </div>
+        `;
+      })
+      .join("");
+  };
+
+  const fetchReviews = async () => {
+    if (!currentProductId) return;
+    try {
+      const params = new URLSearchParams();
+      if (activeFilter === "verified") {
+        params.append("verified", "true");
+      } else if (["1", "2", "3", "4", "5"].includes(activeFilter)) {
+        params.append("star", activeFilter);
+      }
+
+      const url = `${BASE_URL}/reviews/${encodeURIComponent(currentProductId)}${
+        params.toString() ? `?${params.toString()}` : ""
+      }`;
+      const res = await axios.get(url);
+      if (res.data?.success) {
+        renderStats(res.data.stats);
+        renderReviewsList(res.data.reviews);
+      }
+    } catch (err) {
+      console.error("Lỗi tải đánh giá:", err);
+    }
+  };
+
+  const setupStarPicker = () => {
+    const picker = document.getElementById("reviewStarPicker");
+    const input = document.getElementById("reviewStarValue");
+    const label = document.getElementById("reviewStarLabel");
+    if (!picker || !input) return;
+
+    const paint = (val) => {
+      picker.querySelectorAll("i[data-star]").forEach((icon) => {
+        const s = Number(icon.getAttribute("data-star"));
+        icon.classList.toggle("fa-solid", s <= val);
+        icon.classList.toggle("fa-regular", s > val);
+      });
+      if (label) label.textContent = STAR_LABELS[val] || "";
+    };
+
+    picker.addEventListener("click", (e) => {
+      const starEl = e.target.closest("i[data-star]");
+      if (!starEl) return;
+      const val = Number(starEl.getAttribute("data-star"));
+      input.value = String(val);
+      paint(val);
+    });
+
+    paint(5);
+  };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    currentProductId = urlParams.get("id");
+    if (!currentProductId || !document.getElementById("product-reviews-section")) {
+      return;
+    }
+
+    const user = getCurrentAuthUser();
+    const form = document.getElementById("reviewForm");
+    const loginPrompt = document.getElementById("reviewLoginPrompt");
+
+    if (user) {
+      form?.classList.remove("d-none");
+      loginPrompt?.classList.add("d-none");
+    } else {
+      form?.classList.add("d-none");
+      loginPrompt?.classList.remove("d-none");
+    }
+
+    setupStarPicker();
+    fetchReviews();
+
+    // Lọc đánh giá
+    const filterBar = document.getElementById("reviewFilterBar");
+    if (filterBar) {
+      filterBar.addEventListener("click", (e) => {
+        const btn = e.target.closest(".review-filter-btn");
+        if (!btn) return;
+        activeFilter = btn.getAttribute("data-filter") || "all";
+        filterBar.querySelectorAll(".review-filter-btn").forEach((b) => {
+          const isMatch = b === btn;
+          b.classList.toggle("active", isMatch);
+          b.classList.toggle("btn-danger", isMatch);
+          b.classList.toggle("fw-semibold", isMatch);
+          b.classList.toggle("btn-outline-secondary", !isMatch);
+        });
+        fetchReviews();
+      });
+    }
+
+    // Gửi đánh giá mới / cập nhật đánh giá của bản thân
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const soSao = parseInt(
+          document.getElementById("reviewStarValue")?.value || "5",
+          10,
+        );
+        const noiDung = (
+          document.getElementById("reviewContent")?.value || ""
+        ).trim();
+
+        if (noiDung.length < 3) {
+          toastError("Nội dung quá ngắn", "Vui lòng nhập ít nhất 3 ký tự!");
+          return;
+        }
+
+        const btn = document.getElementById("btnSubmitReview");
+        const oldHtml = btn?.innerHTML;
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-1"></span>Đang gửi...';
+        }
+
+        try {
+          const res = await axios.post(
+            `${BASE_URL}/reviews/${encodeURIComponent(currentProductId)}`,
+            { soSao, noiDung },
+          );
+          if (res.data?.success) {
+            document.getElementById("reviewContent").value = "";
+            toastSuccess("Đã gửi đánh giá!", res.data.message);
+            await fetchReviews();
+          }
+        } catch (err) {
+          toastError(
+            "Không thể gửi đánh giá",
+            err.response?.data?.message || "Vui lòng thử lại sau!",
+          );
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = oldHtml;
+          }
+        }
+      });
+    }
+
+    // Event delegation cho nút Phản hồi (Admin) & Xóa đánh giá
+    const listEl = document.getElementById("reviewListContainer");
+    if (listEl) {
+      listEl.addEventListener("click", async (e) => {
+        const replyBtn = e.target.closest(".btn-reply-review");
+        if (replyBtn) {
+          const reviewId = replyBtn.getAttribute("data-review-id");
+          const result = await Swal.fire({
+            title: "Phản hồi khách hàng",
+            input: "textarea",
+            inputPlaceholder: "Nhập nội dung phản hồi từ HP STORE...",
+            showCancelButton: true,
+            confirmButtonText: "Gửi phản hồi",
+            cancelButtonText: "Hủy",
+            confirmButtonColor: "#d70018",
+            inputValidator: (v) =>
+              !v || v.trim().length < 2
+                ? "Vui lòng nhập nội dung phản hồi!"
+                : null,
+          });
+          if (result.isConfirmed) {
+            try {
+              const res = await axios.put(
+                `${BASE_URL}/reviews/${reviewId}/reply`,
+                { phanHoi: result.value.trim() },
+              );
+              toastSuccess("Đã phản hồi!", res.data?.message || "");
+              await fetchReviews();
+            } catch (err) {
+              toastError(
+                "Lỗi phản hồi",
+                err.response?.data?.message || "Không thể gửi phản hồi!",
+              );
+            }
+          }
+          return;
+        }
+
+        const delBtn = e.target.closest(".btn-delete-review");
+        if (delBtn) {
+          const reviewId = delBtn.getAttribute("data-review-id");
+          const confirm = await Swal.fire({
+            title: "Xóa đánh giá này?",
+            text: "Hành động này không thể hoàn tác.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#dc3545",
+            confirmButtonText: "Xóa ngay",
+            cancelButtonText: "Hủy",
+          });
+          if (confirm.isConfirmed) {
+            try {
+              await axios.delete(`${BASE_URL}/reviews/${reviewId}`);
+              toastInfo("Đã xóa đánh giá");
+              await fetchReviews();
+            } catch (err) {
+              toastError(
+                "Không thể xóa",
+                err.response?.data?.message || "Lỗi khi xóa đánh giá!",
+              );
+            }
+          }
+        }
+      });
+    }
+  });
+})();

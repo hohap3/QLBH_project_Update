@@ -1,4 +1,5 @@
 const { pool } = require("../config/database");
+const ReviewModel = require("./reviewModel");
 
 const VN_ACCENTED =
   "áàảãạăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵ";
@@ -23,6 +24,7 @@ class ProductModel {
   // 1. LẤY SẢN PHẨM BÁN CHẠY / DEAL SỐC (CÓ LỌC THEO DANH MỤC & LEFT JOIN ĐỂ KHÔNG BỊ TRỐNG)
   static async getBestSellers(page = 1, limit = 8, category = "all") {
     try {
+      await ReviewModel.ensureReviewTable();
       const offset = (page - 1) * limit;
       const hasCategory =
         category &&
@@ -47,7 +49,9 @@ class ProductModel {
         `
         SELECT
           sp.masp, sp.tensp, sp.giaban, sp.hinhanh, sp.madanhmuc,
-          COALESCE(SUM(ct.soluong), 0)::int AS tongdaban
+          COALESCE(SUM(ct.soluong), 0)::int AS tongdaban,
+          COALESCE((SELECT ROUND(AVG(sosao)::numeric, 1)::float FROM danhgia WHERE masp = sp.masp), 0) AS diemtrungbinh,
+          COALESCE((SELECT COUNT(*)::int FROM danhgia WHERE masp = sp.masp), 0) AS sodanhgia
         FROM sanpham sp
         LEFT JOIN chitiet_donhang ct ON sp.masp = ct.masp
         ${whereClause}
@@ -67,12 +71,15 @@ class ProductModel {
     // 2. LẤY TẤT CẢ SẢN PHẨM HOẶC THEO DANH MỤC (CÓ PHÂN TRANG & BỘ LỌC NÂNG CAO)
   static async getProducts(maDM = null, page = 1, limit = 8, filters = {}) {
     try {
+      await ReviewModel.ensureReviewTable();
       const offset = (page - 1) * limit;
       let countQuery = "SELECT COUNT(*) as total FROM sanpham sp LEFT JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc WHERE 1=1";
       let dataQuery = `
         SELECT sp.*, dm.tendanhmuc,
           COALESCE((SELECT SUM(soluongton) FROM tonkho WHERE masp = sp.masp), 0) AS soluongton,
-          COALESCE((SELECT SUM(soluong) FROM chitiet_donhang WHERE masp = sp.masp), 0)::int AS tongdaban
+          COALESCE((SELECT SUM(soluong) FROM chitiet_donhang WHERE masp = sp.masp), 0)::int AS tongdaban,
+          COALESCE((SELECT ROUND(AVG(sosao)::numeric, 1)::float FROM danhgia WHERE masp = sp.masp), 0) AS diemtrungbinh,
+          COALESCE((SELECT COUNT(*)::int FROM danhgia WHERE masp = sp.masp), 0) AS sodanhgia
         FROM sanpham sp
         LEFT JOIN danhmuc dm ON sp.madanhmuc = dm.madanhmuc
         WHERE 1=1

@@ -276,6 +276,99 @@
         </div>
       </div>
 
+      <!-- Khối Đánh giá & Bình luận sản phẩm -->
+      <section class="mt-4 pt-2" id="product-reviews-section">
+        <div class="bg-white rounded-4 shadow-sm border p-3 p-md-4">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pb-3 mb-3 border-bottom">
+            <div>
+              <h3 class="fw-bold text-dark mb-0 fs-5">
+                <i class="fa-solid fa-star text-warning me-2"></i>Đánh giá &amp; Nhận xét sản phẩm
+              </h3>
+              <p class="text-muted small mb-0">
+                Chia sẻ trải nghiệm thực tế và đặt câu hỏi về sản phẩm cùng cộng đồng HP STORE
+              </p>
+            </div>
+          </div>
+
+          <!-- Tổng quan điểm sao + Thanh phân bổ -->
+          <div class="row g-3 align-items-center mb-4 p-3 rounded-3 bg-light border">
+            <div class="col-md-4 text-center border-md-end">
+              <div class="display-6 fw-bold text-danger mb-1" id="reviewAvgScore">0.0/5</div>
+              <div id="reviewAvgStars" class="text-warning fs-5 mb-1">
+                <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
+              </div>
+              <div class="small text-muted" id="reviewTotalCount">Chưa có đánh giá nào</div>
+            </div>
+            <div class="col-md-8" id="reviewStarBars">
+              <!-- JS render 5 thanh tiến trình 5★ -> 1★ -->
+            </div>
+          </div>
+
+          <!-- Form viết đánh giá -->
+          <div class="p-3 rounded-3 border bg-white mb-4" id="reviewFormWrapper">
+            <div id="reviewLoginPrompt" class="d-none text-center py-2">
+              <p class="text-muted small mb-2">
+                Bạn cần đăng nhập tài khoản HP STORE để gửi đánh giá hoặc bình luận sản phẩm.
+              </p>
+              <a href="/src/pages/login.html" class="btn btn-danger btn-sm rounded-pill px-4 fw-semibold">
+                <i class="fa-solid fa-right-to-bracket me-1"></i>Đăng nhập để đánh giá
+              </a>
+            </div>
+
+            <form id="reviewForm" class="d-none">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                <span class="fw-semibold text-dark small">Đánh giá của bạn về sản phẩm này:</span>
+                <div class="d-flex align-items-center gap-2">
+                  <div id="reviewStarPicker" class="d-inline-flex gap-1 fs-4 text-warning" style="cursor: pointer;">
+                    <i class="fa-solid fa-star" data-star="1"></i>
+                    <i class="fa-solid fa-star" data-star="2"></i>
+                    <i class="fa-solid fa-star" data-star="3"></i>
+                    <i class="fa-solid fa-star" data-star="4"></i>
+                    <i class="fa-solid fa-star" data-star="5"></i>
+                  </div>
+                  <span id="reviewStarLabel" class="badge bg-warning-subtle text-dark border border-warning-subtle">Tuyệt vời</span>
+                </div>
+              </div>
+              <input type="hidden" id="reviewStarValue" value="5" />
+              <textarea
+                id="reviewContent"
+                class="form-control mb-2"
+                rows="3"
+                maxlength="1000"
+                placeholder="Chia sẻ cảm nhận về hiệu năng, thiết kế, pin, đóng gói hoặc đặt câu hỏi về sản phẩm..."
+                required
+              ></textarea>
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <small class="text-muted">
+                  <i class="fa-solid fa-shield-check text-success me-1"></i>Tài khoản đã mua sản phẩm sẽ tự động nhận huy hiệu <strong>Đã mua tại HP STORE</strong>.
+                </small>
+                <button type="submit" id="btnSubmitReview" class="btn btn-danger btn-sm rounded-pill px-4 fw-semibold">
+                  <i class="fa-solid fa-paper-plane me-1"></i>Gửi đánh giá
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Bộ lọc đánh giá -->
+          <div class="d-flex flex-wrap gap-2 mb-3" id="reviewFilterBar">
+            <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 fw-semibold review-filter-btn active" data-filter="all">Tất cả</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 review-filter-btn" data-filter="verified">
+              <i class="fa-solid fa-circle-check text-success me-1"></i>Đã mua hàng
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 review-filter-btn" data-filter="5">5 ★</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 review-filter-btn" data-filter="4">4 ★</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 review-filter-btn" data-filter="3">3 ★</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 review-filter-btn" data-filter="2">2 ★</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 review-filter-btn" data-filter="1">1 ★</button>
+          </div>
+
+          <!-- Danh sách đánh giá -->
+          <div id="reviewListContainer" class="d-flex flex-column gap-3">
+            <div class="text-center py-4 text-muted small">Đang tải đánh giá sản phẩm...</div>
+          </div>
+        </div>
+      </section>
+
       <!-- Khối Sản phẩm tương tự -->
       <section class="mt-4 pt-2">
         <div class="d-flex align-items-center justify-content-between mb-3">

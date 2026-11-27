@@ -327,12 +327,16 @@ function renderHPStoreProductCard(sp) {
         <span>HP Member giảm thêm đến <span class="highlight">2%</span></span>
       </div>
 
-      <!-- Footer thẻ: Đánh giá sao & lượt bán -->
+      <!-- Footer thẻ: Đánh giá sao thật từ DB & lượt bán -->
       <div class="hp-card-footer">
         <span class="hp-rating-stars">
-          <i class="fa-solid fa-star"></i> 4.9
+          <i class="fa-solid fa-star"></i> ${
+            Number(sp.sodanhgia) > 0
+              ? `${Number(sp.diemtrungbinh).toFixed(1)} <span class="text-muted fw-normal">(${sp.sodanhgia})</span>`
+              : "5.0"
+          }
         </span>
-        <span>Đã bán ${sp.tongdaban || Math.floor(Math.random() * 50) + 10}</span>
+        <span>Đã bán ${sp.tongdaban ?? 0}</span>
       </div>
     </div>
   `;
